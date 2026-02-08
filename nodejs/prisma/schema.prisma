@@ -1,0 +1,329 @@
+// ClawDeck Prisma Schema
+// Matches Rails schema version 2026_01_31_142501
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums matching Rails enums
+enum TaskStatus {
+  inbox       // 0
+  up_next     // 1
+  in_progress // 2
+  in_review   // 3
+  done        // 4
+}
+
+enum Priority {
+  none    // 0
+  low     // 1
+  medium  // 2
+  high    // 3
+}
+
+// User model
+model User {
+  id                BigInt    @id @default(autoincrement())
+  emailAddress      String    @unique @map("email_address")
+  passwordDigest    String?   @map("password_digest")
+  provider          String?
+  uid               String?
+  admin             Boolean   @default(false) @map("admin")
+  agentAutoMode     Boolean   @default(true) @map("agent_auto_mode")
+  agentName         String?   @map("agent_name")
+  agentEmoji        String?   @map("agent_emoji")
+  agentLastActiveAt DateTime? @map("agent_last_active_at")
+  avatarUrl         String?   @map("avatar_url")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  apiTokens         ApiToken[]
+  boards            Board[]
+  tasks             Task[]
+  taskActivities    TaskActivity[]
+  sessions          Session[]
+  projects          Project[]
+  taskLists         TaskList[]
+  tags              Tag[]
+
+  @@index([emailAddress], map: "index_users_on_email_address")
+  @@index([provider, uid], map: "index_users_on_provider_and_uid")
+  @@map("users")
+}
+
+// API Token model
+model ApiToken {
+  id          BigInt    @id @default(autoincrement())
+  token       String    @unique
+  name        String?
+  userId      BigInt    @map("user_id")
+  lastUsedAt  DateTime? @map("last_used_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "index_api_tokens_on_user_id")
+  @@index([token], map: "index_api_tokens_on_token")
+  @@map("api_tokens")
+}
+
+// Board model
+model Board {
+  id        BigInt   @id @default(autoincrement())
+  name      String
+  icon      String   @default("📋")
+  color     String   @default("gray")
+  position  Int      @default(0)
+  userId    BigInt   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+
+  @@index([userId], map: "index_boards_on_user_id")
+  @@index([userId, position], map: "index_boards_on_user_id_and_position")
+  @@map("boards")
+}
+
+// Task model
+model Task {
+  id               BigInt       @id @default(autoincrement())
+  name             String?
+  description      String?      @db.Text
+  status           TaskStatus   @default(inbox)
+  priority         Priority     @default(none)
+  position         Int?
+  originalPosition Int?         @map("original_position")
+  boardId          BigInt       @map("board_id")
+  userId           BigInt?      @map("user_id")
+  completed        Boolean      @default(false) @map("completed")
+  completedAt      DateTime?    @map("completed_at")
+  dueDate          DateTime?    @map("due_date")
+  tags             String[]     @default([])
+  blocked          Boolean      @default(false) @map("blocked")
+  assignedToAgent  Boolean      @default(false) @map("assigned_to_agent")
+  assignedAt       DateTime?    @map("assigned_at")
+  agentClaimedAt   DateTime?    @map("agent_claimed_at")
+  confidence       Int          @default(0)
+  effort           Int          @default(0)
+  impact           Int          @default(0)
+  reach            Int          @default(0)
+  taskListId       BigInt?      @map("task_list_id")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  board            Board        @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user             User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  activities       TaskActivity[]
+  taskTags         TaskTag[]
+
+  @@index([boardId], map: "index_tasks_on_board_id")
+  @@index([userId], map: "index_tasks_on_user_id")
+  @@index([status], map: "index_tasks_on_status")
+  @@index([position], map: "index_tasks_on_position")
+  @@index([assignedToAgent], map: "index_tasks_on_assigned_to_agent")
+  @@index([blocked], map: "index_tasks_on_blocked")
+  @@map("tasks")
+}
+
+// Task Activity model
+model TaskActivity {
+  id          BigInt    @id @default(autoincrement())
+  taskId      BigInt    @map("task_id")
+  userId      BigInt?   @map("user_id")
+  action      String
+  actorType   String?   @map("actor_type")
+  actorName   String?   @map("actor_name")
+  actorEmoji  String?   @map("actor_emoji")
+  fieldName   String?   @map("field_name")
+  oldValue    String?   @map("old_value")
+  newValue    String?   @map("new_value")
+  note        String?   @db.Text
+  source      String    @default("web")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([taskId], map: "index_task_activities_on_task_id")
+  @@index([taskId, createdAt], map: "index_task_activities_on_task_id_and_created_at")
+  @@index([userId], map: "index_task_activities_on_user_id")
+  @@map("task_activities")
+}
+
+// Session model
+model Session {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt   @map("user_id")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "index_sessions_on_user_id")
+  @@map("sessions")
+}
+
+// Project model (legacy, kept for compatibility)
+model Project {
+  id                   BigInt    @id @default(autoincrement())
+  title                String?
+  description          String?   @db.Text
+  inbox                Boolean   @default(false)
+  position             Int?
+  prioritizationMethod Int       @default(0) @map("prioritization_method")
+  userId               BigInt?   @map("user_id")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user                 User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  taskLists            TaskList[]
+  tags                 Tag[]
+
+  @@index([userId], map: "index_projects_on_user_id")
+  @@index([userId, position], map: "index_projects_on_user_id_and_position")
+  @@unique([userId, inbox], map: "index_projects_on_user_id_inbox_unique")
+  @@index([position], map: "index_projects_on_position")
+  @@map("projects")
+}
+
+// Task List model (legacy)
+model TaskList {
+  id        BigInt   @id @default(autoincrement())
+  title     String?
+  position  Int?
+  projectId BigInt   @map("project_id")
+  userId    BigInt?  @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([projectId], map: "index_task_lists_on_project_id")
+  @@index([userId], map: "index_task_lists_on_user_id")
+  @@index([position], map: "index_task_lists_on_position")
+  @@map("task_lists")
+}
+
+// Tag model (legacy)
+model Tag {
+  id        BigInt   @id @default(autoincrement())
+  name      String
+  color     String   @default("gray")
+  position  Int?
+  projectId BigInt   @map("project_id")
+  userId    BigInt   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskTags  TaskTag[]
+
+  @@index([projectId], map: "index_tags_on_project_id")
+  @@index([userId], map: "index_tags_on_user_id")
+  @@unique([projectId, name], map: "index_tags_on_project_id_and_name")
+  @@map("tags")
+}
+
+// Task Tag join model (legacy)
+model TaskTag {
+  id        BigInt   @id @default(autoincrement())
+  taskId    BigInt   @map("task_id")
+  tagId     BigInt   @map("tag_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, tagId], map: "index_task_tags_on_task_id_and_tag_id")
+  @@index([taskId], map: "index_task_tags_on_task_id")
+  @@index([tagId], map: "index_task_tags_on_tag_id")
+  @@map("task_tags")
+}
+
+// Active Storage Blob model
+model ActiveStorageBlob {
+  id          BigInt   @id @default(autoincrement())
+  key         String   @unique
+  filename    String
+  contentType String?  @map("content_type")
+  metadata    Json?
+  byteSize    BigInt   @map("byte_size")
+  checksum    String?
+  serviceName String   @map("service_name")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  attachments ActiveStorageAttachment[]
+  variants ActiveStorageVariantRecord[]
+
+  @@index([key], map: "index_active_storage_blobs_on_key")
+  @@map("active_storage_blobs")
+}
+
+// Active Storage Attachment model
+model ActiveStorageAttachment {
+  id         BigInt              @id @default(autoincrement())
+  name       String
+  recordType String              @map("record_type")
+  recordId   BigInt              @map("record_id")
+  blobId     BigInt              @map("blob_id")
+  createdAt  DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  blob       ActiveStorageBlob   @relation(fields: [blobId], references: [id], onDelete: Cascade)
+
+  @@unique([recordType, recordId, name, blobId])
+  @@index([blobId], map: "index_active_storage_attachments_on_blob_id")
+  @@map("active_storage_attachments")
+}
+
+// Active Storage Variant Record model
+model ActiveStorageVariantRecord {
+  id              BigInt              @id @default(autoincrement())
+  blobId          BigInt              @map("blob_id")
+  variationDigest String              @map("variation_digest")
+
+  // Relations
+  blob            ActiveStorageBlob   @relation(fields: [blobId], references: [id], onDelete: Cascade)
+
+  @@unique([blobId, variationDigest])
+  @@map("active_storage_variant_records")
+}
+
+// Solid Cable Message model (for WebSocket)
+model SolidCableMessage {
+  id          BigInt   @id @default(autoincrement())
+  channel     Bytes
+  channelHash BigInt   @map("channel_hash")
+  payload     Bytes
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([channel], map: "index_solid_cable_messages_on_channel")
+  @@index([channelHash], map: "index_solid_cable_messages_on_channel_hash")
+  @@index([createdAt], map: "index_solid_cable_messages_on_created_at")
+  @@map("solid_cable_messages")
+}

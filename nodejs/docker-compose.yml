@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: clawdeck-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: clawdeck
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-clawdeck_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-clawdeck_development}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "clawdeck"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clawdeck-network
+
+  # ClawDeck API Server (Node.js)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clawdeck-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      DATABASE_URL: postgresql://clawdeck:${POSTGRES_PASSWORD:-clawdeck_dev_password}@postgres:5432/${POSTGRES_DB:-clawdeck_development}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      API_TIMEOUT_MS: ${API_TIMEOUT_MS:-300000}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Auto-migrate on startup
+      AUTO_MIGRATE: ${AUTO_MIGRATE:-true}
+      AUTO_SEED: ${AUTO_SEED:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-3000}:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - clawdeck-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/healthz", "--timeout=5"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for caching/sessions (future use)
+  redis:
+    image: redis:7-alpine
+    container_name: clawdeck-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clawdeck-network
+    profiles:
+      - with-redis
+
+  # Optional: Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: clawdeck-nginx
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - clawdeck-network
+    profiles:
+      - with-nginx
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  clawdeck-network:
+    driver: bridge
