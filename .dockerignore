@@ -7,8 +7,9 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore all environment files.
+# Ignore all environment files (except .env.docker.example)
 /.env*
+!/.env.docker.example
 
 # Ignore all default key files.
 /config/master.key
@@ -48,4 +49,4 @@
 
 # Ignore Docker-related files
 /.dockerignore
-/Dockerfile*
+# Dockerfile is now included
