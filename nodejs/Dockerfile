@@ -1,6 +1,9 @@
 # Node.js Dockerfile for ClawDeck API
 FROM node:20-alpine
 
+# Install netcat for database health checking
+RUN apk add --no-cache netcat-openbsd
+
 # Set working directory
 WORKDIR /app
 
@@ -16,6 +19,9 @@ COPY . .
 # Generate Prisma client
 RUN npx prisma generate
 
+# Make entrypoint executable
+RUN chmod +x scripts/docker-entrypoint.sh
+
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001
@@ -29,7 +35,7 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/healthz || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/up || exit 1
 
-# Start application
-CMD ["node", "src/server.js"]
+# Use entrypoint script for migrations
+ENTRYPOINT ["./scripts/docker-entrypoint.sh"]

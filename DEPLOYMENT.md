@@ -1,183 +1,211 @@
 # ClawDeck Deployment Guide
 
-Simple, fast deployment to DigitalOcean VPS. No Docker overhead.
+Deployment to VPS, Docker, or cloud platforms.
 
 ## Prerequisites
 
-1. A fresh Ubuntu 24.04 VPS (512MB RAM minimum)
-2. Domain pointing to your VPS IP (clawdeck.so)
-3. SSH access to the VPS
+- Node.js 20+
+- PostgreSQL 14+
+- Domain (optional, for SSL)
 
-## Initial Setup (One-time)
+## Quick Start: Docker
 
-### 1. Create VPS and Configure DNS
+```bash
+git clone https://github.com/clawdeckio/clawdeck.git
+cd clawdeck/nodejs
+docker compose up -d
+```
 
-Create a new DigitalOcean droplet:
-- Ubuntu 24.04 LTS
-- 512MB RAM / 1GB RAM recommended
-- Add your SSH key during creation
+## VPS Deployment (Ubuntu 24.04)
 
-Update your domain DNS:
-- Point `clawdeck.so` to your VPS IP
-- Point `www.clawdeck.so` to your VPS IP
-
-### 2. Run VPS Setup Script
-
-SSH into your VPS and run the initial setup:
+### 1. Initial Setup
 
 ```bash
 # SSH to your VPS
 ssh root@your-vps-ip
 
-# Set database password
-export DB_PASSWORD="your_secure_password_here"
+# Update system
+apt update && apt upgrade -y
 
-# Download and run setup script
-curl -fsSL https://raw.githubusercontent.com/yourusername/clawdeck/main/script/setup_vps.sh | bash
+# Install Node.js 20
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs
+
+# Install PostgreSQL
+apt install -y postgresql
+
+# Create database and user
+sudo -u postgres psql << EOF
+CREATE USER clawdeck WITH PASSWORD 'your_secure_password';
+CREATE DATABASE clawdeck_production OWNER clawdeck;
+GRANT ALL PRIVILEGES ON DATABASE clawdeck_production TO clawdeck;
+EOF
+
+# Install Nginx (optional, for reverse proxy)
+apt install -y nginx
 ```
 
-This installs: Ruby, PostgreSQL, Nginx, and creates databases.
-
-### 3. Clone Repository
+### 2. Deploy Application
 
 ```bash
+# Clone repository
 cd /var/www
-git clone https://github.com/yourusername/clawdeck.git
-cd clawdeck
+git clone https://github.com/clawdeckio/clawdeck.git
+cd clawdeck/nodejs
+
+# Install dependencies
+npm install
+
+# Generate Prisma client
+npx prisma generate
+
+# Run migrations
+DATABASE_URL="postgresql://clawdeck:your_secure_password@localhost:5432/clawdeck_production" \
+  npx prisma migrate deploy
+
+# Create production environment file
+cat > .env.production << EOF
+DATABASE_URL="postgresql://clawdeck:your_secure_password@localhost:5432/clawdeck_production"
+JWT_SECRET="$(openssl rand -base64 32)"
+NODE_ENV=production
+PORT=3000
+EOF
+
+# Install PM2 for process management
+npm install -g pm2
 ```
 
-### 4. Create Production Environment File
+### 3. Create Systemd Service
 
 ```bash
-cp .env.production.example /var/www/clawdeck/.env.production
-nano /var/www/clawdeck/.env.production
+cat > /etc/systemd/system/clawdeck.service << EOF
+[Unit]
+Description=ClawDeck API
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/clawdeck/nodejs
+Environment="NODE_ENV=production"
+ExecStart=/usr/bin/node /var/www/clawdeck/nodejs/src/server.js
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable clawdeck
+systemctl start clawdeck
 ```
 
-Fill in your actual values:
-```
-RAILS_MASTER_KEY=<from config/master.key>
-DATABASE_PASSWORD=<same as DB_PASSWORD from step 2>
-```
-
-### 5. Install Dependencies and Run Migrations
+### 4. Configure Nginx (Optional)
 
 ```bash
-export PATH="/root/.rbenv/bin:$PATH"
-eval "$(rbenv init -)"
-bundle install --deployment --without development test
-RAILS_ENV=production bundle exec rails db:migrate
-RAILS_ENV=production bundle exec rails assets:precompile
+cat > /etc/nginx/sites-available/clawdeck << EOF
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+}
+EOF
+
+ln -s /etc/nginx/sites-available/clawdeck /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
 ```
 
-### 6. Install Services
+### 5. SSL with Let's Encrypt (Optional)
 
 ```bash
-bash script/install_services.sh
+apt install -y certbot python3-certbot-nginx
+certbot --nginx -d your-domain.com
 ```
 
-This installs:
-- Systemd services for Puma and Solid Queue
-- Nginx configuration
-- SSL certificates via Let's Encrypt
+## Cloud Deployment
 
-### 7. Start Services
+### Render.com
 
-```bash
-systemctl start puma
-systemctl start solid_queue
-```
+1. Fork and connect your repository to Render
+2. Create a new Web Service
+3. Configure:
+   - Runtime: Node 20
+   - Build Command: `cd nodejs && npm install && npx prisma generate`
+   - Start Command: `cd nodejs && node src/server.js`
+   - Environment Variables (see render.yaml)
 
-Check status:
-```bash
-systemctl status puma
-systemctl status solid_queue
-```
+### Railway
 
-### 8. Configure GitHub Actions
+1. Create new project from GitHub repo
+2. Add PostgreSQL database
+3. Add Node.js service
+4. Configure environment variables
 
-Add these secrets to your GitHub repository (Settings → Secrets and variables → Actions):
-
-- `VPS_HOST`: Your VPS IP address
-- `VPS_SSH_KEY`: Your private SSH key (the one that can access the VPS)
-
-## Automatic Deployments
-
-Once setup is complete, deployments are automatic:
-
-1. Push to `main` branch
-2. GitHub Actions connects to VPS
-3. Pulls latest code
-4. Installs dependencies
-5. Runs migrations
-6. Precompiles assets
-7. Restarts services
-
-**Deploy time: ~30-60 seconds**
-
-## Manual Deployment
-
-If you need to deploy manually:
+### Fly.io
 
 ```bash
-ssh root@your-vps-ip
-cd /var/www/clawdeck
-git pull origin main
-bundle install --deployment
-RAILS_ENV=production bundle exec rails db:migrate
-RAILS_ENV=production bundle exec rails assets:precompile
-systemctl restart puma solid_queue
+# Install flyctl
+curl -L https://fly.io/install.sh | sh
+
+# Launch
+cd nodejs
+fly launch
+
+# Set environment variables
+fly secrets set DATABASE_URL="your-db-url"
+fly secrets set JWT_SECRET="your-secret"
+
+# Deploy
+fly deploy
 ```
 
 ## Monitoring
 
-View logs:
+### View Logs
+
 ```bash
-# Puma logs
-tail -f /var/log/clawdeck/puma.log
+# Systemd service
+journalctl -u clawdeck -f
 
-# Solid Queue logs
-tail -f /var/log/clawdeck/solid_queue.log
-
-# Nginx logs
-tail -f /var/log/nginx/access.log
-tail -f /var/log/nginx/error.log
+# PM2 (if using)
+pm2 logs clawdeck
 ```
 
-Check service status:
+### Check Status
+
 ```bash
-systemctl status puma
-systemctl status solid_queue
-systemctl status nginx
+# Systemd
+systemctl status clawdeck
+
+# PM2
+pm2 status
 ```
 
-## Troubleshooting
+## Updates
 
-**Services won't start:**
 ```bash
-# Check service logs
-journalctl -u puma -n 50 --no-pager
-journalctl -u solid_queue -n 50 --no-pager
-```
-
-**Database connection errors:**
-```bash
-# Test PostgreSQL
-sudo -u postgres psql -l
-```
-
-**SSL certificate issues:**
-```bash
-# Renew certificates
-certbot renew
-systemctl restart nginx
+cd /var/www/clawdeck
+git pull origin main
+cd nodejs
+npm install
+npx prisma migrate deploy
+systemctl restart clawdeck
 ```
 
 ## Resource Usage
 
-Expected memory usage on 512MB VPS:
-- Puma (Rails): ~150MB
-- Solid Queue: ~100MB
-- PostgreSQL: ~50MB
-- Nginx: ~20MB
-- System: ~100MB
-- **Total: ~420MB (plenty of headroom)**
+Typical memory usage:
+- Node.js: ~100-150MB
+- PostgreSQL: ~50-100MB
+- **Total: ~200-250MB minimum**

@@ -2,19 +2,19 @@
 
 **Open source mission control for your AI agents.**
 
-ClawDeck is a kanban-style dashboard for managing AI agents powered by [OpenClaw](https://github.com/openclaw/openclaw). Track tasks, assign work to your agent, and collaborate asynchronously.
+ClawDeck is a kanban-style dashboard for managing AI agents. Track tasks, assign work to your agent, and collaborate asynchronously.
 
 > 🚧 **Early Development** — ClawDeck is under active development. Expect breaking changes.
 
 ## Get Started
 
-**Option 1: Use the hosted platform**  
+**Option 1: Use the hosted platform**
 Sign up at [clawdeck.io](https://clawdeck.io) — free to start, we handle hosting.
 
-**Option 2: Self-host**  
+**Option 2: Self-host**
 Clone this repo and run your own instance. See [Self-Hosting](#self-hosting) below.
 
-**Option 3: Contribute**  
+**Option 3: Contribute**
 PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
@@ -22,80 +22,90 @@ PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Features
 
 - **Kanban Boards** — Organize tasks across multiple boards
+- **Project Association** — Link tasks to projects for better organization
 - **Agent Assignment** — Assign tasks to your agent, track progress
 - **Activity Feed** — See what your agent is doing in real-time
 - **API Access** — Full REST API for agent integrations
-- **Real-time Updates** — Hotwire-powered live UI
+- **Real-time Updates** — WebSocket-powered live UI
+- **File Uploads** — Avatar support with S3/MinIO storage
 
 ## How It Works
 
 1. You create tasks and organize them on boards
-2. You assign tasks to your agent when ready
-3. Your agent polls for assigned tasks and works on them
-4. Your agent updates progress via the API (activity feed)
-5. You see everything in real-time
+2. Optionally associate tasks with projects
+3. You assign tasks to your agent when ready
+4. Your agent polls for assigned tasks and works on them
+5. Your agent updates progress via the API (activity feed)
+6. You see everything in real-time
 
 ## Tech Stack
 
-- **Ruby** 3.3.1 / **Rails** 8.1
-- **PostgreSQL** with Solid Queue, Cache, and Cable
-- **Hotwire** (Turbo + Stimulus) + **Tailwind CSS**
-- **Authentication** via GitHub OAuth or email/password
+- **Node.js** 20+ / **Fastify** 5
+- **PostgreSQL** with Prisma ORM
+- **WebSocket** for real-time updates
+- **Authentication** via JWT sessions or API tokens
+- **S3/MinIO** for file storage
 
 ---
 
 ## Self-Hosting
 
 ### Prerequisites
-- Ruby 3.3.1
-- PostgreSQL
-- Bundler
+- Node.js 20+
+- Docker & Docker Compose (optional, for local development)
+- PostgreSQL 14+
 
-### Setup
+### Docker Setup (Recommended)
+
 ```bash
 git clone https://github.com/clawdeckio/clawdeck.git
-cd clawdeck
-bundle install
-bin/rails db:prepare
-bin/dev
+cd clawdeck/nodejs
+docker compose up -d
 ```
 
 Visit `http://localhost:3000`
 
-### Authentication Setup
+### Manual Setup
+
+```bash
+git clone https://github.com/clawdeckio/clawdeck.git
+cd clawdeck/nodejs
+npm install
+npm run prisma:generate
+npm run prisma:migrate
+npm run dev
+```
+
+### Environment Variables
+
+```bash
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/clawdeck"
+
+# JWT Secret (generate your own)
+JWT_SECRET="your-secret-key-here"
+
+# Optional: S3/MinIO for file uploads
+S3_ENDPOINT="http://localhost:9000"
+S3_ACCESS_KEY_ID="minioadmin"
+S3_SECRET_ACCESS_KEY="minioadmin"
+S3_BUCKET="clawdeck"
+```
+
+### Authentication
 
 ClawDeck supports two authentication methods:
 
 1. **Email/Password** — Works out of the box
-2. **GitHub OAuth** — Optional, recommended for production
+2. **API Tokens** — For agent integrations
 
-#### GitHub OAuth Setup
-
-1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
-2. Click **New OAuth App**
-3. Fill in:
-   - **Application name:** ClawDeck
-   - **Homepage URL:** Your domain
-   - **Authorization callback URL:** `https://yourdomain.com/auth/github/callback`
-4. Add credentials to environment:
-
-```bash
-GITHUB_CLIENT_ID=your_client_id
-GITHUB_CLIENT_SECRET=your_client_secret
-```
-
-### Running Tests
-```bash
-bin/rails test
-bin/rails test:system
-bin/rubocop
-```
+Register via `/api/v1/auth/register` to get started, then use `/api/v1/auth/login` to get a JWT token.
 
 ---
 
 ## API
 
-ClawDeck exposes a REST API for agent integrations. Get your API token from Settings.
+ClawDeck exposes a REST API for agent integrations.
 
 ### Authentication
 
@@ -108,6 +118,25 @@ Include agent identity headers:
 ```
 X-Agent-Name: Maxie
 X-Agent-Emoji: 🦊
+```
+
+### Authentication Endpoints
+
+```bash
+# Register
+POST /api/v1/auth/register
+{ "emailAddress": "user@example.com", "password": "password123" }
+
+# Login
+POST /api/v1/auth/login
+{ "emailAddress": "user@example.com", "password": "password123" }
+
+# Get current user
+GET /api/v1/auth/me
+
+# Update profile
+PATCH /api/v1/auth/me
+{ "agentName": "Maxie", "agentEmoji": "🦊" }
 ```
 
 ### Boards
@@ -138,13 +167,14 @@ GET /api/v1/tasks
 GET /api/v1/tasks?board_id=1
 GET /api/v1/tasks?status=in_progress
 GET /api/v1/tasks?assigned=true    # Your work queue
+GET /api/v1/tasks?project_id=5     # Filter by project
 
 # Get task
 GET /api/v1/tasks/:id
 
 # Create task
 POST /api/v1/tasks
-{ "name": "Research topic X", "status": "inbox", "board_id": 1 }
+{ "name": "Research topic X", "status": "inbox", "board_id": 1, "project_id": 5 }
 
 # Update task (with optional activity note)
 PATCH /api/v1/tasks/:id
@@ -161,6 +191,23 @@ PATCH /api/v1/tasks/:id/assign
 PATCH /api/v1/tasks/:id/unassign
 ```
 
+### Projects
+
+```bash
+# List projects
+GET /api/v1/projects
+
+# Create project
+POST /api/v1/projects
+{ "title": "My Project", "description": "Project details" }
+
+# Update project
+PATCH /api/v1/projects/:id
+
+# Delete project
+DELETE /api/v1/projects/:id
+```
+
 ### Task Statuses
 - `inbox` — New, not prioritized
 - `up_next` — Ready to be assigned
@@ -170,6 +217,15 @@ PATCH /api/v1/tasks/:id/unassign
 
 ### Priorities
 `none`, `low`, `medium`, `high`
+
+---
+
+## Running Tests
+
+```bash
+cd nodejs
+npm test
+```
 
 ---
 

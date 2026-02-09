@@ -1,18 +1,19 @@
-import Fastify from 'fastify'
-import cors from '@fastify/cors'
-import websocket from '@fastify/websocket'
-import jwt from '@fastify/jwt'
-import dotenv from 'dotenv'
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import websocket from '@fastify/websocket';
+import jwt from '@fastify/jwt';
+import multipart from '@fastify/multipart';
+import dotenv from 'dotenv';
 
-import { prisma } from './db/prisma.js'
-import { registerRoutes } from './routes/index.js'
-import { errorHandler } from './middleware/errorHandler.js'
-import { wsManager } from './websocket/manager.js'
+import { prisma } from './db/prisma.js';
+import { registerRoutes } from './routes/index.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { wsManager } from './websocket/manager.js';
+import { authenticateRequest, authenticateAdmin } from './middleware/auth.js';
 
-dotenv.config()
+dotenv.config();
 
 export default async function app (fastify, opts) {
-  // Register plugins
   await fastify.register(cors, {
     origin: process.env.CORS_ORIGIN || '*'
   })
@@ -21,27 +22,26 @@ export default async function app (fastify, opts) {
     secret: process.env.JWT_SECRET || 'dev-secret-change-in-production'
   })
 
+  await fastify.register(multipart);
+
   await fastify.register(websocket)
 
-  // Make prisma available globally
-  fastify.decorate('prisma', prisma)
+  fastify.decorate('authenticate', authenticateRequest);
+  fastify.decorate('authenticateAdmin', authenticateAdmin);
+  fastify.decorate('prisma', prisma);
 
-  // Override Fastify's default JSON serializer to handle BigInt
   fastify.setSerializerCompiler(({ schema, method, url, httpStatus }) => {
     return (data) => JSON.stringify(data, (_key, value) => {
       return typeof value === 'bigint' ? value.toString() : value
     })
   })
 
-  // Health check
   fastify.get('/up', async (request, reply) => {
     return { status: 'ok' }
   })
 
-  // WebSocket endpoint for real-time updates (must be before API routes)
   fastify.register(async function (fastify) {
     fastify.get('/ws', { websocket: true }, async (connection, req) => {
-      // Extract API token from query params
       const token = req.query.token
 
       if (!token) {
@@ -50,7 +50,6 @@ export default async function app (fastify, opts) {
       }
 
       try {
-        // Verify API token against database (same as REST API)
         const apiToken = await prisma.apiToken.findUnique({
           where: { token },
           include: { user: true }
@@ -61,7 +60,6 @@ export default async function app (fastify, opts) {
           return
         }
 
-        // Update last used timestamp
         await prisma.apiToken.update({
           where: { id: apiToken.id },
           data: { lastUsedAt: new Date() }
@@ -69,7 +67,6 @@ export default async function app (fastify, opts) {
 
         const userId = apiToken.userId
 
-        // Add client to manager
         wsManager.addClient(userId, connection)
 
         console.log(`WebSocket client connected for user ${userId}`)
@@ -81,13 +78,10 @@ export default async function app (fastify, opts) {
     })
   })
 
-  // Register API routes
   await fastify.register(registerRoutes, { prefix: '/api/v1' })
 
-  // Error handler
   fastify.setErrorHandler(errorHandler)
 
-  // Graceful shutdown
   fastify.addHook('onClose', async (instance) => {
     await instance.prisma.$disconnect()
   })
