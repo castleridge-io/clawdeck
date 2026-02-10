@@ -41,6 +41,9 @@ services:
       # Auto-migrate on startup
       AUTO_MIGRATE: ${AUTO_MIGRATE:-true}
       AUTO_SEED: ${AUTO_SEED:-false}
+      # Archive settings
+      ARCHIVE_ENABLED: ${ARCHIVE_ENABLED:-true}
+      ARCHIVE_DELAY_HOURS: ${ARCHIVE_DELAY_HOURS:-24}
     depends_on:
       postgres:
         condition: service_healthy
