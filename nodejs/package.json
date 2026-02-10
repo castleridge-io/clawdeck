@@ -5,12 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "fastify start -l info -P src/app.js",
-    "test": "node --test tests/integration/tasks.test.js && node --test tests/integration/boards.test.js && node --test tests/integration/settings.test.js",
+    "test": "node --test tests/integration/tasks.test.js && node --test tests/integration/boards.test.js && node --test tests/integration/settings.test.js && node --test tests/integration/archives.test.js && node --test tests/unit/archiveScheduler.test.js",
     "test:tasks": "node --test tests/integration/tasks.test.js",
     "test:boards": "node --test tests/integration/boards.test.js",
     "test:settings": "node --test tests/integration/settings.test.js",
+    "test:archives": "node --test tests/integration/archives.test.js",
+    "test:scheduler": "node --test tests/unit/archiveScheduler.test.js",
     "test:e2e": "node --test tests/e2e/migration-e2e.test.js",
+    "test:e2e:archive": "node --test tests/e2e/archive-e2e.test.js",
     "test:coverage": "c8 --reporter=html --reporter=text node --test tests/**/*.test.js",
+    "test:docker": "docker compose -f docker-compose.test.yml up --build --abort-on-container-exit --remove-orphans",
+    "test:docker:unit": "docker compose -f docker-compose.test.yml run --rm api-test",
+    "test:docker:e2e": "docker compose -f docker-compose.test.yml run --rm e2e-test",
+    "test:docker:e2e:archive": "docker compose -f docker-compose.test.yml run --rm e2e-archive-test",
     "lint": "eslint src tests",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -18,14 +25,18 @@
     "prisma:seed": "prisma db seed"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.985.0",
+    "@aws-sdk/s3-request-presigner": "^3.985.0",
     "@fastify/cors": "^10.0.1",
     "@fastify/jwt": "^9.0.1",
+    "@fastify/multipart": "^9.4.0",
     "@fastify/websocket": "^11.0.1",
     "@prisma/client": "^6.1.0",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
     "fastify": "^5.2.0",
-    "http-errors": "^2.0.1"
+    "http-errors": "^2.0.1",
+    "pg": "^8.18.0"
   },
   "devDependencies": {
     "c8": "^10.1.3",

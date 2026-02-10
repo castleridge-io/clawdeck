@@ -1,0 +1,100 @@
+# Docker Compose override for testing
+# Uses separate network and containers to avoid affecting running instances
+version: '3.8'
+
+services:
+  # Test database (separate from development)
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: clawdeck-postgres-test
+    environment:
+      POSTGRES_USER: clawdeck_test
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: clawdeck_test
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "15433:5432"  # Different port from dev postgres
+    networks:
+      - clawdeck-test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "clawdeck_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Test API runner (runs tests and exits)
+  api-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clawdeck-api-test
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://clawdeck_test:test_password@postgres-test:5432/clawdeck_test
+      JWT_SECRET: test-secret-for-testing-only
+      PORT: 3000
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    networks:
+      - clawdeck-test-network
+    command: npm test
+    volumes:
+      - ./tests:/app/tests:ro
+      - ./src:/app/src:ro
+      - ./prisma:/app/prisma:ro
+
+  # E2E test runner
+  e2e-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clawdeck-e2e-test
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://clawdeck_test:test_password@postgres-test:5432/clawdeck_test
+      JWT_SECRET: test-secret-for-testing-only
+      PORT: 3000
+      TEST_BASE_URL: http://api-test:3000
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      api-test:
+        condition: service_started
+    networks:
+      - clawdeck-test-network
+    command: npm run test:e2e
+    volumes:
+      - ./tests:/app/tests:ro
+      - ./src:/app/src:ro
+      - ./prisma:/app/prisma:ro
+
+  # Archive E2E test runner
+  e2e-archive-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clawdeck-e2e-archive-test
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://clawdeck_test:test_password@postgres-test:5432/clawdeck_test
+      JWT_SECRET: test-secret-for-testing-only
+      PORT: 3000
+      TEST_BASE_URL: http://api-test:3000
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      api-test:
+        condition: service_started
+    networks:
+      - clawdeck-test-network
+    entrypoint: ["sh", "-c", "npx prisma generate && node --test tests/e2e/archive-e2e.test.js"]
+    volumes:
+      - ./tests:/app/tests:ro
+      - ./src:/app/src:ro
+      - ./prisma:/app/prisma:ro
+
+networks:
+  clawdeck-test-network:
+    driver: bridge
+    name: clawdeck-test-network

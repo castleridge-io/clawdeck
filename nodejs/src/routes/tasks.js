@@ -14,13 +14,15 @@ function taskToJson (task) {
     board_id: task.boardId.toString(),
     user_id: task.userId?.toString(),
     completed: task.completed,
-    completed_at: task.completedAt?.toISOString(),
-    due_date: task.dueDate?.toISOString(),
+    completed_at: task.completedAt?.toISOString() ?? null,
+    archived: task.archived,
+    archived_at: task.archivedAt?.toISOString() ?? null,
+    due_date: task.dueDate?.toISOString() ?? null,
     tags: task.tags || [],
     blocked: task.blocked,
     assigned_to_agent: task.assignedToAgent,
-    assigned_at: task.assignedAt?.toISOString(),
-    agent_claimed_at: task.agentClaimedAt?.toISOString(),
+    assigned_at: task.assignedAt?.toISOString() ?? null,
+    agent_claimed_at: task.agentClaimedAt?.toISOString() ?? null,
     created_at: task.createdAt.toISOString(),
     updated_at: task.updatedAt.toISOString()
   }
@@ -51,7 +53,7 @@ export async function tasksRoutes (fastify, opts) {
 
   // GET /api/v1/tasks - List tasks with filters
   fastify.get('/', async (request, reply) => {
-    const { assigned, status, board_id } = request.query
+    const { assigned, status, board_id, archived } = request.query
 
     const where = { userId: BigInt(request.user.id) }
 
@@ -65,6 +67,13 @@ export async function tasksRoutes (fastify, opts) {
 
     if (board_id) {
       where.boardId = BigInt(board_id)
+    }
+
+    // By default, exclude archived tasks unless explicitly requested
+    if (archived === 'true') {
+      where.archived = true
+    } else if (archived === 'false' || archived === undefined) {
+      where.archived = false
     }
 
     const tasks = await prisma.task.findMany({

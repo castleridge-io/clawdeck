@@ -120,6 +120,10 @@ model Task {
   impact           Int          @default(0)
   reach            Int          @default(0)
   taskListId       BigInt?      @map("task_list_id")
+  archived         Boolean      @default(false) @map("archived")
+  archivedAt       DateTime?    @map("archived_at")
+  archiveScheduled Boolean      @default(false) @map("archive_scheduled")
+  archiveScheduledAt DateTime?  @map("archive_scheduled_at")
   createdAt        DateTime     @default(now()) @map("created_at")
   updatedAt        DateTime     @updatedAt @map("updated_at")
 
@@ -138,6 +142,7 @@ model Task {
   @@index([position], map: "index_tasks_on_position")
   @@index([assignedToAgent], map: "index_tasks_on_assigned_to_agent")
   @@index([blocked], map: "index_tasks_on_blocked")
+  @@index([archived, boardId, completedAt], map: "index_tasks_on_archived_and_board")
   @@map("tasks")
 }
 

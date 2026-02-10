@@ -10,6 +10,7 @@ import { registerRoutes } from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { wsManager } from './websocket/manager.js';
 import { authenticateRequest, authenticateAdmin } from './middleware/auth.js';
+import { archiveScheduler } from './services/archiveScheduler.js';
 
 dotenv.config();
 
@@ -82,7 +83,11 @@ export default async function app (fastify, opts) {
 
   fastify.setErrorHandler(errorHandler)
 
+  // Start archive scheduler
+  archiveScheduler.start()
+
   fastify.addHook('onClose', async (instance) => {
+    archiveScheduler.stop()
     await instance.prisma.$disconnect()
   })
 }
