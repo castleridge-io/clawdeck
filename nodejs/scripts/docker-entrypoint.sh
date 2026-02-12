@@ -38,7 +38,7 @@ if [ -n "$DATABASE_URL" ]; then
     npx prisma migrate deploy --skip-generate || {
       echo "Warning: Prisma migrate deploy failed, attempting to continue..."
       # Try to create schema if it doesn't exist
-      npx prisma db push --skip-generate || echo "Could not push schema"
+      npx prisma db push --skip-generate --accept-data-loss || echo "Could not push schema"
     }
 
     echo "Database migrations completed"

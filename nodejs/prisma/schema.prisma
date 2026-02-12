@@ -124,6 +124,8 @@ model Task {
   archivedAt       DateTime?    @map("archived_at")
   archiveScheduled Boolean      @default(false) @map("archive_scheduled")
   archiveScheduledAt DateTime?  @map("archive_scheduled_at")
+  workflowType     String?      @map("workflow_type")  // NEW: workflow type (e.g., "feature-dev", "bug-fix")
+  workflowRunId    String?      @map("workflow_run_id") // NEW: link to workflow run
   createdAt        DateTime     @default(now()) @map("created_at")
   updatedAt        DateTime     @updatedAt @map("updated_at")
 
@@ -133,6 +135,7 @@ model Task {
   project          Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
   activities       TaskActivity[]
   taskTags         TaskTag[]
+  workflowRun      Run?         @relation("TaskRun", fields: [workflowRunId], references: [id], onDelete: SetNull)
 
   @@index([boardId], map: "index_tasks_on_board_id")
   @@index([userId], map: "index_tasks_on_user_id")
@@ -143,6 +146,7 @@ model Task {
   @@index([assignedToAgent], map: "index_tasks_on_assigned_to_agent")
   @@index([blocked], map: "index_tasks_on_blocked")
   @@index([archived, boardId, completedAt], map: "index_tasks_on_archived_and_board")
+  @@index([workflowRunId], map: "index_tasks_on_workflow_run_id")
   @@map("tasks")
 }
 
@@ -273,6 +277,102 @@ model TaskTag {
   @@index([tagId], map: "index_task_tags_on_tag_id")
   @@map("task_tags")
 }
+
+// ============ Workflow Models ============
+
+// Workflow model - defines a workflow template
+model Workflow {
+  id          BigInt   @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  config      Json     @default("{}") // Contains steps configuration
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  runs        Run[]    @relation("WorkflowRuns")
+
+  @@map("workflows")
+}
+
+// Run model - represents a single workflow execution
+model Run {
+  id                String    @id
+  workflowId        BigInt    @map("workflow_id")
+  taskId            String?   @map("task_id")
+  task              String
+  status            String    @default("running") // running, completed, failed
+  context           String    @db.Text
+  notifyUrl         String?   @map("notify_url")
+  awaitingApproval  Int?      @map("awaiting_approval")
+  awaitingApprovalSince String? @map("awaiting_approval_since")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  workflow          Workflow  @relation("WorkflowRuns", fields: [workflowId], references: [id], onDelete: Cascade)
+  tasks             Task[]    @relation("TaskRun")
+  steps             Step[]
+  stories           Story[]
+
+  @@index([workflowId], map: "index_runs_on_workflow_id")
+  @@index([taskId], map: "index_runs_on_task_id")
+  @@index([status], map: "index_runs_on_status")
+  @@map("runs")
+}
+
+// Step model - represents a single step in a workflow run
+model Step {
+  id              String    @id
+  runId           String    @map("run_id")
+  stepId          String    @map("step_id")
+  agentId         String    @map("agent_id")
+  stepIndex       Int       @map("step_index")
+  inputTemplate   String    @map("input_template")
+  expects         String
+  status          String    @default("waiting") // waiting, running, completed, failed, awaiting_approval
+  output          String?   @db.Text
+  retryCount      Int       @default(0) @map("retry_count")
+  maxRetries      Int       @default(3) @map("max_retries")
+  type            String?   @default("single") // single, loop, approval
+  loopConfig      String?   @db.Text @map("loop_config")
+  currentStoryId   String?   @map("current_story_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  run             Run       @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId], map: "index_steps_on_run_id")
+  @@index([status], map: "index_steps_on_status")
+  @@map("steps")
+}
+
+// Story model - represents an iteration in a loop step
+model Story {
+  id                 String    @id
+  runId              String    @map("run_id")
+  storyIndex         Int       @map("story_index")
+  storyId            String    @map("story_id")
+  title              String
+  description        String?   @db.Text
+  acceptanceCriteria String?   @db.Text @map("acceptance_criteria")
+  status             String    @default("pending") // pending, running, completed, failed
+  output             String?   @db.Text
+  retryCount         Int       @default(0) @map("retry_count")
+  maxRetries         Int       @default(3) @map("max_retries")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  run                Run       @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId], map: "index_stories_on_run_id")
+  @@index([status], map: "index_stories_on_status")
+  @@map("stories")
+}
+
+// ============ Storage Models ============
 
 // Active Storage Blob model
 model ActiveStorageBlob {

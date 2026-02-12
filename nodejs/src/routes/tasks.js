@@ -1,6 +1,12 @@
 import { authenticateRequest } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
 import { wsManager } from '../websocket/manager.js'
+import { createWorkflowService } from '../services/workflow.service.js'
+import { createRunService } from '../services/run.service.js'
+
+// Initialize services
+const workflowService = createWorkflowService()
+const runService = createRunService()
 
 // Helper function to create task JSON response
 function taskToJson (task) {
@@ -23,6 +29,8 @@ function taskToJson (task) {
     assigned_to_agent: task.assignedToAgent,
     assigned_at: task.assignedAt?.toISOString() ?? null,
     agent_claimed_at: task.agentClaimedAt?.toISOString() ?? null,
+    workflow_type: task.workflowType,
+    workflow_run_id: task.workflowRunId,
     created_at: task.createdAt.toISOString(),
     updated_at: task.updatedAt.toISOString()
   }
@@ -152,7 +160,7 @@ export async function tasksRoutes (fastify, opts) {
 
   // POST /api/v1/tasks - Create task
   fastify.post('/', async (request, reply) => {
-    const { name, description, board_id, status = 'inbox', priority = 'none', tags = [] } = request.body
+    const { name, description, board_id, status = 'inbox', priority = 'none', tags = [], workflow_type } = request.body
 
     if (!board_id) {
       return reply.code(400).send({ error: 'board_id is required' })
@@ -170,24 +178,58 @@ export async function tasksRoutes (fastify, opts) {
       return reply.code(404).send({ error: 'Board not found' })
     }
 
+    // If workflow_type is provided, verify workflow exists
+    let workflow
+    if (workflow_type) {
+      workflow = await workflowService.getWorkflowByName(workflow_type)
+      if (!workflow) {
+        return reply.code(400).send({ error: 'Workflow not found' })
+      }
+    }
+
     // Get position (put at end)
     const lastTask = await prisma.task.findFirst({
       where: { boardId: BigInt(board_id) },
       orderBy: { position: 'desc' }
     })
 
+    const taskData = {
+      name,
+      description,
+      boardId: BigInt(board_id),
+      userId: BigInt(request.user.id),
+      status: status || 'inbox',
+      priority: priority || 'none',
+      tags,
+      position: (lastTask?.position ?? -1) + 1
+    }
+
+    // Add workflow fields if provided
+    if (workflow_type && workflow) {
+      taskData.workflowType = workflow_type
+    }
+
     const task = await prisma.task.create({
-      data: {
-        name,
-        description,
-        boardId: BigInt(board_id),
-        userId: BigInt(request.user.id),
-        status: status || 'inbox',
-        priority: priority || 'none',
-        tags,
-        position: (lastTask?.position ?? -1) + 1
-      }
+      data: taskData
     })
+
+    // Auto-create Run if workflow_type was provided
+    if (workflow_type && workflow) {
+      const run = await runService.createRun({
+        workflowId: workflow.id,
+        taskId: task.id.toString(),
+        task: task.name || description || 'Task',
+        context: { taskId: task.id.toString() }
+      })
+
+      // Link task to run
+      await prisma.task.update({
+        where: { id: task.id },
+        data: { workflowRunId: run.id }
+      })
+
+      task.workflowRunId = run.id
+    }
 
     // Record activity
     await recordActivity(task, request.user, 'create', {

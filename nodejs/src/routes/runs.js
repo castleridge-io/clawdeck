@@ -1,0 +1,154 @@
+import { authenticateRequest } from '../middleware/auth.js'
+import { createRunService } from '../services/run.service.js'
+
+// Helper function to convert run to JSON response
+function runToJson(run) {
+  return {
+    id: run.id,
+    workflow_id: run.workflowId.toString(),
+    task_id: run.taskId,
+    task: run.task,
+    status: run.status,
+    context: run.context ? JSON.parse(run.context) : {},
+    notify_url: run.notifyUrl,
+    awaiting_approval: run.awaitingApproval,
+    awaiting_approval_since: run.awaitingApprovalSince,
+    created_at: run.createdAt.toISOString(),
+    updated_at: run.updatedAt.toISOString(),
+    steps: run.steps?.map(step => ({
+      id: step.id,
+      step_id: step.stepId,
+      agent_id: step.agentId,
+      step_index: step.stepIndex,
+      input_template: step.inputTemplate,
+      expects: step.expects,
+      status: step.status,
+      output: step.output ? JSON.parse(step.output) : null,
+      retry_count: step.retryCount,
+      max_retries: step.maxRetries,
+      type: step.type,
+      loop_config: step.loopConfig ? JSON.parse(step.loopConfig) : null,
+      current_story_id: step.currentStoryId
+    })) || [],
+    stories: run.stories?.map(story => ({
+      id: story.id,
+      story_index: story.storyIndex,
+      story_id: story.storyId,
+      title: story.title,
+      description: story.description,
+      acceptance_criteria: story.acceptanceCriteria,
+      status: story.status,
+      output: story.output ? JSON.parse(story.output) : null,
+      retry_count: story.retryCount,
+      max_retries: story.maxRetries
+    })) || []
+  }
+}
+
+export async function runsRoutes(fastify, opts) {
+  const runService = createRunService()
+
+  // Apply authentication to all routes
+  fastify.addHook('onRequest', authenticateRequest)
+
+  // GET /api/v1/runs - List runs
+  fastify.get('/', async (request, reply) => {
+    const { task_id, status } = request.query
+
+    const filters = {}
+    if (task_id) {
+      filters.taskId = task_id
+    }
+    if (status) {
+      filters.status = status
+    }
+
+    const runs = await runService.listRuns(filters)
+
+    return {
+      success: true,
+      data: runs.map(run => ({
+        id: run.id,
+        workflow_id: run.workflowId.toString(),
+        task_id: run.taskId,
+        task: run.task,
+        status: run.status,
+        created_at: run.createdAt.toISOString(),
+        updated_at: run.updatedAt.toISOString()
+      }))
+    }
+  })
+
+  // GET /api/v1/runs/:id - Get single run
+  fastify.get('/:id', async (request, reply) => {
+    const run = await runService.getRun(request.params.id)
+
+    if (!run) {
+      return reply.code(404).send({ error: 'Run not found' })
+    }
+
+    return {
+      success: true,
+      data: runToJson(run)
+    }
+  })
+
+  // POST /api/v1/runs - Create run
+  fastify.post('/', async (request, reply) => {
+    const { workflow_id, task_id, task, context, notify_url } = request.body
+
+    if (!workflow_id) {
+      return reply.code(400).send({ error: 'workflow_id is required' })
+    }
+
+    if (!task) {
+      return reply.code(400).send({ error: 'task is required' })
+    }
+
+    try {
+      const run = await runService.createRun({
+        workflowId: workflow_id,
+        taskId: task_id,
+        task,
+        context,
+        notifyUrl: notify_url
+      })
+
+      return reply.code(201).send({
+        success: true,
+        data: runToJson(run)
+      })
+    } catch (error) {
+      if (error.message.includes('not found')) {
+        return reply.code(400).send({ error: error.message })
+      }
+      throw error
+    }
+  })
+
+  // PATCH /api/v1/runs/:id/status - Update run status
+  fastify.patch('/:id/status', async (request, reply) => {
+    const { status } = request.body
+
+    if (!status) {
+      return reply.code(400).send({ error: 'status is required' })
+    }
+
+    try {
+      const run = await runService.updateRunStatus(request.params.id, status)
+
+      return {
+        success: true,
+        data: runToJson(run)
+      }
+    } catch (error) {
+      if (error.message.includes('not found')) {
+        return reply.code(404).send({ error: error.message })
+      }
+      if (error.message.includes('Invalid status')) {
+        return reply.code(400).send({ error: error.message })
+      }
+      throw error
+    }
+  })
+}
