@@ -15,12 +15,10 @@ Non-standard ports are used by default to avoid conflicts with other Docker cont
 ### Running Docker Services
 
 ```bash
-cd nodejs
-
-# Environment already configured with non-standard ports
+# From project root (docker-compose.yml is in root)
 # .env file is present with API_PORT=3333, POSTGRES_PORT=15432, etc.
 
-# Start core services (postgres + api)
+# Start core services (postgres + api + frontend)
 docker-compose up -d
 
 # Start with Redis (optional)

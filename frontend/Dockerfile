@@ -1,28 +1,35 @@
 # Multi-stage build for ClawDeck Frontend
+# Build context should be monorepo root
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Enable Corepack for Yarn 4 support
+RUN corepack enable && corepack prepare yarn@4.9.1 --activate
 
-# Install dependencies
-RUN npm ci
+# Copy workspace root files
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY frontend/package.json ./frontend/
 
-# Copy source files
-COPY . .
+# Install all workspaces
+RUN yarn install
+
+# Copy frontend source
+COPY frontend ./frontend
+
+WORKDIR /app/frontend
 
 # Build production bundle
-RUN npm run build
+RUN yarn build
 
 # Production stage with nginx
 FROM nginx:alpine
 
 # Copy built files from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/frontend/dist /usr/share/nginx/html
 
 # Copy nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
 EXPOSE 80

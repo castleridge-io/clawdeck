@@ -2,12 +2,20 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+# Enable Corepack for Yarn 4 support
+RUN corepack enable && corepack prepare yarn@4.9.1 --activate
 
-# Copy source
-COPY . .
+# Copy workspace root files
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY frontend/package.json ./frontend/
+
+# Install all workspaces
+RUN yarn install
+
+# Copy frontend source
+COPY frontend ./frontend
+
+WORKDIR /app/frontend
 
 # Expose port
 EXPOSE 3002

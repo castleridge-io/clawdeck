@@ -486,7 +486,7 @@ docker-compose up -d --build
 
 ### Full Documentation
 
-- **Docker Compose**: `/home/montelai/tools/clawdeck/nodejs/docker-compose.yml`
-- **Dockerfile**: `/home/montelai/tools/clawdeck/nodejs/Dockerfile`
-- **Setup Guide**: `/home/montelai/clawdeck/docs/migration/DOCKER_SETUP.md`
-- **Server Requirements**: `/home/montelai/clawdeck/docs/migration/CLAWDECK_SERVER_REQUIREMENTS.md`
+- **Docker Compose**: `docker-compose.yml` (project root)
+- **Dockerfile**: `nodejs/Dockerfile`
+- **Setup Guide**: `docs/migration/DOCKER_SETUP.md`
+- **Server Requirements**: `docs/migration/CLAWDECK_SERVER_REQUIREMENTS.md`

@@ -3,6 +3,9 @@ node_modules/
 .pnp
 .pnp.js
 
+# Yarn
+.yarn/*
+
 # Build outputs
 dist/
 build/

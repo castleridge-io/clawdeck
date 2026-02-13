@@ -1,4 +1,5 @@
 # Node.js Dockerfile for ClawDeck API
+# Build context should be monorepo root
 FROM node:20-alpine
 
 # Install netcat for database health checking
@@ -8,21 +9,27 @@ RUN apk add --no-cache netcat-openbsd
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Set working directory
+# Set working directory and give ownership to nodejs user
 WORKDIR /app
+RUN chown nodejs:nodejs /app
 
-# Copy package files
-COPY package*.json ./
+# Enable Corepack for Yarn 4 support
+RUN corepack enable && corepack prepare yarn@4.9.1 --activate
 
-# Install dependencies as root, then chown only what's needed
-RUN npm ci --only=production && npm cache clean --force && \
-    chown -R nodejs:nodejs /app
+# Copy workspace root files with proper ownership
+COPY --chown=nodejs:nodejs package.json yarn.lock .yarnrc.yml ./
+COPY --chown=nodejs:nodejs nodejs/package.json ./nodejs/
 
-# Switch to non-root user
+# Switch to non-root user before install
 USER nodejs
 
-# Copy application source (runs as nodejs, so no chown needed)
-COPY --chown=nodejs:nodejs . .
+# Install all workspaces
+RUN yarn install && yarn cache clean
+
+# Copy API source with proper ownership
+COPY --chown=nodejs:nodejs nodejs ./nodejs
+
+WORKDIR /app/nodejs
 
 # Generate Prisma client
 RUN npx prisma generate
