@@ -48,6 +48,7 @@ Thumbs.db
 coverage/
 .nyc_output/
 *.lcov
+e2e-results/
 
 # Misc
 .eslintcache

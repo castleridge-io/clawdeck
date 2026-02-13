@@ -447,6 +447,42 @@ export function createAgentService(options = {}) {
           }
         }
       })
+    },
+
+    /**
+     * Update agent's last active timestamp (called when agent performs an action)
+     * @param {string} uuid - Agent UUID
+     * @returns {Promise<void>}
+     */
+    async updateAgentActivity(uuid) {
+      const agent = await prisma.agent.findFirst({
+        where: { uuid, isActive: true }
+      })
+
+      if (agent) {
+        await prisma.agent.update({
+          where: { id: agent.id },
+          data: { lastActiveAt: new Date() }
+        })
+      }
+    },
+
+    /**
+     * Update agent activity by slug
+     * @param {string} slug - Agent slug
+     * @returns {Promise<void>}
+     */
+    async updateAgentActivityBySlug(slug) {
+      const agent = await prisma.agent.findFirst({
+        where: { slug, isActive: true }
+      })
+
+      if (agent) {
+        await prisma.agent.update({
+          where: { id: agent.id },
+          data: { lastActiveAt: new Date() }
+        })
+      }
     }
   }
 }

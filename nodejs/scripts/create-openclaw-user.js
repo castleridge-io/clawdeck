@@ -5,12 +5,18 @@
  */
 
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
+const SALT_ROUNDS = 12
+const DEFAULT_PASSWORD = 'openclaw'
 
 async function createOpenClawUser() {
   try {
     console.log('🔐 Creating OpenClaw system user in ClawDeck...\n')
+
+    // Hash the password
+    const passwordDigest = await bcrypt.hash(DEFAULT_PASSWORD, SALT_ROUNDS)
 
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
@@ -18,14 +24,15 @@ async function createOpenClawUser() {
     })
 
     if (existingUser) {
-      console.log('✅ User already exists, updating settings...')
+      console.log('✅ User already exists, updating settings and password...')
 
       const updated = await prisma.user.update({
         where: { id: existingUser.id },
         data: {
           agentAutoMode: true,
           agentName: 'OpenClaw System',
-          agentEmoji: '🤖'
+          agentEmoji: '🤖',
+          passwordDigest: passwordDigest
         }
       })
 
@@ -35,6 +42,7 @@ async function createOpenClawUser() {
       console.log('   Agent Name:', updated.agentName)
       console.log('   Agent Emoji:', updated.agentEmoji)
       console.log('   Auto Mode:', updated.agentAutoMode)
+      console.log('   Password: openclaw')
 
       return updated
     }
@@ -45,7 +53,8 @@ async function createOpenClawUser() {
         emailAddress: 'openclaw@system.local',
         agentAutoMode: true,
         agentName: 'OpenClaw System',
-        agentEmoji: '🤖'
+        agentEmoji: '🤖',
+        passwordDigest: passwordDigest
       }
     })
 
@@ -55,6 +64,7 @@ async function createOpenClawUser() {
     console.log('   Agent Name:', user.agentName)
     console.log('   Agent Emoji:', user.agentEmoji)
     console.log('   Auto Mode:', user.agentAutoMode)
+    console.log('   Password: openclaw')
     console.log('   Created:', user.createdAt.toISOString())
 
     return user

@@ -12,7 +12,7 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
 }
 
 interface KanbanBoardProps {
-  board: Board
+  board: Board | null
   tasks: Task[]
   columns: Column[]
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
@@ -99,6 +99,17 @@ export default function KanbanBoard({
 
   return (
     <div className="kanban-board">
+      {/* No board selected message */}
+      {!board && (
+        <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-8 text-center mb-4">
+          <div className="text-4xl mb-3">📋</div>
+          <h3 className="text-lg font-medium text-white mb-2">No Board Selected</h3>
+          <p className="text-slate-400 text-sm">
+            Create a board to start managing tasks, or select an existing board from the dropdown.
+          </p>
+        </div>
+      )}
+
       <div className="kanban-board-header">
         <label className="archive-toggle">
           <input

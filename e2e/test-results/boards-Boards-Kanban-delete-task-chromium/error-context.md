@@ -1,0 +1,130 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - heading "🦀 ClawDeck" [level=1] [ref=e6]:
+        - generic [ref=e7]: 🦀
+        - generic [ref=e8]: ClawDeck
+      - button "Collapse sidebar" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+    - navigation [ref=e12]:
+      - heading "Workspace" [level=2] [ref=e13]
+      - link "📊 Dashboard" [ref=e14] [cursor=pointer]:
+        - /url: /dashboard
+        - generic [ref=e15]: 📊
+        - text: Dashboard
+      - link "📋 Boards" [ref=e16] [cursor=pointer]:
+        - /url: /boards
+        - generic [ref=e17]: 📋
+        - text: Boards
+      - link "✅ Tasks" [ref=e18] [cursor=pointer]:
+        - /url: /tasks
+        - generic [ref=e19]: ✅
+        - text: Tasks
+      - link "📦 Archive" [ref=e20] [cursor=pointer]:
+        - /url: /archive
+        - generic [ref=e21]: 📦
+        - text: Archive
+      - generic [ref=e22]:
+        - heading "Automation" [level=2] [ref=e23]
+        - link "🤖 Agents" [ref=e24] [cursor=pointer]:
+          - /url: /agents
+          - generic [ref=e25]: 🤖
+          - text: Agents
+        - link "🔄 Workflows" [ref=e26] [cursor=pointer]:
+          - /url: /workflows
+          - generic [ref=e27]: 🔄
+          - text: Workflows
+        - link "▶️ Runs" [ref=e28] [cursor=pointer]:
+          - /url: /runs
+          - generic [ref=e29]: ▶️
+          - text: Runs
+      - generic [ref=e30]:
+        - heading "System" [level=2] [ref=e31]
+        - link "⚙️ Settings" [ref=e32] [cursor=pointer]:
+          - /url: /settings
+          - generic [ref=e33]: ⚙️
+          - text: Settings
+        - link "🔐 Admin" [ref=e34] [cursor=pointer]:
+          - /url: /admin
+          - generic [ref=e35]: 🔐
+          - text: Admin
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - generic [ref=e38]: 🔧
+        - paragraph [ref=e40]: Admin
+      - button "Sign out" [ref=e41] [cursor=pointer]
+  - main [ref=e42]:
+    - generic [ref=e43]:
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - heading "Boards" [level=1] [ref=e46]
+          - paragraph [ref=e47]: Manage your task boards
+        - generic [ref=e48]:
+          - generic [ref=e49]: No boards available
+          - button "New Task" [disabled] [ref=e50]:
+            - img [ref=e51]
+            - text: New Task
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - img [ref=e56]
+          - textbox "Search tasks..." [ref=e58]
+        - button "Status" [ref=e60] [cursor=pointer]:
+          - text: Status
+          - img [ref=e61]
+        - button "Priority" [ref=e64] [cursor=pointer]:
+          - text: Priority
+          - img [ref=e65]
+        - button "Assignee" [ref=e68] [cursor=pointer]:
+          - text: Assignee
+          - img [ref=e69]
+        - button "Tags" [ref=e72] [cursor=pointer]:
+          - text: Tags
+          - img [ref=e73]
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - generic [ref=e77]: 📋
+          - heading "No Board Selected" [level=3] [ref=e78]
+          - paragraph [ref=e79]: Create a board to start managing tasks, or select an existing board from the dropdown.
+        - generic [ref=e81] [cursor=pointer]:
+          - checkbox "Show archived tasks (0)" [ref=e82]
+          - generic [ref=e83]: Show archived tasks (0)
+        - generic [ref=e84]:
+          - generic [ref=e85]:
+            - generic [ref=e86]:
+              - heading "Inbox" [level=3] [ref=e89]
+              - generic [ref=e90]: "0"
+            - generic [ref=e92]:
+              - paragraph [ref=e93]: No tasks
+              - text: Drag tasks here or create new ones
+          - generic [ref=e94]:
+            - generic [ref=e95]:
+              - heading "Up Next" [level=3] [ref=e98]
+              - generic [ref=e99]: "0"
+            - generic [ref=e101]:
+              - paragraph [ref=e102]: No tasks
+              - text: Drag tasks here or create new ones
+          - generic [ref=e103]:
+            - generic [ref=e104]:
+              - heading "In Progress" [level=3] [ref=e107]
+              - generic [ref=e108]: "0"
+            - generic [ref=e110]:
+              - paragraph [ref=e111]: No tasks
+              - text: Drag tasks here or create new ones
+          - generic [ref=e112]:
+            - generic [ref=e113]:
+              - heading "In Review" [level=3] [ref=e116]
+              - generic [ref=e117]: "0"
+            - generic [ref=e119]:
+              - paragraph [ref=e120]: No tasks
+              - text: Drag tasks here or create new ones
+          - generic [ref=e121]:
+            - generic [ref=e122]:
+              - heading "Done" [level=3] [ref=e125]
+              - generic [ref=e126]: "0"
+            - generic [ref=e128]:
+              - paragraph [ref=e129]: No tasks
+              - text: Drag tasks here or create new ones
+```

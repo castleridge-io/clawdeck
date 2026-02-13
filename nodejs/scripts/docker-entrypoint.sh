@@ -35,10 +35,10 @@ if [ -n "$DATABASE_URL" ]; then
 
     # Apply pending Prisma migrations
     echo "Applying Prisma migrations..."
-    npx prisma migrate deploy --skip-generate || {
+    npx prisma migrate deploy || {
       echo "Warning: Prisma migrate deploy failed, attempting to continue..."
       # Try to create schema if it doesn't exist
-      npx prisma db push --skip-generate --accept-data-loss || echo "Could not push schema"
+      npx prisma db push --accept-data-loss || echo "Could not push schema"
     }
 
     echo "Database migrations completed"
@@ -47,7 +47,7 @@ if [ -n "$DATABASE_URL" ]; then
   # Seed database if AUTO_SEED is true
   if [ "${AUTO_SEED:-false}" = "true" ]; then
     echo "Seeding database..."
-    npm run seed || echo "Seeding completed or no seed needed"
+    npx prisma db seed || echo "Seeding completed or no seed needed"
   fi
 fi
 

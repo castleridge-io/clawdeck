@@ -56,11 +56,15 @@ export interface Workflow {
 }
 
 export interface WorkflowStep {
-  id: string
-  name: string
-  type: string
-  order: number
-  config?: Record<string, unknown>
+  id?: string
+  stepId: string
+  name?: string | null
+  agentId: string
+  inputTemplate: string
+  expects: string
+  type: 'single' | 'loop' | 'approval'
+  loopConfig?: Record<string, unknown> | null
+  position: number
 }
 
 export interface Run {

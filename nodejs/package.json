@@ -4,7 +4,9 @@
   "description": "Kanban-style mission control dashboard for AI agents",
   "type": "module",
   "scripts": {
-    "dev": "fastify start -l info -P src/app.js",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
     "test": "node --test tests/integration/workflows.test.js && node --test tests/integration/tasks.test.js && node --test tests/integration/boards.test.js && node --test tests/integration/settings.test.js && node --test tests/integration/auth.test.js && node --test tests/integration/archives.test.js && node --test tests/unit/archiveScheduler.test.js",
     "test:tasks": "node --test tests/integration/tasks.test.js",
     "test:boards": "node --test tests/integration/boards.test.js",
@@ -25,6 +27,7 @@
     "test:docker:e2e": "docker compose -f docker-compose.test.yml run --rm e2e-test",
     "test:docker:e2e:archive": "docker compose -f docker-compose.test.yml run --rm e2e-archive-test",
     "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
@@ -45,10 +48,15 @@
     "pg": "^8.18.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
     "c8": "^10.1.3",
     "eslint": "^9.17.0",
     "fastify-cli": "^7.0.1",
-    "prisma": "^6.0.0"
+    "prisma": "^6.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   },
   "prisma": {
     "seed": "node src/db/seed.js"

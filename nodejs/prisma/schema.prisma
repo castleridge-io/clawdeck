@@ -77,20 +77,21 @@ model ApiToken {
 
 // Agent model - represents an AI agent that can be assigned tasks
 model Agent {
-  id          BigInt   @id @default(autoincrement())
-  uuid        String   @unique @default(uuid()) // External stable ID for API/workflow references
-  name        String   @unique
-  slug        String   @unique
-  emoji       String   @default("🤖")
-  color       String   @default("gray")
-  description String?
-  isActive    Boolean  @default(true) @map("is_active")
-  position    Int      @default(0)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id           BigInt    @id @default(autoincrement())
+  uuid         String    @unique @default(uuid()) // External stable ID for API/workflow references
+  name         String    @unique
+  slug         String    @unique
+  emoji        String    @default("🤖")
+  color        String    @default("gray")
+  description  String?
+  isActive     Boolean   @default(true) @map("is_active")
+  lastActiveAt DateTime? @map("last_active_at")
+  position     Int       @default(0)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  boards      Board[]
+  boards       Board[]
 
   @@index([uuid], map: "index_agents_on_uuid")
   @@index([slug], map: "index_agents_on_slug")
@@ -316,9 +317,32 @@ model Workflow {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
+  steps       WorkflowStep[]
   runs        Run[]    @relation("WorkflowRuns")
 
   @@map("workflows")
+}
+
+// WorkflowStep model - individual steps in a workflow template
+model WorkflowStep {
+  id            BigInt   @id @default(autoincrement())
+  workflowId    BigInt   @map("workflow_id")
+  stepId        String   @map("step_id")
+  name          String?
+  agentId       String   @map("agent_id")
+  inputTemplate String   @map("input_template") @db.Text
+  expects       String   @db.Text
+  type          String   @default("single")
+  loopConfig    Json?    @map("loop_config")
+  position      Int      @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  workflow      Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, stepId])
+  @@index([workflowId])
+  @@map("workflow_steps")
 }
 
 // Run model - represents a single workflow execution

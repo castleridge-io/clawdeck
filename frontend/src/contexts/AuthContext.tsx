@@ -66,10 +66,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         body: JSON.stringify({ emailAddress, password }),
       })
 
-      const data = await response.json()
+      // Handle empty response body
+      const text = await response.text()
+      const data = text ? JSON.parse(text) : {}
 
       if (!response.ok) {
-        throw new Error(data.error || 'Login failed')
+        throw new Error(data.error || `Login failed (${response.status})`)
       }
 
       setToken(data.token)

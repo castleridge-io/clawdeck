@@ -12,5 +12,9 @@
     "build": "yarn workspaces foreach -Wt run build",
     "test": "yarn workspace clawdeck test",
     "test:frontend": "yarn workspace clawdeck-frontend test"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.58.2",
+    "yaml": "^2.8.2"
   }
 }

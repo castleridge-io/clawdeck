@@ -2,9 +2,30 @@ import { authenticateRequest, authenticateAdmin } from '../middleware/auth.js'
 import { createAgentService } from '../services/agent.service.js'
 
 /**
+ * Compute agent status based on lastActiveAt
+ * - active: last active within 5 minutes
+ * - idle: last active within 30 minutes
+ * - offline: last active more than 30 minutes ago or never
+ */
+function computeAgentStatus(lastActiveAt) {
+  if (!lastActiveAt) return 'offline'
+
+  const now = new Date()
+  const lastActive = new Date(lastActiveAt)
+  const diffMs = now.getTime() - lastActive.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+
+  if (diffMins < 5) return 'active'
+  if (diffMins < 30) return 'idle'
+  return 'offline'
+}
+
+/**
  * Convert agent model to JSON response format
  */
 function agentToJson(agent) {
+  const status = computeAgentStatus(agent.lastActiveAt)
+
   return {
     id: agent.id.toString(),
     uuid: agent.uuid,
@@ -14,6 +35,8 @@ function agentToJson(agent) {
     color: agent.color,
     description: agent.description,
     is_active: agent.isActive,
+    status,
+    lastActiveAt: agent.lastActiveAt ? agent.lastActiveAt.toISOString() : null,
     boards: (agent.boards || []).map(board => ({
       id: board.id.toString(),
       name: board.name,

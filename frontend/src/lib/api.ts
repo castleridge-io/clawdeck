@@ -24,13 +24,19 @@ async function fetchWithAuth<T>(endpoint: string, options: RequestInit = {}): Pr
   const url = `${API_BASE}${endpoint}`
   const token = getToken()
 
+  // Only set Content-Type for methods that typically have a body
+  const hasBody = options.body !== undefined
+  const headers: Record<string, string> = {
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...options.headers as Record<string, string>,
+  }
+  if (hasBody) {
+    headers['Content-Type'] = 'application/json'
+  }
+
   const response = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
+    headers,
   })
 
   if (response.status === 401) {
@@ -44,6 +50,10 @@ async function fetchWithAuth<T>(endpoint: string, options: RequestInit = {}): Pr
   if (!response.ok) {
     const errorData = await response.json().catch((): { error?: string } => ({}))
     throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
+  }
+
+  if (response.status === 204) {
+    return null as T
   }
 
   return response.json()
@@ -193,6 +203,14 @@ export async function updateWorkflow(workflowId: string, updates: Partial<Workfl
 export async function deleteWorkflow(workflowId: string): Promise<boolean> {
   await fetchWithAuth(`/workflows/${workflowId}`, { method: 'DELETE' })
   return true
+}
+
+export async function importWorkflowYaml(yamlString: string): Promise<Workflow> {
+  const response = await fetchWithAuth<ApiResponse<Workflow>>('/workflows/import-yaml', {
+    method: 'POST',
+    body: JSON.stringify({ yaml: yamlString }),
+  })
+  return response.data || response as unknown as Workflow
 }
 
 // Runs

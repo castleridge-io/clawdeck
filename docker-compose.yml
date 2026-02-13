@@ -38,7 +38,7 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       # Auto-migrate on startup
       AUTO_MIGRATE: ${AUTO_MIGRATE:-true}
-      AUTO_SEED: ${AUTO_SEED:-false}
+      AUTO_SEED: ${AUTO_SEED:-true}
       # Archive settings
       ARCHIVE_ENABLED: ${ARCHIVE_ENABLED:-true}
       ARCHIVE_DELAY_HOURS: ${ARCHIVE_DELAY_HOURS:-24}
@@ -49,7 +49,7 @@ services:
       - "${API_PORT:-3000}:3000"
     volumes:
       - ./nodejs:/app/nodejs
-      - /app/nodejs/node_modules
+      - api_node_modules:/app/node_modules
     networks:
       - clawdeck-network
     healthcheck:
@@ -92,10 +92,10 @@ services:
     depends_on:
       - api
     ports:
-      - "${FRONTEND_PORT:-3002}:3002"
+      - "0.0.0.0:${FRONTEND_PORT:-3002}:3002"
     volumes:
       - ./frontend:/app/frontend
-      - /app/node_modules
+      - frontend_node_modules:/app/node_modules
     networks:
       - clawdeck-network
 
@@ -121,6 +121,10 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  api_node_modules:
+    driver: local
+  frontend_node_modules:
     driver: local
 
 networks:

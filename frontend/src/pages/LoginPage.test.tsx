@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
@@ -12,6 +12,9 @@ vi.mock('../contexts/AuthContext', () => ({
   }),
 }))
 
+// Store original env
+const originalEnv = import.meta.env.VITE_DEV_LOGIN
+
 function renderLoginPage() {
   return render(
     <BrowserRouter>
@@ -23,6 +26,11 @@ function renderLoginPage() {
 describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    // Restore original env
+    vi.stubEnv('VITE_DEV_LOGIN', originalEnv)
   })
 
   it('renders login form', () => {
@@ -82,5 +90,48 @@ describe('LoginPage', () => {
 
     expect(screen.getByLabelText(/email/i)).toBeRequired()
     expect(screen.getByLabelText(/password/i)).toBeRequired()
+  })
+
+  describe('Dev Login', () => {
+    it('shows dev login button when VITE_DEV_LOGIN is true', () => {
+      vi.stubEnv('VITE_DEV_LOGIN', 'true')
+      renderLoginPage()
+
+      expect(screen.getByTestId('dev-login-button')).toBeInTheDocument()
+      expect(screen.getByText(/dev login/i)).toBeInTheDocument()
+    })
+
+    it('hides dev login button when VITE_DEV_LOGIN is not true', () => {
+      vi.stubEnv('VITE_DEV_LOGIN', 'false')
+      renderLoginPage()
+
+      expect(screen.queryByTestId('dev-login-button')).not.toBeInTheDocument()
+    })
+
+    it('calls login with admin credentials when dev login clicked', async () => {
+      vi.stubEnv('VITE_DEV_LOGIN', 'true')
+      const user = userEvent.setup()
+      mockLogin.mockResolvedValueOnce({ success: true })
+
+      renderLoginPage()
+
+      await user.click(screen.getByTestId('dev-login-button'))
+
+      expect(mockLogin).toHaveBeenCalledWith('admin', 'admin')
+    })
+
+    it('shows error when dev login fails', async () => {
+      vi.stubEnv('VITE_DEV_LOGIN', 'true')
+      const user = userEvent.setup()
+      mockLogin.mockResolvedValueOnce({ success: false, error: 'Dev login failed' })
+
+      renderLoginPage()
+
+      await user.click(screen.getByTestId('dev-login-button'))
+
+      await waitFor(() => {
+        expect(screen.getByText('Dev login failed')).toBeInTheDocument()
+      })
+    })
   })
 })

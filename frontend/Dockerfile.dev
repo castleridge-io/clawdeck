@@ -15,10 +15,14 @@ RUN yarn install
 # Copy frontend source
 COPY frontend ./frontend
 
+# Copy and set up entrypoint
+COPY frontend/docker-entrypoint.dev.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 WORKDIR /app/frontend
 
 # Expose port
 EXPOSE 3002
 
-# Start dev server
-CMD ["yarn", "dev", "--host"]
+# Start dev server via entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

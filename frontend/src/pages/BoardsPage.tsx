@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { getBoards, getAgents, getTasks, createTask, updateTask, deleteTask, assignTask, claimTask, completeTask } from '../lib/api'
 import { wsClient } from '../lib/websocket'
 import type { Board, Agent, Task, Column, TaskStatus } from '../types'
 import KanbanBoard from '../components/KanbanBoard'
 import TaskModal from '../components/TaskModal'
+import TaskFilters, { type TaskFilters as TaskFiltersType, filterTasks } from '../components/TaskFilters'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const COLUMNS: Column[] = [
@@ -23,6 +24,30 @@ export default function BoardsPage() {
   const [selectedBoard, setSelectedBoard] = useState<Board | null>(null)
   const [showTaskModal, setShowTaskModal] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [filters, setFilters] = useState<TaskFiltersType>({
+    search: '',
+    status: [],
+    priority: [],
+    assignee: [],
+    tags: [],
+  })
+
+  // Extract available tags from all tasks
+  const availableTags = useMemo(() => {
+    const tagSet = new Set<string>()
+    allTasks.forEach(task => {
+      const extendedTask = task as Task & { tags?: string[] }
+      extendedTask.tags?.forEach(tag => tagSet.add(tag))
+    })
+    return Array.from(tagSet).sort()
+  }, [allTasks])
+
+  // Filter tasks for the selected board
+  const filteredTasks = useMemo(() => {
+    if (!selectedBoard) return []
+    const boardTasks = allTasks.filter(t => t.board_id === selectedBoard.id)
+    return filterTasks(boardTasks, filters)
+  }, [selectedBoard, allTasks, filters])
 
   useEffect(() => {
     loadData()
@@ -177,24 +202,29 @@ export default function BoardsPage() {
 
         <div className="flex items-center gap-4">
           {/* Board Selector */}
-          <select
-            value={selectedBoard?.id || ''}
-            onChange={(e) => {
-              const board = boards.find(b => b.id === e.target.value)
-              setSelectedBoard(board || null)
-            }}
-            className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {boards.map(board => (
-              <option key={board.id} value={board.id}>
-                {board.name}
-              </option>
-            ))}
-          </select>
+          {boards.length > 0 ? (
+            <select
+              value={selectedBoard?.id || ''}
+              onChange={(e) => {
+                const board = boards.find(b => b.id === e.target.value)
+                setSelectedBoard(board || null)
+              }}
+              className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {boards.map(board => (
+                <option key={board.id} value={board.id}>
+                  {board.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span className="text-slate-400 text-sm">No boards available</span>
+          )}
 
           <button
             onClick={() => setShowTaskModal(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2"
+            disabled={boards.length === 0}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2"
           >
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -204,23 +234,31 @@ export default function BoardsPage() {
         </div>
       </div>
 
-      {/* Kanban Board */}
-      {selectedBoard && (
-        <KanbanBoard
-          board={selectedBoard}
-          tasks={allTasks.filter(t => t.board_id === selectedBoard.id)}
-          columns={COLUMNS}
-          onTaskUpdate={handleUpdateTask}
-          onTaskDelete={handleDeleteTask}
-          onTaskAssign={handleAssignTask}
-          onTaskClaim={handleClaimTask}
-          onTaskComplete={handleCompleteTask}
-          onTaskEdit={(task) => {
-            setEditingTask(task)
-            setShowTaskModal(true)
-          }}
+      {/* Filters */}
+      <div className="mb-4">
+        <TaskFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          availableAgents={agents}
+          availableTags={availableTags}
         />
-      )}
+      </div>
+
+      {/* Kanban Board - always show, even when empty */}
+      <KanbanBoard
+        board={selectedBoard}
+        tasks={filteredTasks}
+        columns={COLUMNS}
+        onTaskUpdate={handleUpdateTask}
+        onTaskDelete={handleDeleteTask}
+        onTaskAssign={handleAssignTask}
+        onTaskClaim={handleClaimTask}
+        onTaskComplete={handleCompleteTask}
+        onTaskEdit={(task) => {
+          setEditingTask(task)
+          setShowTaskModal(true)
+        }}
+      />
 
       {/* Task Modal */}
       {showTaskModal && selectedBoard && (

@@ -1,0 +1,99 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - heading "🦀 ClawDeck" [level=1] [ref=e6]:
+        - generic [ref=e7]: 🦀
+        - generic [ref=e8]: ClawDeck
+      - button "Collapse sidebar" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+    - navigation [ref=e12]:
+      - heading "Workspace" [level=2] [ref=e13]
+      - link "📊 Dashboard" [ref=e14] [cursor=pointer]:
+        - /url: /dashboard
+        - generic [ref=e15]: 📊
+        - text: Dashboard
+      - link "📋 Boards" [ref=e16] [cursor=pointer]:
+        - /url: /boards
+        - generic [ref=e17]: 📋
+        - text: Boards
+      - link "✅ Tasks" [ref=e18] [cursor=pointer]:
+        - /url: /tasks
+        - generic [ref=e19]: ✅
+        - text: Tasks
+      - link "📦 Archive" [ref=e20] [cursor=pointer]:
+        - /url: /archive
+        - generic [ref=e21]: 📦
+        - text: Archive
+      - generic [ref=e22]:
+        - heading "Automation" [level=2] [ref=e23]
+        - link "🤖 Agents" [ref=e24] [cursor=pointer]:
+          - /url: /agents
+          - generic [ref=e25]: 🤖
+          - text: Agents
+        - link "🔄 Workflows" [ref=e26] [cursor=pointer]:
+          - /url: /workflows
+          - generic [ref=e27]: 🔄
+          - text: Workflows
+        - link "▶️ Runs" [ref=e28] [cursor=pointer]:
+          - /url: /runs
+          - generic [ref=e29]: ▶️
+          - text: Runs
+      - generic [ref=e30]:
+        - heading "System" [level=2] [ref=e31]
+        - link "⚙️ Settings" [ref=e32] [cursor=pointer]:
+          - /url: /settings
+          - generic [ref=e33]: ⚙️
+          - text: Settings
+        - link "🔐 Admin" [ref=e34] [cursor=pointer]:
+          - /url: /admin
+          - generic [ref=e35]: 🔐
+          - text: Admin
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - generic [ref=e38]: 🔧
+        - paragraph [ref=e40]: Admin
+      - button "Sign out" [ref=e41] [cursor=pointer]
+  - main [ref=e42]:
+    - generic [ref=e43]:
+      - heading "Settings" [level=1] [ref=e44]
+      - generic [ref=e45]:
+        - heading "Profile" [level=2] [ref=e46]
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - generic [ref=e49]: Email
+            - textbox [disabled] [ref=e50]: admin
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - generic [ref=e53]: Agent Name
+              - textbox [ref=e54]: Admin
+            - generic [ref=e55]:
+              - generic [ref=e56]: Agent Emoji
+              - textbox [ref=e57]: 🔧
+          - generic [ref=e58]:
+            - checkbox "Enable Agent Auto Mode" [ref=e59]
+            - generic [ref=e60]: Enable Agent Auto Mode
+          - button "Save Profile" [ref=e61] [cursor=pointer]
+      - generic [ref=e62]:
+        - heading "Change Password" [level=2] [ref=e63]
+        - generic [ref=e64]:
+          - generic [ref=e65]:
+            - generic [ref=e66]: Current Password
+            - textbox [ref=e67]
+          - generic [ref=e68]:
+            - generic [ref=e69]: New Password
+            - textbox [ref=e70]
+          - generic [ref=e71]:
+            - generic [ref=e72]: Confirm New Password
+            - textbox [ref=e73]
+          - button "Update Password" [ref=e74] [cursor=pointer]
+      - generic [ref=e75]:
+        - heading "API Token" [level=2] [ref=e76]
+        - paragraph [ref=e77]: Use this token to authenticate API requests. Keep it secret.
+        - generic [ref=e78]:
+          - code [ref=e79]: 573c8eef17f75d1ebe5631a9e759b1024ac561035533fc24a39d841b81b811ff
+          - button "Copy" [ref=e80] [cursor=pointer]
+        - button "Regenerate Token" [ref=e81] [cursor=pointer]
+```

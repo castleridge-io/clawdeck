@@ -25,6 +25,37 @@ function validateStep(step) {
 }
 
 /**
+ * Format workflow for API response (includes steps from WorkflowStep table)
+ */
+async function formatWorkflowResponse(workflow) {
+  if (!workflow) return null
+
+  const steps = await prisma.workflowStep.findMany({
+    where: { workflowId: workflow.id },
+    orderBy: { position: 'asc' }
+  })
+
+  return {
+    id: workflow.id.toString(),
+    name: workflow.name,
+    description: workflow.description,
+    steps: steps.map(step => ({
+      id: step.id.toString(),
+      stepId: step.stepId,
+      name: step.name,
+      agentId: step.agentId,
+      inputTemplate: step.inputTemplate,
+      expects: step.expects,
+      type: step.type,
+      loopConfig: step.loopConfig,
+      position: step.position
+    })),
+    createdAt: workflow.createdAt,
+    updatedAt: workflow.updatedAt
+  }
+}
+
+/**
  * Create workflow service
  */
 export function createWorkflowService() {
@@ -48,33 +79,52 @@ export function createWorkflowService() {
         validateStep(step)
       }
 
-      const config = { steps }
-
-      return await prisma.workflow.create({
+      const workflow = await prisma.workflow.create({
         data: {
           name,
           description,
-          config
+          config: {} // Keep config for backwards compatibility
         }
       })
+
+      // Create workflow steps
+      if (steps.length > 0) {
+        await prisma.workflowStep.createMany({
+          data: steps.map((step, index) => ({
+            workflowId: workflow.id,
+            stepId: step.stepId,
+            name: step.name || null,
+            agentId: step.agentId,
+            inputTemplate: step.inputTemplate,
+            expects: step.expects,
+            type: step.type || 'single',
+            loopConfig: step.loopConfig || null,
+            position: step.position ?? index
+          }))
+        })
+      }
+
+      return await formatWorkflowResponse(workflow)
     },
 
     /**
      * Get workflow by ID
      */
     async getWorkflow(id) {
-      return await prisma.workflow.findUnique({
+      const workflow = await prisma.workflow.findUnique({
         where: { id: BigInt(id) }
       })
+      return await formatWorkflowResponse(workflow)
     },
 
     /**
      * Get workflow by name
      */
     async getWorkflowByName(name) {
-      return await prisma.workflow.findUnique({
+      const workflow = await prisma.workflow.findUnique({
         where: { name }
       })
+      return await formatWorkflowResponse(workflow)
     },
 
     /**
@@ -87,10 +137,71 @@ export function createWorkflowService() {
         where.name = filters.name
       }
 
-      return await prisma.workflow.findMany({
+      const workflows = await prisma.workflow.findMany({
         where,
         orderBy: { createdAt: 'desc' }
       })
+
+      const results = []
+      for (const workflow of workflows) {
+        results.push(await formatWorkflowResponse(workflow))
+      }
+      return results
+    },
+
+    /**
+     * Update workflow by ID
+     */
+    async updateWorkflow(id, data) {
+      const { name, description, steps } = data
+
+      const updateData = {}
+      if (name !== undefined) updateData.name = name
+      if (description !== undefined) updateData.description = description
+
+      // Update workflow fields
+      if (Object.keys(updateData).length > 0) {
+        await prisma.workflow.update({
+          where: { id: BigInt(id) },
+          data: updateData
+        })
+      }
+
+      // Update steps if provided
+      if (steps !== undefined) {
+        if (!Array.isArray(steps)) {
+          throw new Error('steps must be an array')
+        }
+
+        // Validate each step
+        for (const step of steps) {
+          validateStep(step)
+        }
+
+        // Delete existing steps
+        await prisma.workflowStep.deleteMany({
+          where: { workflowId: BigInt(id) }
+        })
+
+        // Create new steps
+        if (steps.length > 0) {
+          await prisma.workflowStep.createMany({
+            data: steps.map((step, index) => ({
+              workflowId: BigInt(id),
+              stepId: step.stepId,
+              name: step.name || null,
+              agentId: step.agentId,
+              inputTemplate: step.inputTemplate,
+              expects: step.expects,
+              type: step.type || 'single',
+              loopConfig: step.loopConfig || null,
+              position: step.position ?? index
+            }))
+          })
+        }
+      }
+
+      return await this.getWorkflow(id)
     },
 
     /**
@@ -109,9 +220,50 @@ export function createWorkflowService() {
         throw new Error('Cannot delete workflow with active runs')
       }
 
+      // Delete steps first (cascade should handle this, but be explicit)
+      await prisma.workflowStep.deleteMany({
+        where: { workflowId: BigInt(id) }
+      })
+
       await prisma.workflow.delete({
         where: { id: BigInt(id) }
       })
+    },
+
+    /**
+     * Get raw workflow with config (for workflow execution)
+     */
+    async getWorkflowWithConfig(id) {
+      const workflow = await prisma.workflow.findUnique({
+        where: { id: BigInt(id) },
+        include: {
+          steps: {
+            orderBy: { position: 'asc' }
+          }
+        }
+      })
+
+      if (!workflow) return null
+
+      // Build config from steps for backwards compatibility with runner
+      const stepsConfig = workflow.steps.map(step => ({
+        stepId: step.stepId,
+        name: step.name,
+        agentId: step.agentId,
+        inputTemplate: step.inputTemplate,
+        expects: step.expects,
+        type: step.type,
+        loopConfig: step.loopConfig
+      }))
+
+      return {
+        id: workflow.id.toString(),
+        name: workflow.name,
+        description: workflow.description,
+        config: { steps: stepsConfig },
+        createdAt: workflow.createdAt,
+        updatedAt: workflow.updatedAt
+      }
     }
   }
 }
