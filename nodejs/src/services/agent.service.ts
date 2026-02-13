@@ -209,7 +209,10 @@ export function createAgentService (options: AgentServiceOptions = {}) {
       })
 
       // Register with OpenClaw (async, don't wait)
-      registerWithOpenClaw(agent as AgentWithBoards).catch(() => {})
+      registerWithOpenClaw(agent as AgentWithBoards).catch((error) => {
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        console.error('Failed to register agent with OpenClaw:', message)
+      })
 
       return agent as AgentWithBoards
     },

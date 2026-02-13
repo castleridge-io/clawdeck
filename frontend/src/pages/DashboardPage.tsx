@@ -39,15 +39,11 @@ export default function DashboardPage () {
       setAgents(agentsData)
 
       // Load tasks from all boards
-      const allTasks: Task[] = []
-      for (const board of boardsData) {
-        try {
-          const tasks = await getTasks(board.id)
-          allTasks.push(...tasks)
-        } catch {
-          // Ignore errors for individual boards
-        }
-      }
+      const taskPromises = boardsData.map((board) =>
+        getTasks(board.id).catch((): Task[] => [])
+      )
+      const taskResults = await Promise.all(taskPromises)
+      const allTasks = taskResults.flat()
 
       // Count tasks by status
       const counts: TaskCounts = {

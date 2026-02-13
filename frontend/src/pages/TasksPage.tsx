@@ -36,11 +36,11 @@ export default function TasksPage () {
       const boardsData = await getBoards()
       setBoards(boardsData)
 
-      const allTasks: Task[] = []
-      for (const board of boardsData) {
-        const boardTasks = await getTasks(board.id).catch((): Task[] => [])
-        allTasks.push(...boardTasks)
-      }
+      const taskPromises = boardsData.map((board) =>
+        getTasks(board.id).catch((): Task[] => [])
+      )
+      const taskResults = await Promise.all(taskPromises)
+      const allTasks = taskResults.flat()
 
       let filtered = allTasks
       if (statusFilter) {

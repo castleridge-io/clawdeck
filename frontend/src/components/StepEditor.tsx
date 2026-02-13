@@ -39,11 +39,13 @@ export default function StepEditor ({ steps, onChange }: StepEditorProps) {
     if (direction === 'down' && index === steps.length - 1) return
 
     const newIndex = direction === 'up' ? index - 1 : index + 1
-    const updated = [...steps]
-    const [moved] = updated.splice(index, 1)
-    updated.splice(newIndex, 0, moved)
-    // Update positions
-    onChange(updated.map((step, i) => ({ ...step, position: i })))
+    // Immutable swap
+    const updated = steps.map((step, i) => {
+      if (i === index) return { ...steps[newIndex], position: index }
+      if (i === newIndex) return { ...steps[index], position: newIndex }
+      return step
+    })
+    onChange(updated)
   }
 
   function updateStep (

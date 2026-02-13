@@ -17,7 +17,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "yarn workspaces foreach -Wt run typecheck"
+    "typecheck": "yarn workspaces foreach -Wt run typecheck",
+    "prepare": "husky"
   },
   "dependencies": {
     "@playwright/test": "^1.58.2",
@@ -32,6 +33,8 @@
     "@types/node": "^25.2.3",
     "@types/pg": "^8.16.0",
     "eslint": "^9.17.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "neostandard": "^0.12.0",
     "prettier": "^3.4.0"
   }
