@@ -31,6 +31,11 @@ export async function getBoards() {
   return response.data || response;
 }
 
+export async function getAgents() {
+  const response = await fetchWithAuth('/agents');
+  return response.data || response;
+}
+
 export async function getBoard(boardId) {
   const response = await fetchWithAuth(`/boards/${boardId}`);
   return response.data || response;

@@ -75,6 +75,29 @@ model ApiToken {
   @@map("api_tokens")
 }
 
+// Agent model - represents an AI agent that can be assigned tasks
+model Agent {
+  id          BigInt   @id @default(autoincrement())
+  uuid        String   @unique @default(uuid()) // External stable ID for API/workflow references
+  name        String   @unique
+  slug        String   @unique
+  emoji       String   @default("🤖")
+  color       String   @default("gray")
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  position    Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  boards      Board[]
+
+  @@index([uuid], map: "index_agents_on_uuid")
+  @@index([slug], map: "index_agents_on_slug")
+  @@index([isActive], map: "index_agents_on_is_active")
+  @@map("agents")
+}
+
 // Board model
 model Board {
   id        BigInt   @id @default(autoincrement())
@@ -83,15 +106,18 @@ model Board {
   color     String   @default("gray")
   position  Int      @default(0)
   userId    BigInt   @map("user_id")
+  agentId   BigInt?  @map("agent_id") // Optional linked agent
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent     Agent?   @relation(fields: [agentId], references: [id], onDelete: SetNull)
   tasks     Task[]
 
   @@index([userId], map: "index_boards_on_user_id")
   @@index([userId, position], map: "index_boards_on_user_id_and_position")
+  @@index([agentId], map: "index_boards_on_agent_id")
   @@map("boards")
 }
 

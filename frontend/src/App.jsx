@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getBoards, getTasks, createTask, updateTask, deleteTask, assignTask, claimTask, completeTask } from './lib/api'
+import { getBoards, getAgents, getTasks, createTask, updateTask, deleteTask, assignTask, claimTask, completeTask } from './lib/api'
 import { wsClient } from './lib/websocket'
 import KanbanBoard from './components/KanbanBoard'
 import ArchivePage from './components/ArchivePage'
@@ -7,16 +7,6 @@ import Header from './components/Header'
 import TaskModal from './components/TaskModal'
 import LoadingSpinner from './components/LoadingSpinner'
 import './App.css'
-
-const AGENTS = [
-  { id: 'jarvis-leader', emoji: '👔', name: 'Jarvis Leader', color: 'purple' },
-  { id: 'dave-engineer', emoji: '👨‍💻', name: 'Dave Engineer', color: 'blue' },
-  { id: 'sally-designer', emoji: '👩‍🎨', name: 'Sally Designer', color: 'pink' },
-  { id: 'mike-qa', emoji: '🧪', name: 'Mike QA', color: 'green' },
-  { id: 'richard', emoji: '📚', name: 'Richard', color: 'yellow' },
-  { id: 'nolan', emoji: '⚙️', name: 'Nolan', color: 'gray' },
-  { id: 'elsa', emoji: '📢', name: 'Elsa', color: 'orange' },
-]
 
 const COLUMNS = [
   { id: 'inbox', name: 'Inbox', color: 'slate' },
@@ -28,6 +18,7 @@ const COLUMNS = [
 
 function App() {
   const [boards, setBoards] = useState([])
+  const [agents, setAgents] = useState([])
   const [allTasks, setAllTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -62,11 +53,26 @@ function App() {
   async function loadData() {
     try {
       setError(null)
-      const boardsData = await getBoards().catch(() => [])
 
-      // Filter to OpenClaw agent boards
+      // Load agents and boards in parallel
+      const [agentsData, boardsData] = await Promise.all([
+        getAgents().catch(() => []),
+        getBoards().catch(() => [])
+      ])
+
+      // Transform agents to match expected format
+      const formattedAgents = agentsData.map(agent => ({
+        id: agent.uuid,
+        emoji: agent.emoji,
+        name: agent.name,
+        color: agent.color,
+        slug: agent.slug
+      }))
+      setAgents(formattedAgents)
+
+      // Filter to agent boards (boards that have agent_id or match agent names)
       const agentBoards = boardsData.filter(board =>
-        AGENTS.some(agent => board.name.includes(agent.name))
+        board.agent_id || formattedAgents.some(agent => board.name.includes(agent.name))
       )
 
       setBoards(agentBoards)
@@ -78,9 +84,9 @@ function App() {
       const allTasksData = await Promise.all(allTasksPromises)
       const flatTasks = allTasksData.flat()
 
+      console.log('Loaded agents:', formattedAgents.length)
       console.log('Loaded boards:', agentBoards.length)
       console.log('Loaded tasks:', flatTasks.length)
-      console.log('Sample tasks:', flatTasks.slice(0, 3))
 
       setAllTasks(flatTasks)
       setLoading(false)

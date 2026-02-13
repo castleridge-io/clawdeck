@@ -753,6 +753,236 @@ Regenerate API token.
 
 ---
 
+## Agents
+
+The Agents API provides CRUD operations for managing AI agents. Agents are identified by UUID and can be linked to boards.
+
+### `GET /agents`
+
+List all active agents.
+
+**Authentication**: Required
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "1",
+      "uuid": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Jarvis Leader",
+      "slug": "jarvis-leader",
+      "emoji": "👔",
+      "color": "purple",
+      "description": "Team lead agent",
+      "is_active": true,
+      "boards": [
+        {
+          "id": "40",
+          "name": "Jarvis Leader Board",
+          "icon": "📋",
+          "color": "purple"
+        }
+      ],
+      "position": 0,
+      "created_at": "2026-02-13T00:00:00.000Z",
+      "updated_at": "2026-02-13T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### `GET /agents/:uuid`
+
+Get a single agent by UUID.
+
+**Authentication**: Required
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "1",
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Jarvis Leader",
+    "slug": "jarvis-leader",
+    "emoji": "👔",
+    "color": "purple",
+    "description": "Team lead agent",
+    "is_active": true,
+    "boards": [],
+    "position": 0,
+    "created_at": "2026-02-13T00:00:00.000Z",
+    "updated_at": "2026-02-13T00:00:00.000Z"
+  }
+}
+```
+
+**Errors**:
+| Code | Description |
+|------|-------------|
+| 404  | Agent not found |
+
+---
+
+### `POST /agents`
+
+Create a new agent. UUID is auto-generated.
+
+**Authentication**: Admin required
+
+**Request Body**:
+```json
+{
+  "name": "New Agent",
+  "slug": "new-agent",
+  "emoji": "🤖",
+  "color": "blue",
+  "description": "A new AI agent",
+  "position": 10
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "2",
+    "uuid": "auto-generated-uuid-here",
+    "name": "New Agent",
+    "slug": "new-agent",
+    "emoji": "🤖",
+    "color": "blue",
+    "description": "A new AI agent",
+    "is_active": true,
+    "boards": [],
+    "position": 10,
+    "created_at": "2026-02-13T00:00:00.000Z",
+    "updated_at": "2026-02-13T00:00:00.000Z"
+  }
+}
+```
+
+**Errors**:
+| Code | Description |
+|------|-------------|
+| 400  | Missing required field (name or slug) |
+| 409  | Agent with this name or slug already exists |
+
+---
+
+### `POST /agents/register`
+
+Register an existing agent from OpenClaw with a pre-existing UUID.
+
+**Authentication**: Admin required
+
+**Request Body**:
+```json
+{
+  "uuid": "external-uuid-from-openclaw",
+  "name": "External Agent",
+  "slug": "external-agent",
+  "emoji": "🌐",
+  "color": "green",
+  "description": "Agent from external system"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "3",
+    "uuid": "external-uuid-from-openclaw",
+    "name": "External Agent",
+    "slug": "external-agent",
+    "emoji": "🌐",
+    "color": "green",
+    "description": "Agent from external system",
+    "is_active": true,
+    "boards": [],
+    "position": 0,
+    "created_at": "2026-02-13T00:00:00.000Z",
+    "updated_at": "2026-02-13T00:00:00.000Z"
+  }
+}
+```
+
+**Errors**:
+| Code | Description |
+|------|-------------|
+| 400  | Missing required field (uuid, name, or slug) |
+| 409  | Agent with this UUID, name, or slug already exists |
+
+---
+
+### `PATCH /agents/:uuid`
+
+Update an agent.
+
+**Authentication**: Admin required
+
+**Request Body**:
+```json
+{
+  "name": "Updated Name",
+  "emoji": "✨",
+  "color": "gold",
+  "position": 5
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "1",
+    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Updated Name",
+    "slug": "jarvis-leader",
+    "emoji": "✨",
+    "color": "gold",
+    "description": "Team lead agent",
+    "is_active": true,
+    "boards": [],
+    "position": 5,
+    "created_at": "2026-02-13T00:00:00.000Z",
+    "updated_at": "2026-02-13T00:00:00.000Z"
+  }
+}
+```
+
+**Errors**:
+| Code | Description |
+|------|-------------|
+| 404  | Agent not found |
+| 409  | Agent with this name or slug already exists |
+
+---
+
+### `DELETE /agents/:uuid`
+
+Soft delete an agent (sets `is_active` to false).
+
+**Authentication**: Admin required
+
+**Response (204 No Content)**: No body returned
+
+**Errors**:
+| Code | Description |
+|------|-------------|
+| 404  | Agent not found |
+
+---
+
 ## Admin
 
 ### `GET /admin/stats`

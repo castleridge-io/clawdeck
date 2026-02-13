@@ -9,6 +9,7 @@ function boardToJson (board) {
     color: board.color,
     position: board.position,
     user_id: board.userId.toString(),
+    agent_id: board.agentId?.toString() ?? null,
     created_at: board.createdAt.toISOString(),
     updated_at: board.updatedAt.toISOString()
   }
