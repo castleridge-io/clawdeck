@@ -32,7 +32,7 @@ ClawDeck uses a multi-tier testing approach:
 
 ```bash
 cd nodejs
-npm run test:docker
+yarn test:docker
 ```
 
 This will:
@@ -45,10 +45,10 @@ This will:
 
 ```bash
 # Unit tests only
-npm run test:docker:unit
+yarn test:docker:unit
 
 # E2E tests only
-npm run test:docker:e2e
+yarn test:docker:e2e
 ```
 
 ### Run Tests Locally (Without Docker)
@@ -59,10 +59,10 @@ export DATABASE_URL="postgresql://clawdeck_test:test_password@localhost:15433/cl
 export NODE_ENV=test
 
 # Run tests
-npm test
+yarn test
 
 # With coverage
-npm run test:coverage
+yarn test:coverage
 ```
 
 ## Test Structure
@@ -288,17 +288,17 @@ jobs:
       - name: Install dependencies
         run: |
           cd nodejs
-          npm ci
+          yarn install --frozen-lockfile
 
       - name: Generate Prisma Client
         run: |
           cd nodejs
-          npx prisma generate
+          yarn prisma generate
 
       - name: Run tests
         run: |
           cd nodejs
-          DATABASE_URL="postgresql://clawdeck_test:test_password@localhost:5432/clawdeck_test" npm test
+          DATABASE_URL="postgresql://clawdeck_test:test_password@localhost:5432/clawdeck_test" yarn test
 ```
 
 ## Best Practices
@@ -337,7 +337,7 @@ node --inspect --test tests/integration/tasks.test.js
 
 ```bash
 # Generate coverage report
-npm run test:coverage
+yarn test:coverage
 
 # View coverage in HTML
 open coverage/index.html

@@ -142,7 +142,7 @@ frontend/
 ### Development Server
 ```bash
 cd ~/tools/clawdeck/nodejs/frontend
-npm run dev
+yarn dev
 ```
 
 **Will start on**: http://localhost:3002
@@ -151,13 +151,13 @@ npm run dev
 ### Build for Production
 ```bash
 cd ~/tools/clawdeck/nodejs/frontend
-npm run build
+yarn build
 ```
 
 ### Preview Production Build
 ```bash
 cd ~/tools/clawdeck/nodejs/frontend
-npm run preview
+yarn preview
 ```
 
 ## Configuration Files
@@ -191,7 +191,7 @@ oc-sys-6e07444c51f93cb9ab69282a06878195-b3032039
 2. **Start Development Server**
    ```bash
    cd ~/tools/clawdeck/nodejs/frontend
-   npm run dev
+   yarn dev
    ```
 
 3. **Test UI Functionality**

@@ -70,10 +70,10 @@ Visit `http://localhost:3000`
 ```bash
 git clone https://github.com/clawdeckio/clawdeck.git
 cd clawdeck/nodejs
-npm install
-npm run prisma:generate
-npm run prisma:migrate
-npm run dev
+yarn install
+yarn prisma:generate
+yarn prisma:migrate
+yarn dev
 ```
 
 ### Environment Variables
@@ -224,7 +224,7 @@ DELETE /api/v1/projects/:id
 
 ```bash
 cd nodejs
-npm test
+yarn test
 ```
 
 ---

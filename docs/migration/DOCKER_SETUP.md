@@ -45,7 +45,7 @@ docker-compose exec api npx prisma migrate deploy
 docker-compose exec api npx prisma generate
 
 # (Optional) Seed database
-docker-compose exec api npm run prisma:seed
+docker-compose exec api yarn prisma:seed
 ```
 
 ### 4. Verify Services
@@ -110,10 +110,10 @@ docker-compose restart api
 docker-compose exec api sh
 
 # Run Prisma Studio
-docker-compose exec api npx prisma studio
+docker-compose exec api yarn prisma studio
 
 # Run tests
-docker-compose exec api npm test
+docker-compose exec api yarn test
 
 # Generate Prisma client
 docker-compose exec api npx prisma generate
@@ -158,10 +158,10 @@ docker-compose up -d --build api
 docker-compose restart api
 
 # Run API in development mode
-docker-compose run --rm --service-ports api npm run dev
+docker-compose run --rm --service-ports api yarn dev
 
 # Run tests
-docker-compose exec api npm test
+docker-compose exec api yarn test
 
 # Open Prisma Studio
 docker-compose exec api npx prisma studio
@@ -177,7 +177,7 @@ docker-compose exec api npx prisma migrate deploy
 
 ```bash
 # Update dependencies
-docker-compose exec api npm install
+docker-compose exec api yarn install
 docker-compose restart api
 
 # Database backup

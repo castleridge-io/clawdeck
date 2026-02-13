@@ -54,14 +54,14 @@ git clone https://github.com/clawdeckio/clawdeck.git
 cd clawdeck/nodejs
 
 # Install dependencies
-npm install
+yarn install
 
 # Generate Prisma client
-npx prisma generate
+yarn prisma generate
 
 # Run migrations
 DATABASE_URL="postgresql://clawdeck:your_secure_password@localhost:5432/clawdeck_production" \
-  npx prisma migrate deploy
+  yarn prisma migrate deploy
 
 # Create production environment file
 cat > .env.production << EOF
@@ -72,7 +72,7 @@ PORT=3000
 EOF
 
 # Install PM2 for process management
-npm install -g pm2
+yarn global add pm2
 ```
 
 ### 3. Create Systemd Service
@@ -141,7 +141,7 @@ certbot --nginx -d your-domain.com
 2. Create a new Web Service
 3. Configure:
    - Runtime: Node 20
-   - Build Command: `cd nodejs && npm install && npx prisma generate`
+   - Build Command: `cd nodejs && yarn install && yarn prisma generate`
    - Start Command: `cd nodejs && node src/server.js`
    - Environment Variables (see render.yaml)
 
@@ -198,8 +198,8 @@ pm2 status
 cd /var/www/clawdeck
 git pull origin main
 cd nodejs
-npm install
-npx prisma migrate deploy
+yarn install
+yarn prisma migrate deploy
 systemctl restart clawdeck
 ```
 
