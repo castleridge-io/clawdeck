@@ -1,5 +1,5 @@
 import { getToken, clearToken } from './auth'
-import type { Board, Task, Agent, Workflow, Run, ArchivedTask, ApiToken, User } from '../types'
+import type { Board, Task, Agent, Workflow, Run, ArchivedTask, ApiToken, User, AdminBoard, AdminTask, AdminFilters, AdminListResponse } from '../types'
 
 const API_BASE = '/api/v1'
 
@@ -327,4 +327,25 @@ export async function updateUser(userId: string, data: Partial<User>): Promise<U
     body: JSON.stringify(data),
   })
   return response.data || response as unknown as User
+}
+
+// Admin Data - Boards and Tasks with ownership info
+export async function getAdminBoards(filters: AdminFilters = {}): Promise<AdminListResponse<AdminBoard>> {
+  const params = new URLSearchParams()
+  if (filters.page) params.append('page', String(filters.page))
+  if (filters.limit) params.append('limit', String(filters.limit))
+
+  const queryString = params.toString()
+  return fetchWithAuth<AdminListResponse<AdminBoard>>(`/admin/boards${queryString ? `?${queryString}` : ''}`)
+}
+
+export async function getAdminTasks(filters: AdminFilters = {}): Promise<AdminListResponse<AdminTask>> {
+  const params = new URLSearchParams()
+  if (filters.user_id) params.append('user_id', filters.user_id)
+  if (filters.status) params.append('status', filters.status)
+  if (filters.page) params.append('page', String(filters.page))
+  if (filters.limit) params.append('limit', String(filters.limit))
+
+  const queryString = params.toString()
+  return fetchWithAuth<AdminListResponse<AdminTask>>(`/admin/tasks${queryString ? `?${queryString}` : ''}`)
 }

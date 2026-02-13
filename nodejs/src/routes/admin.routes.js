@@ -1,7 +1,9 @@
 import { createAuthService } from '../services/auth.service.js';
+import { createAdminService } from '../services/admin.service.js';
 
 export async function adminRoutes(fastify) {
   const authService = createAuthService(fastify);
+  const adminService = createAdminService();
 
   fastify.get('/stats', {
     onRequest: [fastify.authenticateAdmin],
@@ -93,6 +95,44 @@ export async function adminRoutes(fastify) {
       });
     } catch (error) {
       return reply.code(500).send({ error: 'Failed to update user' });
+    }
+  });
+
+  // GET /api/v1/admin/boards - List all boards with owner info
+  fastify.get('/boards', {
+    onRequest: [fastify.authenticateAdmin],
+  }, async (request, reply) => {
+    try {
+      const page = parseInt(request.query.page) || 1;
+      const limit = parseInt(request.query.limit) || 50;
+
+      const result = await adminService.listAllBoards(page, limit);
+
+      return reply.send({ success: true, ...result });
+    } catch (error) {
+      request.log.error(error);
+      return reply.code(500).send({ error: 'Failed to fetch boards' });
+    }
+  });
+
+  // GET /api/v1/admin/tasks - List all tasks with owner and board info
+  fastify.get('/tasks', {
+    onRequest: [fastify.authenticateAdmin],
+  }, async (request, reply) => {
+    try {
+      const filters = {
+        user_id: request.query.user_id,
+        status: request.query.status,
+      };
+      const page = parseInt(request.query.page) || 1;
+      const limit = parseInt(request.query.limit) || 50;
+
+      const result = await adminService.listAllTasks(filters, page, limit);
+
+      return reply.send({ success: true, ...result });
+    } catch (error) {
+      request.log.error(error);
+      return reply.code(500).send({ error: 'Failed to fetch tasks' });
     }
   });
 }

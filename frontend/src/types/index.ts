@@ -105,3 +105,39 @@ export interface Column {
   name: string
   color: string
 }
+
+// Admin types
+export interface OwnerInfo {
+  id: string
+  emailAddress: string
+  agentName: string | null
+}
+
+export interface AdminBoard extends Board {
+  owner: OwnerInfo
+  task_count: number
+  created_at: string
+}
+
+export interface AdminTask extends Task {
+  owner: OwnerInfo | null
+  board: { id: string; name: string } | null
+  created_at: string
+}
+
+export interface AdminFilters {
+  user_id?: string
+  status?: string
+  page?: number
+  limit?: number
+}
+
+export interface AdminListResponse<T> {
+  success: boolean
+  data: T[]
+  meta: {
+    total: number
+    page: number
+    pages: number
+  }
+}

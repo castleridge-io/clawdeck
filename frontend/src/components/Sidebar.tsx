@@ -156,6 +156,24 @@ export default function Sidebar() {
               {!collapsed && 'Admin'}
             </NavLink>
           )}
+
+          {/* Admin Data link - only for admins */}
+          {user?.admin && (
+            <NavLink
+              to="/admin/data"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-2 text-sm transition-colors ${
+                  isActive
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                } ${collapsed ? 'justify-center' : ''}`
+              }
+              title={collapsed ? 'Admin Data' : undefined}
+            >
+              <span className="flex-shrink-0">📊</span>
+              {!collapsed && 'Admin Data'}
+            </NavLink>
+          )}
         </div>
       </nav>
 

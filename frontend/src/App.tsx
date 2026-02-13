@@ -12,6 +12,7 @@ import RunsPage from './pages/RunsPage'
 import ArchivePage from './pages/ArchivePage'
 import SettingsPage from './pages/SettingsPage'
 import AdminPage from './pages/AdminPage'
+import AdminDataPage from './pages/AdminDataPage'
 import './App.css'
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
             <Route path="archive" element={<ArchivePage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="admin" element={<AdminPage />} />
+            <Route path="admin/data" element={<AdminDataPage />} />
           </Route>
         </Routes>
       </AuthProvider>
