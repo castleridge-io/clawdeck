@@ -7,6 +7,8 @@ import { avatarRoutes } from './avatars.routes.js';
 import { archivesRoutes } from './archives.js';
 import { workflowsRoutes } from './workflows.js';
 import { runsRoutes } from './runs.js';
+import { stepsRoutes } from './steps.js';
+import { storiesRoutes } from './stories.js';
 
 export async function registerRoutes(fastify, opts) {
   await fastify.register(authRoutes, { prefix: '/auth' });
@@ -18,4 +20,7 @@ export async function registerRoutes(fastify, opts) {
   await fastify.register(archivesRoutes, { prefix: '/archives' });
   await fastify.register(workflowsRoutes, { prefix: '/workflows' });
   await fastify.register(runsRoutes, { prefix: '/runs' });
+  // Nested routes under runs
+  await fastify.register(stepsRoutes, { prefix: '/runs/:runId/steps' });
+  await fastify.register(storiesRoutes, { prefix: '/runs/:runId/stories' });
 }

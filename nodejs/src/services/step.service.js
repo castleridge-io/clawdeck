@@ -138,6 +138,72 @@ export function createStepService() {
         },
         orderBy: { stepIndex: 'asc' }
       })
+    },
+
+    /**
+     * Atomically claim a step (prevents race conditions)
+     * Returns the updated step if claim succeeded, null if already claimed
+     */
+    async claimStep(id, agentId) {
+      // Use updateMany with WHERE clause for atomic claim
+      const result = await prisma.step.updateMany({
+        where: {
+          id,
+          status: 'waiting'
+        },
+        data: {
+          status: 'running'
+        }
+      })
+
+      if (result.count === 0) {
+        // Step was already claimed or doesn't exist
+        return null
+      }
+
+      // Fetch and return the updated step
+      return await prisma.step.findUnique({
+        where: { id }
+      })
+    },
+
+    /**
+     * Complete a step and update run status atomically (transactional)
+     * Returns { step, runCompleted }
+     */
+    async completeStepWithRunUpdate(stepId, output = null) {
+      return await prisma.$transaction(async (tx) => {
+        // Update step status
+        const updateData = { status: 'completed' }
+        if (output !== null) {
+          updateData.output = typeof output === 'string' ? output : JSON.stringify(output)
+        }
+
+        const step = await tx.step.update({
+          where: { id: stepId },
+          data: updateData
+        })
+
+        // Check if all steps are completed
+        const allSteps = await tx.step.findMany({
+          where: { runId: step.runId }
+        })
+
+        const allCompleted = allSteps.every(s => s.status === 'completed')
+
+        if (allCompleted) {
+          // Update run status to completed
+          await tx.run.update({
+            where: { id: step.runId },
+            data: { status: 'completed' }
+          })
+        }
+
+        return {
+          step,
+          runCompleted: allCompleted
+        }
+      })
     }
   }
 }

@@ -5,6 +5,14 @@ import { createWorkflowService } from '../../src/services/workflow.service.js'
 import { createRunService } from '../../src/services/run.service.js'
 import { createStepService } from '../../src/services/step.service.js'
 
+// Helper to create step data with required fields
+function createStepData(overrides) {
+  return {
+    expects: 'output',
+    ...overrides
+  }
+}
+
 // Test utilities
 let testUser
 let testBoard
@@ -662,6 +670,357 @@ describe('Step Service', () => {
       const nextStep = await stepService.getNextPendingStep(run.id)
 
       assert.strictEqual(nextStep, null)
+    })
+  })
+
+  describe('claimStep (atomic)', () => {
+    it('should atomically claim a waiting step', async () => {
+      const workflow = await workflowService.createWorkflow({
+        name: 'claim-atomic-workflow',
+        description: 'Test',
+        steps: []
+      })
+
+      const task = await prisma.task.create({
+        data: {
+          name: 'Test Task Claim Atomic',
+          boardId: testBoard.id,
+          userId: testUser.id
+        }
+      })
+
+      const run = await runService.createRun({
+        workflowId: workflow.id.toString(),
+        taskId: task.id.toString(),
+        task: 'Test task'
+      })
+
+      const step = await stepService.createStep({
+        runId: run.id,
+        stepId: 'step-1',
+        agentId: 'agent-1',
+        stepIndex: 0,
+        inputTemplate: 'Input',
+        expects: 'output'
+      })
+
+      const claimed = await stepService.claimStep(step.id, 'agent-1')
+
+      assert.ok(claimed)
+      assert.strictEqual(claimed.status, 'running')
+    })
+
+    it('should return null when step is already claimed', async () => {
+      const workflow = await workflowService.createWorkflow({
+        name: 'already-claimed-workflow',
+        description: 'Test',
+        steps: []
+      })
+
+      const task = await prisma.task.create({
+        data: {
+          name: 'Test Task Already Claimed',
+          boardId: testBoard.id,
+          userId: testUser.id
+        }
+      })
+
+      const run = await runService.createRun({
+        workflowId: workflow.id.toString(),
+        taskId: task.id.toString(),
+        task: 'Test task'
+      })
+
+      const step = await stepService.createStep({
+        runId: run.id,
+        stepId: 'step-1',
+        agentId: 'agent-1',
+        stepIndex: 0,
+        inputTemplate: 'Input',
+        expects: 'output'
+      })
+
+      // First claim succeeds
+      const firstClaim = await stepService.claimStep(step.id, 'agent-1')
+      assert.ok(firstClaim)
+
+      // Second claim fails
+      const secondClaim = await stepService.claimStep(step.id, 'agent-2')
+      assert.strictEqual(secondClaim, null)
+    })
+
+    it('should return null for non-existent step', async () => {
+      const claimed = await stepService.claimStep('non-existent-step-id', 'agent-1')
+      assert.strictEqual(claimed, null)
+    })
+
+    it('should handle concurrent claims atomically (race condition test)', async () => {
+      const workflow = await workflowService.createWorkflow({
+        name: 'concurrent-claim-workflow',
+        description: 'Test',
+        steps: []
+      })
+
+      const task = await prisma.task.create({
+        data: {
+          name: 'Test Task Concurrent Claim',
+          boardId: testBoard.id,
+          userId: testUser.id
+        }
+      })
+
+      const run = await runService.createRun({
+        workflowId: workflow.id.toString(),
+        taskId: task.id.toString(),
+        task: 'Test task'
+      })
+
+      const step = await stepService.createStep({
+        runId: run.id,
+        stepId: 'step-1',
+        agentId: 'agent-1',
+        stepIndex: 0,
+        inputTemplate: 'Input',
+        expects: 'output'
+      })
+
+      // Simulate concurrent claims using Promise.all
+      const results = await Promise.all([
+        stepService.claimStep(step.id, 'agent-1'),
+        stepService.claimStep(step.id, 'agent-2'),
+        stepService.claimStep(step.id, 'agent-3')
+      ])
+
+      // Only one should succeed
+      const successfulClaims = results.filter(r => r !== null)
+      const failedClaims = results.filter(r => r === null)
+
+      assert.strictEqual(successfulClaims.length, 1, 'Exactly one claim should succeed')
+      assert.strictEqual(failedClaims.length, 2, 'Two claims should fail')
+      assert.strictEqual(successfulClaims[0].status, 'running')
+
+      // Verify the step is in running status
+      const finalStep = await stepService.getStep(step.id)
+      assert.strictEqual(finalStep.status, 'running')
+    })
+
+    it('should not claim a completed step', async () => {
+      const workflow = await workflowService.createWorkflow({
+        name: 'completed-step-claim-workflow',
+        description: 'Test',
+        steps: []
+      })
+
+      const task = await prisma.task.create({
+        data: {
+          name: 'Test Task Completed Step',
+          boardId: testBoard.id,
+          userId: testUser.id
+        }
+      })
+
+      const run = await runService.createRun({
+        workflowId: workflow.id.toString(),
+        taskId: task.id.toString(),
+        task: 'Test task'
+      })
+
+      const step = await stepService.createStep({
+        runId: run.id,
+        stepId: 'step-1',
+        agentId: 'agent-1',
+        stepIndex: 0,
+        inputTemplate: 'Input',
+        expects: 'output'
+      })
+
+      // Complete the step
+      await stepService.updateStepStatus(step.id, 'completed')
+
+      // Try to claim
+      const claimed = await stepService.claimStep(step.id, 'agent-1')
+      assert.strictEqual(claimed, null)
+    })
+
+    it('should not claim a failed step', async () => {
+      const workflow = await workflowService.createWorkflow({
+        name: 'failed-step-claim-workflow',
+        description: 'Test',
+        steps: []
+      })
+
+      const task = await prisma.task.create({
+        data: {
+          name: 'Test Task Failed Step',
+          boardId: testBoard.id,
+          userId: testUser.id
+        }
+      })
+
+      const run = await runService.createRun({
+        workflowId: workflow.id.toString(),
+        taskId: task.id.toString(),
+        task: 'Test task'
+      })
+
+      const step = await stepService.createStep({
+        runId: run.id,
+        stepId: 'step-1',
+        agentId: 'agent-1',
+        stepIndex: 0,
+        inputTemplate: 'Input',
+        expects: 'output'
+      })
+
+      // Fail the step
+      await stepService.updateStepStatus(step.id, 'failed')
+
+      // Try to claim
+      const claimed = await stepService.claimStep(step.id, 'agent-1')
+      assert.strictEqual(claimed, null)
+    })
+  })
+
+  describe('completeStepWithRunUpdate (transactional)', () => {
+    it('should complete step and mark run as completed when all steps done', async () => {
+      const workflow = await workflowService.createWorkflow({
+        name: 'tx-complete-all-workflow',
+        description: 'Test',
+        steps: []
+      })
+
+      const task = await prisma.task.create({
+        data: {
+          name: 'Test Task TX Complete All',
+          boardId: testBoard.id,
+          userId: testUser.id
+        }
+      })
+
+      const run = await runService.createRun({
+        workflowId: workflow.id.toString(),
+        taskId: task.id.toString(),
+        task: 'Test task'
+      })
+
+      const step = await stepService.createStep({
+        runId: run.id,
+        stepId: 'step-1',
+        agentId: 'agent-1',
+        stepIndex: 0,
+        inputTemplate: 'Input',
+        expects: 'output'
+      })
+
+      // Claim first
+      await stepService.claimStep(step.id, 'agent-1')
+
+      // Complete with transaction
+      const result = await stepService.completeStepWithRunUpdate(step.id, { result: 'done' })
+
+      assert.strictEqual(result.step.status, 'completed')
+      assert.strictEqual(result.runCompleted, true)
+
+      // Verify run is also completed
+      const finalRun = await runService.getRun(run.id)
+      assert.strictEqual(finalRun.status, 'completed')
+    })
+
+    it('should complete step but not mark run as completed when other steps pending', async () => {
+      const workflow = await workflowService.createWorkflow({
+        name: 'tx-complete-partial-workflow',
+        description: 'Test',
+        steps: []
+      })
+
+      const task = await prisma.task.create({
+        data: {
+          name: 'Test Task TX Complete Partial',
+          boardId: testBoard.id,
+          userId: testUser.id
+        }
+      })
+
+      const run = await runService.createRun({
+        workflowId: workflow.id.toString(),
+        taskId: task.id.toString(),
+        task: 'Test task'
+      })
+
+      const step1 = await stepService.createStep({
+        runId: run.id,
+        stepId: 'step-1',
+        agentId: 'agent-1',
+        stepIndex: 0,
+        inputTemplate: 'Input 1',
+        expects: 'output1'
+      })
+
+      await stepService.createStep({
+        runId: run.id,
+        stepId: 'step-2',
+        agentId: 'agent-2',
+        stepIndex: 1,
+        inputTemplate: 'Input 2',
+        expects: 'output2'
+      })
+
+      // Claim and complete first step
+      await stepService.claimStep(step1.id, 'agent-1')
+      const result = await stepService.completeStepWithRunUpdate(step1.id, { result: 'done' })
+
+      assert.strictEqual(result.step.status, 'completed')
+      assert.strictEqual(result.runCompleted, false)
+
+      // Verify run is still running
+      const finalRun = await runService.getRun(run.id)
+      assert.strictEqual(finalRun.status, 'running')
+    })
+
+    it('should handle output as string', async () => {
+      const workflow = await workflowService.createWorkflow({
+        name: 'tx-string-output-workflow',
+        description: 'Test',
+        steps: []
+      })
+
+      const task = await prisma.task.create({
+        data: {
+          name: 'Test Task TX String Output',
+          boardId: testBoard.id,
+          userId: testUser.id
+        }
+      })
+
+      const run = await runService.createRun({
+        workflowId: workflow.id.toString(),
+        taskId: task.id.toString(),
+        task: 'Test task'
+      })
+
+      const step = await stepService.createStep({
+        runId: run.id,
+        stepId: 'step-1',
+        agentId: 'agent-1',
+        stepIndex: 0,
+        inputTemplate: 'Input',
+        expects: 'output'
+      })
+
+      await stepService.claimStep(step.id, 'agent-1')
+      const result = await stepService.completeStepWithRunUpdate(step.id, 'plain string output')
+
+      assert.strictEqual(result.step.output, 'plain string output')
+    })
+
+    it('should throw error for non-existent step', async () => {
+      await assert.rejects(
+        () => stepService.completeStepWithRunUpdate('non-existent-step-id', {}),
+        (error) => {
+          assert.ok(error.code === 'P2025' || error.message.includes('not found'))
+          return true
+        }
+      )
     })
   })
 })
