@@ -1,32 +1,18 @@
-// Type declarations for existing JS modules
-// These are shim declarations to provide types for JS-only modules
+import type { User } from '@prisma/client'
+import type { PrismaClient } from '@prisma/client'
+import type { FastifyInstance } from 'fastify'
 
-declare module '*/db/prisma.js' {
-  import { PrismaClient } from '@prisma/client'
-  export const prisma: PrismaClient
-}
+// Extend Fastify types
+declare module 'fastify' {
+  interface FastifyRequest {
+    user: User
+    agentName: string | null
+    agentEmoji: string | null
+  }
 
-declare module '*/middleware/auth.js' {
-  import type { FastifyRequest, FastifyReply, HookHandlerDoneFunction, FastifyInstance } from 'fastify'
-
-  export function authenticateRequest(
-    request: FastifyRequest,
-    reply: FastifyReply,
-    done: HookHandlerDoneFunction
-  ): void
-
-  export function authenticateAdmin(
-    request: FastifyRequest,
-    reply: FastifyReply,
-    done: HookHandlerDoneFunction
-  ): void
-
-  export function optionalAuthenticate(
-    request: FastifyRequest,
-    reply: FastifyReply,
-    done: HookHandlerDoneFunction
-  ): void
-
-  export function authenticateRoutes(fastify: FastifyInstance): Promise<void>
-  export function authenticateAdminRoutes(fastify: FastifyInstance): Promise<void>
+  interface FastifyInstance {
+    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>
+    authenticateAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>
+    prisma: PrismaClient
+  }
 }
