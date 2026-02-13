@@ -282,6 +282,39 @@ export async function regenerateApiToken(): Promise<ApiToken> {
   })
 }
 
+// OpenClaw Settings
+export interface OpenClawSettings {
+  url: string
+  apiKey: string
+  hasApiKey: boolean
+  connected: boolean
+  lastChecked: string | null
+}
+
+export async function getOpenClawSettings(): Promise<OpenClawSettings> {
+  const response = await fetchWithAuth<ApiResponse<OpenClawSettings>>('/settings/openclaw')
+  return response.data || response as unknown as OpenClawSettings
+}
+
+export async function updateOpenClawSettings(data: { url?: string; apiKey?: string }): Promise<OpenClawSettings> {
+  const response = await fetchWithAuth<ApiResponse<OpenClawSettings>>('/settings/openclaw', {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  })
+  return response.data || response as unknown as OpenClawSettings
+}
+
+export async function testOpenClawConnection(): Promise<{ success: boolean; message?: string; error?: string }> {
+  const response = await fetchWithAuth<ApiResponse<{ success: boolean; message?: string; error?: string }>>('/settings/openclaw/test', {
+    method: 'POST',
+  })
+  return response.data || response as unknown as { success: boolean; message?: string; error?: string }
+}
+
+export async function clearOpenClawApiKey(): Promise<void> {
+  await fetchWithAuth('/settings/openclaw/api-key', { method: 'DELETE' })
+}
+
 // Admin
 export async function getUsers(): Promise<User[]> {
   const response = await fetchWithAuth<ApiResponse<User[]>>('/admin/users')

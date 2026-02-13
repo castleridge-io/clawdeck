@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { getSettings, updateSettings, updatePassword, getApiToken, regenerateApiToken } from '../lib/api'
+import { getSettings, updateSettings, updatePassword, getApiToken, regenerateApiToken, getOpenClawSettings, updateOpenClawSettings, testOpenClawConnection, clearOpenClawApiKey } from '../lib/api'
 import type { User, ApiToken } from '../types'
+import type { OpenClawSettings } from '../lib/api'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 interface ProfileForm {
@@ -31,6 +32,14 @@ export default function SettingsPage() {
     confirmPassword: '',
   })
   const [apiToken, setApiToken] = useState<ApiToken | null>(null)
+  const [openClawSettings, setOpenClawSettings] = useState<OpenClawSettings>({
+    url: '',
+    apiKey: '',
+    hasApiKey: false,
+    connected: false,
+    lastChecked: null,
+  })
+  const [testingConnection, setTestingConnection] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
@@ -48,6 +57,16 @@ export default function SettingsPage() {
 
       const token = await getApiToken()
       setApiToken(token)
+
+      // Load OpenClaw settings (admin only)
+      if (user?.admin) {
+        try {
+          const ocSettings = await getOpenClawSettings()
+          setOpenClawSettings(ocSettings)
+        } catch (error) {
+          console.error('Failed to load OpenClaw settings:', error)
+        }
+      }
     } catch (error) {
       console.error('Failed to load settings:', error)
     } finally {
@@ -112,6 +131,63 @@ export default function SettingsPage() {
   function copyToken() {
     navigator.clipboard.writeText(apiToken?.token || '')
     setMessage({ type: 'success', text: 'Token copied to clipboard' })
+  }
+
+  async function handleSaveOpenClawSettings(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    setMessage(null)
+
+    try {
+      const updateData: { url?: string; apiKey?: string } = {}
+      if (openClawSettings.url !== undefined) {
+        updateData.url = openClawSettings.url
+      }
+      // Only include apiKey if it's a new value (not masked)
+      if (openClawSettings.apiKey && !openClawSettings.apiKey.startsWith('••••')) {
+        updateData.apiKey = openClawSettings.apiKey
+      }
+
+      const updated = await updateOpenClawSettings(updateData)
+      setOpenClawSettings(updated)
+      setMessage({ type: 'success', text: 'OpenClaw settings saved' })
+    } catch (error) {
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to save OpenClaw settings' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleTestConnection() {
+    setTestingConnection(true)
+    setMessage(null)
+
+    try {
+      const result = await testOpenClawConnection()
+      if (result.success) {
+        setMessage({ type: 'success', text: result.message || 'Connection successful' })
+        setOpenClawSettings(prev => ({ ...prev, connected: true }))
+      } else {
+        setMessage({ type: 'error', text: result.error || 'Connection failed' })
+        setOpenClawSettings(prev => ({ ...prev, connected: false }))
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Connection test failed' })
+    } finally {
+      setTestingConnection(false)
+    }
+  }
+
+  async function handleClearApiKey() {
+    if (!confirm('Are you sure? This will remove the stored API key.')) return
+
+    try {
+      await clearOpenClawApiKey()
+      setOpenClawSettings(prev => ({ ...prev, apiKey: '', hasApiKey: false, connected: false }))
+      setMessage({ type: 'success', text: 'API key cleared' })
+    } catch (error) {
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to clear API key' })
+    }
   }
 
   if (loading) {
@@ -232,7 +308,7 @@ export default function SettingsPage() {
       </div>
 
       {/* API Token Section */}
-      <div className="bg-slate-800 rounded-lg p-6">
+      <div className="bg-slate-800 rounded-lg p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4">API Token</h2>
         <p className="text-slate-400 text-sm mb-4">
           Use this token to authenticate API requests. Keep it secret.
@@ -259,6 +335,83 @@ export default function SettingsPage() {
           Regenerate Token
         </button>
       </div>
+
+      {/* OpenClaw Connection Section (Admin only) */}
+      {user?.admin && (
+        <div className="bg-slate-800 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">OpenClaw Connection</h2>
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${openClawSettings.connected ? 'bg-green-500' : 'bg-slate-500'}`} />
+              <span className="text-sm text-slate-400">
+                {openClawSettings.connected ? 'Connected' : 'Not connected'}
+              </span>
+            </div>
+          </div>
+          <p className="text-slate-400 text-sm mb-4">
+            Configure the connection to your OpenClaw instance for agent registration and task execution.
+          </p>
+
+          <form onSubmit={handleSaveOpenClawSettings} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">OpenClaw URL</label>
+              <input
+                type="url"
+                value={openClawSettings.url}
+                onChange={(e) => setOpenClawSettings(s => ({ ...s, url: e.target.value }))}
+                placeholder="https://openclaw.example.com"
+                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">API Key</label>
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  value={openClawSettings.apiKey}
+                  onChange={(e) => setOpenClawSettings(s => ({ ...s, apiKey: e.target.value, hasApiKey: !!e.target.value }))}
+                  placeholder={openClawSettings.hasApiKey ? '••••••••••••••••' : 'Enter API key'}
+                  className="flex-1 px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {openClawSettings.hasApiKey && (
+                  <button
+                    type="button"
+                    onClick={handleClearApiKey}
+                    className="px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {openClawSettings.lastChecked && (
+              <p className="text-xs text-slate-500">
+                Last checked: {new Date(openClawSettings.lastChecked).toLocaleString()}
+              </p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg"
+              >
+                {saving ? 'Saving...' : 'Save Settings'}
+              </button>
+              <button
+                type="button"
+                onClick={handleTestConnection}
+                disabled={testingConnection || !openClawSettings.url}
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white rounded-lg"
+              >
+                {testingConnection ? 'Testing...' : 'Test Connection'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   )
 }

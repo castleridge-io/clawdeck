@@ -75,6 +75,17 @@ model ApiToken {
   @@map("api_tokens")
 }
 
+// System Settings model - stores global configuration like OpenClaw connection
+model SystemSettings {
+  id                  BigInt   @id @default(autoincrement())
+  key                 String   @unique
+  value               Json
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
 // Agent model - represents an AI agent that can be assigned tasks
 model Agent {
   id           BigInt    @id @default(autoincrement())

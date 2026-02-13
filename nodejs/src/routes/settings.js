@@ -1,10 +1,12 @@
-import { authenticateRequest } from '../middleware/auth.js'
+import { authenticateRequest, authenticateAdmin } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
 import { randomUUID } from 'node:crypto'
+import { createSettingsService } from '../services/settings.service.js'
 
 export async function settingsRoutes (fastify, opts) {
   // Apply authentication to all routes
   fastify.addHook('onRequest', authenticateRequest)
+  const settingsService = createSettingsService()
 
   // GET /api/v1/settings - Get user settings (agent config)
   fastify.get('/', async (request) => {
@@ -89,5 +91,44 @@ export async function settingsRoutes (fastify, opts) {
         created_at: apiToken.createdAt.toISOString()
       }
     })
+  })
+
+  // ============================================
+  // OpenClaw Settings Routes (Admin only)
+  // ============================================
+
+  // GET /api/v1/settings/openclaw - Get OpenClaw settings
+  fastify.get('/openclaw', { preHandler: authenticateAdmin }, async (request, reply) => {
+    const settings = await settingsService.getOpenClawSettings()
+    return {
+      success: true,
+      data: settings
+    }
+  })
+
+  // PATCH /api/v1/settings/openclaw - Update OpenClaw settings
+  fastify.patch('/openclaw', { preHandler: authenticateAdmin }, async (request, reply) => {
+    const { url, apiKey } = request.body
+
+    const settings = await settingsService.updateOpenClawSettings({ url, apiKey })
+    return {
+      success: true,
+      data: settings
+    }
+  })
+
+  // POST /api/v1/settings/openclaw/test - Test OpenClaw connection
+  fastify.post('/openclaw/test', { preHandler: authenticateAdmin }, async (request, reply) => {
+    const result = await settingsService.testOpenClawConnection()
+    return {
+      success: result.success,
+      data: result
+    }
+  })
+
+  // DELETE /api/v1/settings/openclaw/api-key - Clear OpenClaw API key
+  fastify.delete('/openclaw/api-key', { preHandler: authenticateAdmin }, async (request, reply) => {
+    await settingsService.clearOpenClawApiKey()
+    return reply.code(204).send()
   })
 }
