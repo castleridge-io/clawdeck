@@ -3,6 +3,23 @@ import { prisma } from '../db/prisma.js'
 const VALID_STATUSES = ['waiting', 'running', 'completed', 'failed', 'awaiting_approval']
 const VALID_TYPES = ['single', 'loop', 'approval']
 
+// Valid status transitions: key = current status, value = allowed next statuses
+const VALID_TRANSITIONS = {
+  'waiting': ['running', 'awaiting_approval'],
+  'running': ['completed', 'failed', 'awaiting_approval', 'waiting'], // waiting for retry
+  'awaiting_approval': ['running', 'completed', 'failed'],
+  'completed': [], // Terminal state
+  'failed': [] // Terminal state (retry logic handles this separately)
+}
+
+/**
+ * Validate status transition
+ */
+function isValidTransition(currentStatus, newStatus) {
+  const allowedTransitions = VALID_TRANSITIONS[currentStatus]
+  return allowedTransitions && allowedTransitions.includes(newStatus)
+}
+
 /**
  * Create step service
  */
@@ -91,10 +108,54 @@ export function createStepService() {
         throw new Error('Step not found')
       }
 
+      // Validate status transition (skip if same status)
+      if (step.status !== status && !isValidTransition(step.status, status)) {
+        throw new Error(`Invalid status transition: ${step.status} → ${status}`)
+      }
+
       const updateData = { status }
 
       if (output !== null) {
         updateData.output = typeof output === 'string' ? output : JSON.stringify(output)
+      }
+
+      return await prisma.step.update({
+        where: { id },
+        data: updateData
+      })
+    },
+
+    /**
+     * Update step fields (for current_story_id and other optional fields)
+     */
+    async updateStep(id, data) {
+      const step = await prisma.step.findUnique({
+        where: { id }
+      })
+
+      if (!step) {
+        throw new Error('Step not found')
+      }
+
+      const updateData = {}
+
+      if (data.status !== undefined) {
+        if (!VALID_STATUSES.includes(data.status)) {
+          throw new Error(`Invalid status: ${data.status}. Must be one of: ${VALID_STATUSES.join(', ')}`)
+        }
+        // Validate status transition (skip if same status)
+        if (step.status !== data.status && !isValidTransition(step.status, data.status)) {
+          throw new Error(`Invalid status transition: ${step.status} → ${data.status}`)
+        }
+        updateData.status = data.status
+      }
+
+      if (data.output !== undefined) {
+        updateData.output = data.output === null ? null : (typeof data.output === 'string' ? data.output : JSON.stringify(data.output))
+      }
+
+      if (data.currentStoryId !== undefined) {
+        updateData.currentStoryId = data.currentStoryId
       }
 
       return await prisma.step.update({

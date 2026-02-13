@@ -2,6 +2,53 @@ import { authenticateRequest } from '../middleware/auth.js'
 import { createStepService } from '../services/step.service.js'
 import { createRunService } from '../services/run.service.js'
 
+// JSON Schema for validation
+const stepStatusSchema = {
+  type: 'string',
+  enum: ['waiting', 'running', 'completed', 'failed', 'awaiting_approval']
+}
+
+const claimBodySchema = {
+  type: 'object',
+  properties: {
+    agent_id: { type: 'string' }
+  },
+  additionalProperties: false
+}
+
+const completeBodySchema = {
+  type: 'object',
+  properties: {
+    output: {}
+  },
+  additionalProperties: false
+}
+
+const failBodySchema = {
+  type: 'object',
+  required: ['error'],
+  properties: {
+    error: { type: 'string' },
+    output: {}
+  },
+  additionalProperties: false
+}
+
+const patchBodySchema = {
+  type: 'object',
+  properties: {
+    status: stepStatusSchema,
+    output: {},
+    current_story_id: { type: ['string', 'null'] }
+  },
+  anyOf: [
+    { required: ['status'] },
+    { required: ['output'] },
+    { required: ['current_story_id'] }
+  ],
+  additionalProperties: false
+}
+
 // Helper to safely parse JSON (prevents crashes from invalid JSON in DB)
 function safeJsonParse(str) {
   if (!str) return null
@@ -100,7 +147,11 @@ export async function stepsRoutes(fastify, opts) {
   })
 
   // POST /api/v1/runs/:runId/steps/:stepId/claim - Claim a step (agent starts work)
-  fastify.post('/:stepId/claim', async (request, reply) => {
+  fastify.post('/:stepId/claim', {
+    schema: {
+      body: claimBodySchema
+    }
+  }, async (request, reply) => {
     const { runId, stepId } = request.params
     const agentId = request.headers['x-agent-name'] || request.body?.agent_id
 
@@ -135,6 +186,19 @@ export async function stepsRoutes(fastify, opts) {
       })
     }
 
+    // Verify all previous steps are completed (step ordering enforcement)
+    const previousSteps = await stepService.listStepsByRunId(runId)
+    const incompletePreviousSteps = previousSteps.filter(s =>
+      s.stepIndex < step.stepIndex && s.status !== 'completed'
+    )
+
+    if (incompletePreviousSteps.length > 0) {
+      return reply.code(400).send({
+        error: 'Previous steps not completed. Complete them before claiming this step.',
+        pending_steps: incompletePreviousSteps.map(s => s.stepId)
+      })
+    }
+
     // Use atomic claim to prevent race conditions
     const claimedStep = await stepService.claimStep(stepId, agentId)
 
@@ -155,7 +219,11 @@ export async function stepsRoutes(fastify, opts) {
   })
 
   // POST /api/v1/runs/:runId/steps/:stepId/complete - Complete a step
-  fastify.post('/:stepId/complete', async (request, reply) => {
+  fastify.post('/:stepId/complete', {
+    schema: {
+      body: completeBodySchema
+    }
+  }, async (request, reply) => {
     const { runId, stepId } = request.params
     const { output } = request.body
 
@@ -190,13 +258,13 @@ export async function stepsRoutes(fastify, opts) {
   })
 
   // POST /api/v1/runs/:runId/steps/:stepId/fail - Fail a step (with retry)
-  fastify.post('/:stepId/fail', async (request, reply) => {
+  fastify.post('/:stepId/fail', {
+    schema: {
+      body: failBodySchema
+    }
+  }, async (request, reply) => {
     const { runId, stepId } = request.params
     const { error: errorMessage, output } = request.body
-
-    if (!errorMessage) {
-      return reply.code(400).send({ error: 'error message is required' })
-    }
 
     const step = await stepService.getStep(stepId)
 
@@ -253,14 +321,14 @@ export async function stepsRoutes(fastify, opts) {
     }
   })
 
-  // PATCH /api/v1/runs/:runId/steps/:stepId - Update step (for approval steps)
-  fastify.patch('/:stepId', async (request, reply) => {
-    const { runId, stepId } = request.params
-    const { status, output } = request.body
-
-    if (!status) {
-      return reply.code(400).send({ error: 'status is required' })
+  // PATCH /api/v1/runs/:runId/steps/:stepId - Update step (for approval steps and loop steps)
+  fastify.patch('/:stepId', {
+    schema: {
+      body: patchBodySchema
     }
+  }, async (request, reply) => {
+    const { runId, stepId } = request.params
+    const { status, output, current_story_id } = request.body
 
     const step = await stepService.getStep(stepId)
 
@@ -269,7 +337,11 @@ export async function stepsRoutes(fastify, opts) {
     }
 
     try {
-      const updatedStep = await stepService.updateStepStatus(stepId, status, output)
+      const updatedStep = await stepService.updateStep(stepId, {
+        status,
+        output,
+        currentStoryId: current_story_id
+      })
 
       return {
         success: true,

@@ -1,6 +1,8 @@
 import { authenticateRequest } from '../middleware/auth.js'
 import { createStoryService } from '../services/story.service.js'
 import { createRunService } from '../services/run.service.js'
+import { createStepService } from '../services/step.service.js'
+import { prisma } from '../db/prisma.js'
 
 // Helper to safely parse JSON (prevents crashes from invalid JSON in DB)
 function safeJsonParse(str) {
@@ -34,6 +36,7 @@ function storyToJson(story) {
 export async function storiesRoutes(fastify, opts) {
   const storyService = createStoryService()
   const runService = createRunService()
+  const stepService = createStepService()
 
   // Apply authentication to all routes
   fastify.addHook('onRequest', authenticateRequest)
@@ -238,6 +241,23 @@ export async function storiesRoutes(fastify, opts) {
           output,
           retries_exhausted: true
         })
+
+        // Find and fail the parent loop step that's processing this story
+        const parentStep = await prisma.step.findFirst({
+          where: {
+            runId,
+            currentStoryId: storyId,
+            status: 'running'
+          }
+        })
+
+        if (parentStep) {
+          await stepService.updateStepStatus(parentStep.id, 'failed', {
+            error: `Story '${story.title}' failed after max retries: ${errorMessage}`,
+            storyId,
+            retries_exhausted: true
+          })
+        }
 
         return {
           success: true,

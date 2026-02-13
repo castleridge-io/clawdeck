@@ -413,6 +413,41 @@ describe('Stories API', () => {
       assert.strictEqual(result.data.will_retry, false)
       assert.strictEqual(result.data.data.status, 'failed')
     })
+
+    it('should propagate story failure to parent loop step', async () => {
+      // Create a loop step that's processing stories
+      const loopStep = await prisma.step.create({
+        data: {
+          id: `step-loop-story-${Date.now()}`,
+          runId: testRun.id,
+          stepId: 'implement-stories',
+          agentId: 'StoryTestAgent',
+          stepIndex: 0,
+          inputTemplate: 'Implement: {story}',
+          expects: 'implementation',
+          type: 'loop',
+          status: 'running',
+          currentStoryId: testStory.id
+        }
+      })
+
+      // Set story retry count to max
+      await prisma.story.update({
+        where: { id: testStory.id },
+        data: { retryCount: 3 }
+      })
+
+      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/stories/${testStory.id}/fail`, {
+        error: 'Final failure - step should also fail'
+      })
+
+      assert.strictEqual(result.status, 200)
+      assert.strictEqual(result.data.will_retry, false)
+
+      // Verify the parent step is also failed
+      const stepResult = await makeRequest('GET', `/api/v1/runs/${testRun.id}/steps/${loopStep.id}`)
+      assert.strictEqual(stepResult.data.data.status, 'failed')
+    })
   })
 
   describe('PATCH /api/v1/runs/:runId/stories/:storyId', () => {

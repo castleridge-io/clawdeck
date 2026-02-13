@@ -391,6 +391,78 @@ describe('Steps API', () => {
         data: { status: 'running' }
       })
     })
+
+    it('should fail to claim step when previous steps are not completed', async () => {
+      // Create a previous step that is still waiting
+      const previousStep = await prisma.step.create({
+        data: createStepData({
+          id: `step-previous-${Date.now()}`,
+          runId: testRun.id,
+          stepId: 'setup',
+          agentId: 'StepTestAgent',
+          stepIndex: 0,
+          inputTemplate: 'Setup: {task}',
+          status: 'waiting'
+        })
+      })
+
+      // Create a later step (higher stepIndex) that we'll try to claim
+      const laterStep = await prisma.step.create({
+        data: createStepData({
+          id: `step-later-${Date.now()}`,
+          runId: testRun.id,
+          stepId: 'implement',
+          agentId: 'StepTestAgent',
+          stepIndex: 2,
+          inputTemplate: 'Implement: {task}',
+          status: 'waiting'
+        })
+      })
+
+      // Try to claim the later step while previous step is still waiting
+      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${laterStep.id}/claim`)
+
+      assert.strictEqual(result.status, 400)
+      assert.ok(result.data.error.includes('Previous steps not completed'))
+      assert.ok(result.data.pending_steps.includes('setup'))
+    })
+
+    it('should allow claiming step when all previous steps are completed', async () => {
+      // Clean up the testStep from beforeEach
+      await prisma.step.deleteMany({ where: { runId: testRun.id } })
+
+      // Create and complete a previous step
+      const previousStep = await prisma.step.create({
+        data: createStepData({
+          id: `step-previous-completed-${Date.now()}`,
+          runId: testRun.id,
+          stepId: 'setup',
+          agentId: 'StepTestAgent',
+          stepIndex: 0,
+          inputTemplate: 'Setup: {task}',
+          status: 'completed'
+        })
+      })
+
+      // Create a later step
+      const laterStep = await prisma.step.create({
+        data: createStepData({
+          id: `step-later-2-${Date.now()}`,
+          runId: testRun.id,
+          stepId: 'implement',
+          agentId: 'StepTestAgent',
+          stepIndex: 1,
+          inputTemplate: 'Implement: {task}',
+          status: 'waiting'
+        })
+      })
+
+      // Should be able to claim the later step
+      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${laterStep.id}/claim`)
+
+      assert.strictEqual(result.status, 200)
+      assert.strictEqual(result.data.data.status, 'running')
+    })
   })
 
   describe('POST /api/v1/runs/:runId/steps/:stepId/complete', () => {
@@ -486,7 +558,8 @@ describe('Steps API', () => {
       const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${testStep.id}/fail`, {})
 
       assert.strictEqual(result.status, 400)
-      assert.ok(result.data.error.includes('error message is required'))
+      // Schema validation returns a different error format
+      assert.ok(result.data.error || result.data.message)
     })
 
     it('should mark step as failed after max retries', async () => {
@@ -532,6 +605,166 @@ describe('Steps API', () => {
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.success, true)
       assert.strictEqual(result.data.data.status, 'awaiting_approval')
+    })
+
+    it('should reject invalid status transition from completed to waiting', async () => {
+      const step = await prisma.step.create({
+        data: createStepData({
+          id: `step-invalid-trans-${Date.now()}`,
+          runId: testRun.id,
+          stepId: 'plan',
+          agentId: 'StepTestAgent',
+          stepIndex: 0,
+          inputTemplate: 'Plan: {task}',
+          status: 'completed'
+        })
+      })
+
+      const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {
+        status: 'waiting'
+      })
+
+      assert.strictEqual(result.status, 400)
+      assert.ok(result.data.error.includes('Invalid status transition'))
+    })
+
+    it('should reject invalid status transition from failed to completed', async () => {
+      const step = await prisma.step.create({
+        data: createStepData({
+          id: `step-failed-trans-${Date.now()}`,
+          runId: testRun.id,
+          stepId: 'plan',
+          agentId: 'StepTestAgent',
+          stepIndex: 0,
+          inputTemplate: 'Plan: {task}',
+          status: 'failed'
+        })
+      })
+
+      const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {
+        status: 'completed'
+      })
+
+      assert.strictEqual(result.status, 400)
+      assert.ok(result.data.error.includes('Invalid status transition'))
+    })
+
+    it('should update current_story_id for loop steps', async () => {
+      const story = await prisma.story.create({
+        data: {
+          id: `story-for-step-${Date.now()}`,
+          runId: testRun.id,
+          storyIndex: 0,
+          storyId: 'story-1',
+          title: 'Test Story',
+          status: 'running'
+        }
+      })
+
+      const step = await prisma.step.create({
+        data: createStepData({
+          id: `step-loop-${Date.now()}`,
+          runId: testRun.id,
+          stepId: 'implement',
+          agentId: 'StepTestAgent',
+          stepIndex: 0,
+          inputTemplate: 'Implement: {story}',
+          type: 'loop',
+          status: 'running'
+        })
+      })
+
+      const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {
+        current_story_id: story.id
+      })
+
+      assert.strictEqual(result.status, 200)
+      assert.strictEqual(result.data.success, true)
+      assert.strictEqual(result.data.data.current_story_id, story.id)
+    })
+
+    it('should clear current_story_id when set to null', async () => {
+      const step = await prisma.step.create({
+        data: createStepData({
+          id: `step-loop-clear-${Date.now()}`,
+          runId: testRun.id,
+          stepId: 'implement',
+          agentId: 'StepTestAgent',
+          stepIndex: 0,
+          inputTemplate: 'Implement: {story}',
+          type: 'loop',
+          status: 'running',
+          currentStoryId: 'old-story-id'
+        })
+      })
+
+      const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {
+        current_story_id: null
+      })
+
+      assert.strictEqual(result.status, 200)
+      assert.strictEqual(result.data.success, true)
+      assert.strictEqual(result.data.data.current_story_id, null)
+    })
+  })
+
+  describe('Input validation', () => {
+    it('should reject invalid status value in PATCH', async () => {
+      const step = await prisma.step.create({
+        data: createStepData({
+          id: `step-validation-${Date.now()}`,
+          runId: testRun.id,
+          stepId: 'test',
+          agentId: 'StepTestAgent',
+          stepIndex: 0,
+          inputTemplate: 'Test',
+          status: 'waiting'
+        })
+      })
+
+      const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {
+        status: 'invalid_status'
+      })
+
+      assert.strictEqual(result.status, 400)
+    })
+
+    it('should reject fail without error message', async () => {
+      const step = await prisma.step.create({
+        data: createStepData({
+          id: `step-validation-fail-${Date.now()}`,
+          runId: testRun.id,
+          stepId: 'test',
+          agentId: 'StepTestAgent',
+          stepIndex: 0,
+          inputTemplate: 'Test',
+          status: 'running'
+        })
+      })
+
+      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${step.id}/fail`, {
+        output: 'some output'
+      })
+
+      assert.strictEqual(result.status, 400)
+    })
+
+    it('should reject PATCH with empty body', async () => {
+      const step = await prisma.step.create({
+        data: createStepData({
+          id: `step-validation-empty-${Date.now()}`,
+          runId: testRun.id,
+          stepId: 'test',
+          agentId: 'StepTestAgent',
+          stepIndex: 0,
+          inputTemplate: 'Test',
+          status: 'waiting'
+        })
+      })
+
+      const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {})
+
+      assert.strictEqual(result.status, 400)
     })
   })
 
