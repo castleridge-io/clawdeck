@@ -166,9 +166,18 @@ export class AuthService {
       },
     });
 
+    // Create default API token for the user
+    const apiToken = await this.prisma.apiToken.create({
+      data: {
+        userId: user.id,
+        name: 'Default',
+        token: this.generateApiToken(),
+      },
+    });
+
     await this.createOnboardingBoard(user.id);
 
-    return user;
+    return { user, apiToken: apiToken.token };
   }
 
   async login(emailAddress, password, ipAddress, userAgent) {

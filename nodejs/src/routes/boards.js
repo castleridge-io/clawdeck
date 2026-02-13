@@ -1,7 +1,17 @@
 import { authenticateRequest } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
 
-function boardToJson (board) {
+async function boardToJson (board) {
+  // Get agent UUID if board is linked to an agent
+  let agentUuid = null
+  if (board.agentId) {
+    const agent = await prisma.agent.findUnique({
+      where: { id: board.agentId },
+      select: { uuid: true }
+    })
+    agentUuid = agent?.uuid ?? null
+  }
+
   return {
     id: board.id.toString(),
     name: board.name,
@@ -9,7 +19,7 @@ function boardToJson (board) {
     color: board.color,
     position: board.position,
     user_id: board.userId.toString(),
-    agent_id: board.agentId?.toString() ?? null,
+    agent_id: agentUuid,
     created_at: board.createdAt.toISOString(),
     updated_at: board.updatedAt.toISOString()
   }
@@ -26,9 +36,11 @@ export async function boardsRoutes (fastify, opts) {
       orderBy: { position: 'asc' }
     })
 
+    const boardsData = await Promise.all(boards.map(boardToJson))
+
     return {
       success: true,
-      data: boards.map(boardToJson)
+      data: boardsData
     }
   })
 
@@ -53,7 +65,7 @@ export async function boardsRoutes (fastify, opts) {
     return {
       success: true,
       data: {
-        ...boardToJson(board),
+        ...(await boardToJson(board)),
         tasks: board.tasks.map(task => ({
           id: task.id.toString(),
           name: task.name,
@@ -97,13 +109,13 @@ export async function boardsRoutes (fastify, opts) {
 
     return reply.code(201).send({
       success: true,
-      data: boardToJson(board)
+      data: await boardToJson(board)
     })
   })
 
   // PATCH /api/v1/boards/:id - Update board
   fastify.patch('/:id', async (request, reply) => {
-    const { name, icon, color, position } = request.body
+    const { name, icon, color, position, agent_id } = request.body
 
     const board = await prisma.board.findFirst({
       where: {
@@ -122,6 +134,26 @@ export async function boardsRoutes (fastify, opts) {
     if (color !== undefined) updateData.color = color
     if (position !== undefined) updateData.position = position
 
+    // Handle agent_id update - accepts UUID string or null
+    if (agent_id !== undefined) {
+      if (agent_id === null) {
+        // Unlink board from agent
+        updateData.agentId = null
+      } else {
+        // Look up agent by UUID (must be active)
+        const agent = await prisma.agent.findFirst({
+          where: {
+            uuid: agent_id,
+            isActive: true
+          }
+        })
+        if (!agent) {
+          return reply.code(400).send({ error: 'Agent not found' })
+        }
+        updateData.agentId = agent.id
+      }
+    }
+
     const updatedBoard = await prisma.board.update({
       where: { id: board.id },
       data: updateData
@@ -129,7 +161,7 @@ export async function boardsRoutes (fastify, opts) {
 
     return {
       success: true,
-      data: boardToJson(updatedBoard)
+      data: await boardToJson(updatedBoard)
     }
   })
 

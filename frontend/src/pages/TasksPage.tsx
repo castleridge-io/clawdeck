@@ -1,0 +1,172 @@
+import { useState, useEffect } from 'react'
+import { getBoards, getTasks, updateTask, deleteTask } from '../lib/api'
+import type { Board, Task, TaskStatus } from '../types'
+import LoadingSpinner from '../components/LoadingSpinner'
+
+const STATUS_OPTIONS: { value: TaskStatus | ''; label: string }[] = [
+  { value: '', label: 'All Statuses' },
+  { value: 'inbox', label: 'Inbox' },
+  { value: 'up_next', label: 'Up Next' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'in_review', label: 'In Review' },
+  { value: 'done', label: 'Done' },
+]
+
+const STATUS_LABELS: Record<TaskStatus, string> = {
+  inbox: 'Inbox',
+  up_next: 'Up Next',
+  in_progress: 'In Progress',
+  in_review: 'In Review',
+  done: 'Done',
+}
+
+export default function TasksPage() {
+  const [loading, setLoading] = useState(true)
+  const [boards, setBoards] = useState<Board[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | ''>('')
+  const [boardFilter, setBoardFilter] = useState<string>('')
+
+  useEffect(() => {
+    loadData()
+  }, [statusFilter, boardFilter])
+
+  async function loadData() {
+    try {
+      const boardsData = await getBoards()
+      setBoards(boardsData)
+
+      const allTasks: Task[] = []
+      for (const board of boardsData) {
+        const boardTasks = await getTasks(board.id).catch((): Task[] => [])
+        allTasks.push(...boardTasks)
+      }
+
+      let filtered = allTasks
+      if (statusFilter) {
+        filtered = filtered.filter(t => t.status === statusFilter)
+      }
+      if (boardFilter) {
+        filtered = filtered.filter(t => t.board_id === boardFilter)
+      }
+
+      setTasks(filtered)
+    } catch (error) {
+      console.error('Failed to load tasks:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleStatusChange(taskId: string, status: TaskStatus) {
+    try {
+      await updateTask(taskId, { status })
+      await loadData()
+    } catch (error) {
+      alert(`Failed to update task: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  async function handleDelete(taskId: string) {
+    if (!confirm('Are you sure you want to delete this task?')) return
+
+    try {
+      await deleteTask(taskId)
+      await loadData()
+    } catch (error) {
+      alert(`Failed to delete task: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  function getBoardName(boardId: string) {
+    return boards.find(b => b.id === boardId)?.name || 'Unknown'
+  }
+
+  function formatDate(dateString?: string) {
+    if (!dateString) return 'N/A'
+    return new Date(dateString).toLocaleDateString()
+  }
+
+  if (loading) {
+    return <LoadingSpinner />
+  }
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-white">Tasks</h1>
+
+        <div className="flex gap-4">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as TaskStatus | '')}
+            className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {STATUS_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+
+          <select
+            value={boardFilter}
+            onChange={(e) => setBoardFilter(e.target.value)}
+            className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Boards</option>
+            {boards.map(board => (
+              <option key={board.id} value={board.id}>{board.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="bg-slate-800 rounded-lg overflow-hidden">
+        {tasks.length === 0 ? (
+          <div className="text-center py-12 text-slate-400">
+            No tasks found
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead className="bg-slate-700">
+              <tr>
+                <th className="text-left px-4 py-3 text-slate-300 font-medium">Task</th>
+                <th className="text-left px-4 py-3 text-slate-300 font-medium">Board</th>
+                <th className="text-left px-4 py-3 text-slate-300 font-medium">Status</th>
+                <th className="text-left px-4 py-3 text-slate-300 font-medium">Created</th>
+                <th className="text-right px-4 py-3 text-slate-300 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700">
+              {tasks.map(task => (
+                <tr key={task.id} className="hover:bg-slate-700/50">
+                  <td className="px-4 py-3 text-white">{task.name || 'Untitled'}</td>
+                  <td className="px-4 py-3 text-slate-300">{getBoardName(task.board_id)}</td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={task.status}
+                      onChange={(e) => handleStatusChange(task.id, e.target.value as TaskStatus)}
+                      className="bg-slate-600 border border-slate-500 rounded px-2 py-1 text-sm text-white"
+                    >
+                      {STATUS_OPTIONS.filter(o => o.value).map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-4 py-3 text-slate-400">{formatDate(task.created_at)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => handleDelete(task.id)}
+                      className="text-red-400 hover:text-red-300 text-sm"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  )
+}

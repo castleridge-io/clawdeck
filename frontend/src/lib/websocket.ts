@@ -1,36 +1,49 @@
-// WebSocket client for real-time task updates
+import { getToken } from './auth'
 
 const WS_URL = `ws://${window.location.hostname}:3001/ws`
 
-class WebSocketClient {
-  constructor() {
-    this.ws = null
-    this.listeners = new Map()
-    this.reconnectAttempts = 0
-    this.maxReconnectAttempts = 5
-    this.reconnectDelay = 1000
-    this.reconnectTimer = null
-    this.isIntentionalClose = false
-  }
+type EventType = 'connected' | 'disconnected' | 'error' | string
+type EventCallback = (data: unknown) => void
 
-  connect(token) {
+interface WebSocketMessage {
+  type: string
+  [key: string]: unknown
+}
+
+class WebSocketClient {
+  private ws: WebSocket | null = null
+  private listeners: Map<EventType, Set<EventCallback>> = new Map()
+  private reconnectAttempts = 0
+  private maxReconnectAttempts = 5
+  private reconnectDelay = 1000
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null
+  private isIntentionalClose = false
+
+  connect(token?: string): void {
+    const wsToken = token || getToken()
+
+    if (!wsToken) {
+      console.warn('No token available for WebSocket connection')
+      return
+    }
+
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       return
     }
 
     try {
-      const url = `${WS_URL}?token=${token}`
+      const url = `${WS_URL}?token=${wsToken}`
       this.ws = new WebSocket(url)
 
       this.ws.onopen = () => {
         console.log('WebSocket connected')
         this.reconnectAttempts = 0
-        this.emit('connected')
+        this.emit('connected', null)
       }
 
-      this.ws.onmessage = (event) => {
+      this.ws.onmessage = (event: MessageEvent) => {
         try {
-          const data = JSON.parse(event.data)
+          const data = JSON.parse(event.data) as WebSocketMessage
           this.emit(data.type, data)
         } catch (error) {
           console.error('Failed to parse WebSocket message:', error)
@@ -39,14 +52,14 @@ class WebSocketClient {
 
       this.ws.onclose = () => {
         console.log('WebSocket disconnected')
-        this.emit('disconnected')
+        this.emit('disconnected', null)
 
         if (!this.isIntentionalClose && this.reconnectAttempts < this.maxReconnectAttempts) {
-          this.scheduleReconnect(token)
+          this.scheduleReconnect()
         }
       }
 
-      this.ws.onerror = (error) => {
+      this.ws.onerror = (error: Event) => {
         console.error('WebSocket error:', error)
         this.emit('error', error)
       }
@@ -55,7 +68,7 @@ class WebSocketClient {
     }
   }
 
-  scheduleReconnect(token) {
+  private scheduleReconnect(): void {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
     }
@@ -65,11 +78,14 @@ class WebSocketClient {
 
     this.reconnectTimer = setTimeout(() => {
       this.reconnectAttempts++
-      this.connect(token)
+      const token = getToken()
+      if (token) {
+        this.connect(token)
+      }
     }, delay)
   }
 
-  disconnect() {
+  disconnect(): void {
     this.isIntentionalClose = true
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
@@ -81,14 +97,14 @@ class WebSocketClient {
     }
   }
 
-  on(event, callback) {
+  on(event: EventType, callback: EventCallback): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set())
     }
-    this.listeners.get(event).add(callback)
+    this.listeners.get(event)!.add(callback)
   }
 
-  off(event, callback) {
+  off(event: EventType, callback: EventCallback): void {
     const eventListeners = this.listeners.get(event)
     if (eventListeners) {
       eventListeners.delete(callback)
@@ -98,7 +114,7 @@ class WebSocketClient {
     }
   }
 
-  emit(event, data) {
+  private emit(event: EventType, data: unknown): void {
     const eventListeners = this.listeners.get(event)
     if (eventListeners) {
       for (const callback of eventListeners) {
@@ -111,10 +127,9 @@ class WebSocketClient {
     }
   }
 
-  isConnected() {
-    return this.ws && this.ws.readyState === WebSocket.OPEN
+  isConnected(): boolean {
+    return this.ws !== null && this.ws.readyState === WebSocket.OPEN
   }
 }
 
-// Singleton instance
 export const wsClient = new WebSocketClient()

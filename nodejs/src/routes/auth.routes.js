@@ -15,7 +15,7 @@ export async function authRoutes(fastify) {
     }
 
     try {
-      const user = await authService.register(
+      const { user, apiToken } = await authService.register(
         emailAddress,
         password,
         agentAutoMode,
@@ -41,6 +41,7 @@ export async function authRoutes(fastify) {
           avatarUrl: user.avatarUrl,
         },
         token,
+        apiToken,
       });
     } catch (error) {
       if (error.message === 'User already exists') {
@@ -68,6 +69,9 @@ export async function authRoutes(fastify) {
         request.headers['user-agent']
       );
 
+      // Get or create API token for the user
+      const apiTokenRecord = await authService.getApiToken(user.id);
+
       return reply.send({
         user: {
           id: user.id.toString(),
@@ -79,6 +83,7 @@ export async function authRoutes(fastify) {
           avatarUrl: user.avatarUrl,
         },
         token,
+        apiToken: apiTokenRecord.token,
       });
     } catch (error) {
       return reply.code(401).send({ error: 'Invalid credentials' });

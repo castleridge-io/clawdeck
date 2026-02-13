@@ -1,8 +1,26 @@
 import { useState, useEffect } from 'react'
+import type { Board, Task, TaskStatus } from '../types'
 import './TaskModal.css'
 
-export default function TaskModal({ board, task, onSave, onClose }) {
-  const [formData, setFormData] = useState({
+type Priority = 'none' | 'low' | 'medium' | 'high'
+
+interface TaskModalProps {
+  board: Board
+  task: Task | null
+  onSave: (taskIdOrData: string | Partial<Task>, data?: Partial<Task>) => void
+  onClose: () => void
+}
+
+interface FormData {
+  name: string
+  description: string
+  priority: Priority
+  status: TaskStatus
+  tags: string
+}
+
+export default function TaskModal({ board, task, onSave, onClose }: TaskModalProps) {
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
     priority: 'none',
@@ -14,25 +32,29 @@ export default function TaskModal({ board, task, onSave, onClose }) {
 
   useEffect(() => {
     if (task) {
+      const extendedTask = task as Task & {
+        priority?: Priority
+        tags?: string[]
+      }
       setFormData({
         name: task.name || '',
         description: task.description || '',
-        priority: task.priority || 'none',
+        priority: extendedTask.priority || 'none',
         status: task.status || 'inbox',
-        tags: task.tags?.join(', ') || '',
+        tags: extendedTask.tags?.join(', ') || '',
       })
     }
   }, [task])
 
-  function handleSubmit(e) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    const data = {
+    const data: Partial<Task> & { tags?: string[]; priority?: Priority } = {
       ...formData,
       tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
     }
 
-    if (isEditing) {
+    if (isEditing && task) {
       onSave(task.id, data)
     } else {
       onSave(data)
@@ -78,7 +100,7 @@ export default function TaskModal({ board, task, onSave, onClose }) {
               <select
                 id="task-priority"
                 value={formData.priority}
-                onChange={e => setFormData({ ...formData, priority: e.target.value })}
+                onChange={e => setFormData({ ...formData, priority: e.target.value as Priority })}
               >
                 <option value="none">None</option>
                 <option value="low">Low</option>
@@ -92,7 +114,7 @@ export default function TaskModal({ board, task, onSave, onClose }) {
               <select
                 id="task-status"
                 value={formData.status}
-                onChange={e => setFormData({ ...formData, status: e.target.value })}
+                onChange={e => setFormData({ ...formData, status: e.target.value as TaskStatus })}
               >
                 <option value="inbox">Inbox</option>
                 <option value="up_next">Up Next</option>

@@ -40,6 +40,7 @@ async function setupTestEnvironment () {
 
 async function cleanupTestEnvironment () {
   await prisma.board.deleteMany({})
+  await prisma.agent.deleteMany({})
   await prisma.apiToken.deleteMany({})
   await prisma.user.deleteMany({})
 }
@@ -143,6 +144,131 @@ describe('Boards API', () => {
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.data.name, 'Updated Board Name')
       assert.strictEqual(result.data.data.color, 'green')
+    })
+
+    it('should update board agent_id to link board to agent', async () => {
+      // Create an agent
+      const agent = await prisma.agent.create({
+        data: {
+          uuid: 'test-agent-for-board',
+          name: 'Test Agent for Board',
+          slug: 'test-agent-board',
+          emoji: '🤖',
+          color: 'blue',
+          isActive: true
+        }
+      })
+
+      // Create a board without agent
+      const board = await prisma.board.create({
+        data: {
+          name: 'Board to Link',
+          userId: testUser.id,
+          position: 100
+        }
+      })
+
+      // Verify board has no agent initially
+      assert.strictEqual(board.agentId, null)
+
+      // Update board with agent_id
+      const result = await makeRequest('PATCH', `/api/v1/boards/${board.id}`, {
+        agent_id: agent.uuid
+      }, testToken)
+
+      assert.strictEqual(result.status, 200)
+      assert.strictEqual(result.data.success, true)
+      assert.strictEqual(result.data.data.agent_id, agent.uuid)
+
+      // Verify in database
+      const updatedBoard = await prisma.board.findUnique({
+        where: { id: board.id }
+      })
+      assert.strictEqual(updatedBoard.agentId.toString(), agent.id.toString())
+    })
+
+    it('should unlink board from agent by setting agent_id to null', async () => {
+      // Create an agent
+      const agent = await prisma.agent.create({
+        data: {
+          uuid: 'test-agent-unlink',
+          name: 'Test Agent Unlink',
+          slug: 'test-agent-unlink',
+          emoji: '🤖',
+          color: 'red',
+          isActive: true
+        }
+      })
+
+      // Create a board linked to agent
+      const board = await prisma.board.create({
+        data: {
+          name: 'Board to Unlink',
+          userId: testUser.id,
+          agentId: agent.id,
+          position: 101
+        }
+      })
+
+      // Unlink by setting agent_id to null
+      const result = await makeRequest('PATCH', `/api/v1/boards/${board.id}`, {
+        agent_id: null
+      }, testToken)
+
+      assert.strictEqual(result.status, 200)
+      assert.strictEqual(result.data.data.agent_id, null)
+
+      // Verify in database
+      const updatedBoard = await prisma.board.findUnique({
+        where: { id: board.id }
+      })
+      assert.strictEqual(updatedBoard.agentId, null)
+    })
+
+    it('should return 400 for non-existent agent UUID', async () => {
+      const board = await prisma.board.create({
+        data: {
+          name: 'Board Bad Agent',
+          userId: testUser.id,
+          position: 102
+        }
+      })
+
+      const result = await makeRequest('PATCH', `/api/v1/boards/${board.id}`, {
+        agent_id: 'non-existent-uuid-12345'
+      }, testToken)
+
+      assert.strictEqual(result.status, 400)
+      assert.ok(result.data.error.includes('Agent not found'))
+    })
+
+    it('should return 400 for inactive agent UUID', async () => {
+      // Create inactive agent
+      const agent = await prisma.agent.create({
+        data: {
+          uuid: 'inactive-agent-uuid',
+          name: 'Inactive Agent',
+          slug: 'inactive-agent',
+          emoji: '❌',
+          color: 'gray',
+          isActive: false
+        }
+      })
+
+      const board = await prisma.board.create({
+        data: {
+          name: 'Board Inactive Agent',
+          userId: testUser.id,
+          position: 103
+        }
+      })
+
+      const result = await makeRequest('PATCH', `/api/v1/boards/${board.id}`, {
+        agent_id: agent.uuid
+      }, testToken)
+
+      assert.strictEqual(result.status, 400)
+      assert.ok(result.data.error.includes('Agent not found'))
     })
 
     it('should return 404 for non-existent board', async () => {

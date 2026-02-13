@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { unarchiveTask } from '../lib/api'
+import type { Board, Task, Column, TaskStatus } from '../types'
 import './KanbanBoard.css'
 
-const STATUS_LABELS = {
+const STATUS_LABELS: Record<TaskStatus, string> = {
   inbox: 'Inbox',
   up_next: 'Up Next',
   in_progress: 'In Progress',
@@ -10,44 +11,89 @@ const STATUS_LABELS = {
   done: 'Done',
 }
 
-export default function KanbanBoard({ board, tasks, columns, onTaskUpdate, onTaskDelete, onTaskAssign, onTaskClaim, onTaskComplete, onTaskEdit, onUnarchive }) {
-  const [draggedTask, setDraggedTask] = useState(null)
+interface KanbanBoardProps {
+  board: Board
+  tasks: Task[]
+  columns: Column[]
+  onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
+  onTaskDelete: (taskId: string) => void
+  onTaskAssign: (taskId: string) => void
+  onTaskClaim: (taskId: string) => void
+  onTaskComplete: (taskId: string) => void
+  onTaskEdit: (task: Task) => void
+  onUnarchive?: () => void
+}
+
+interface TaskCardProps {
+  task: Task
+  onDragStart: (task: Task) => void
+  onEdit: (task: Task) => void
+  onDelete: (taskId: string) => void
+  onAssign: (taskId: string) => void
+  onClaim: (taskId: string) => void
+  onComplete: (taskId: string) => void
+  isDragging: boolean
+}
+
+interface ArchivedTaskCardProps {
+  task: Task
+  onUnarchive: () => void
+}
+
+type Priority = 'none' | 'low' | 'medium' | 'high'
+
+const PRIORITY_COLORS: Record<Priority, string> = {
+  none: '#64748b',
+  low: '#22c55e',
+  medium: '#f59e0b',
+  high: '#ef4444',
+}
+
+export default function KanbanBoard({
+  board,
+  tasks,
+  columns,
+  onTaskUpdate,
+  onTaskDelete,
+  onTaskAssign,
+  onTaskClaim,
+  onTaskComplete,
+  onTaskEdit,
+  onUnarchive,
+}: KanbanBoardProps) {
+  const [draggedTask, setDraggedTask] = useState<Task | null>(null)
   const [showArchived, setShowArchived] = useState(false)
 
-  function handleDragStart(task) {
+  function handleDragStart(task: Task) {
     setDraggedTask(task)
   }
 
-  function handleDragOver(e) {
+  function handleDragOver(e: React.DragEvent) {
     e.preventDefault()
   }
 
-  function handleDrop(columnId) {
+  function handleDrop(columnId: TaskStatus) {
     if (draggedTask && draggedTask.status !== columnId) {
       onTaskUpdate(draggedTask.id, { status: columnId })
     }
     setDraggedTask(null)
   }
 
-  function handleDragEnd() {
-    setDraggedTask(null)
-  }
-
-  const tasksByColumn = columns.reduce((acc, column) => {
-    acc[column.id] = tasks.filter(task => task.status === column.id && !task.archived)
+  const tasksByColumn = columns.reduce<Record<string, Task[]>>((acc, column) => {
+    acc[column.id] = tasks.filter(task => task.status === column.id && !(task as Task & { archived?: boolean }).archived)
     return acc
   }, {})
 
-  const archivedTasks = tasks.filter(task => task.archived)
+  const archivedTasks = tasks.filter(task => (task as Task & { archived?: boolean }).archived)
 
-  async function handleUnarchiveTask(taskId) {
+  async function handleUnarchiveTask(taskId: string) {
     try {
       await unarchiveTask(taskId)
       if (onUnarchive) {
         onUnarchive()
       }
     } catch (error) {
-      alert(`Failed to unarchive task: ${error.message}`)
+      alert(`Failed to unarchive task: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -133,14 +179,23 @@ export default function KanbanBoard({ board, tasks, columns, onTaskUpdate, onTas
   )
 }
 
-function TaskCard({ task, onDragStart, onEdit, onDelete, onAssign, onClaim, onComplete, isDragging }) {
+function TaskCard({
+  task,
+  onDragStart,
+  onEdit,
+  onDelete,
+  onAssign,
+  onClaim,
+  onComplete,
+  isDragging,
+}: TaskCardProps) {
   const [showActions, setShowActions] = useState(false)
 
-  const priorityColors = {
-    none: '#64748b',
-    low: '#22c55e',
-    medium: '#f59e0b',
-    high: '#ef4444',
+  const extendedTask = task as Task & {
+    priority?: Priority
+    tags?: string[]
+    assigned_to_agent?: boolean
+    agent_claimed_at?: string
   }
 
   return (
@@ -151,7 +206,10 @@ function TaskCard({ task, onDragStart, onEdit, onDelete, onAssign, onClaim, onCo
       onDragEnd={() => {}}
       onClick={() => setShowActions(!showActions)}
     >
-      <div className="task-priority" style={{ backgroundColor: priorityColors[task.priority] || priorityColors.none }} />
+      <div
+        className="task-priority"
+        style={{ backgroundColor: PRIORITY_COLORS[extendedTask.priority || 'none'] }}
+      />
 
       <div className="task-content">
         <h4 className="task-title">{task.name}</h4>
@@ -162,16 +220,16 @@ function TaskCard({ task, onDragStart, onEdit, onDelete, onAssign, onClaim, onCo
 
       <div className="task-meta">
         <div className="task-tags">
-          {task.tags?.map(tag => (
+          {extendedTask.tags?.map(tag => (
             <span key={tag} className="task-tag">{tag}</span>
           ))}
         </div>
 
         <div className="task-actions">
-          {task.assigned_to_agent && (
+          {extendedTask.assigned_to_agent && (
             <span className="task-badge assigned">✓ Assigned</span>
           )}
-          {task.agent_claimed_at && (
+          {extendedTask.agent_claimed_at && (
             <span className="task-badge claimed">⚡ Active</span>
           )}
         </div>
@@ -187,7 +245,7 @@ function TaskCard({ task, onDragStart, onEdit, onDelete, onAssign, onClaim, onCo
             ✏️ Edit
           </button>
 
-          {!task.assigned_to_agent && (
+          {!extendedTask.assigned_to_agent && (
             <button
               onClick={() => onAssign(task.id)}
               className="action-btn assign"
@@ -197,7 +255,7 @@ function TaskCard({ task, onDragStart, onEdit, onDelete, onAssign, onClaim, onCo
             </button>
           )}
 
-          {task.assigned_to_agent && task.status === 'up_next' && (
+          {extendedTask.assigned_to_agent && task.status === 'up_next' && (
             <button
               onClick={() => onClaim(task.id)}
               className="action-btn claim"
@@ -230,28 +288,29 @@ function TaskCard({ task, onDragStart, onEdit, onDelete, onAssign, onClaim, onCo
   )
 }
 
-function ArchivedTaskCard({ task, onUnarchive }) {
-  const priorityColors = {
-    none: '#64748b',
-    low: '#22c55e',
-    medium: '#f59e0b',
-    high: '#ef4444',
+function ArchivedTaskCard({ task, onUnarchive }: ArchivedTaskCardProps) {
+  const extendedTask = task as Task & {
+    priority?: Priority
+    archived?: boolean
   }
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A'
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
 
   return (
     <div className="archived-task-card">
-      <div className="archived-task-priority" style={{ backgroundColor: priorityColors[task.priority] || priorityColors.none }} />
+      <div
+        className="archived-task-priority"
+        style={{ backgroundColor: PRIORITY_COLORS[extendedTask.priority || 'none'] }}
+      />
       <div className="archived-task-content">
         <h4 className="archived-task-title">{task.name || 'Untitled Task'}</h4>
         {task.description && (

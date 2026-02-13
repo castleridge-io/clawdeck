@@ -81,6 +81,26 @@ services:
     profiles:
       - with-redis
 
+  # Frontend (Vite dev server)
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.dev
+    container_name: clawdeck-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://api:3000
+      VITE_DEV_LOGIN: "true"
+    depends_on:
+      - api
+    ports:
+      - "${FRONTEND_PORT:-3002}:3002"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    networks:
+      - clawdeck-network
+
   # Optional: Nginx reverse proxy
   nginx:
     image: nginx:alpine

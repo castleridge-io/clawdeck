@@ -6,6 +6,24 @@ const prisma = new PrismaClient();
 async function seed() {
   console.log('🌱 Seeding ClawDeck database...');
 
+  // Create dev admin user (for easy dev login)
+  const devPassword = await bcrypt.hash('admin', 10);
+
+  const devUser = await prisma.user.upsert({
+    where: { emailAddress: 'admin' },
+    update: {},
+    create: {
+      emailAddress: 'admin',
+      passwordDigest: devPassword,
+      admin: true,
+      agentAutoMode: false,
+      agentName: 'Admin',
+      agentEmoji: '🔧'
+    }
+  });
+
+  console.log(`✅ Dev user created/updated: ${devUser.emailAddress} (ID: ${devUser.id})`);
+
   // Create OpenClaw system user
   const hashedPassword = await bcrypt.hash('openclaw', 10);
 
