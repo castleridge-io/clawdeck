@@ -10,9 +10,9 @@ async function cleanupTestEnvironment () {
   await prisma.user.deleteMany({
     where: {
       emailAddress: {
-        contains: 'auth-test-'
-      }
-    }
+        contains: 'auth-test-',
+      },
+    },
   })
 }
 
@@ -21,7 +21,7 @@ async function makeRequest (method, path, body = null, token = null) {
 
   const options = {
     method,
-    headers: {}
+    headers: {},
   }
 
   if (token) {
@@ -38,7 +38,7 @@ async function makeRequest (method, path, body = null, token = null) {
     const text = await response.text()
     return {
       status: response.status,
-      data: text ? JSON.parse(text) : null
+      data: text ? JSON.parse(text) : null,
     }
   } catch (error) {
     return { status: 0, error: error.message }
@@ -59,7 +59,7 @@ describe('Auth API', () => {
       const email = `auth-test-register-${Date.now()}@example.com`
       const result = await makeRequest('POST', '/api/v1/auth/register', {
         emailAddress: email,
-        password: 'testpassword123'
+        password: 'testpassword123',
       })
 
       assert.strictEqual(result.status, 201)
@@ -76,7 +76,7 @@ describe('Auth API', () => {
       const email = `auth-test-single-token-${Date.now()}@example.com`
       const result = await makeRequest('POST', '/api/v1/auth/register', {
         emailAddress: email,
-        password: 'testpassword123'
+        password: 'testpassword123',
       })
 
       assert.strictEqual(result.status, 201)
@@ -84,7 +84,7 @@ describe('Auth API', () => {
       // Check database for tokens
       const user = await prisma.user.findUnique({
         where: { emailAddress: email },
-        include: { apiTokens: true }
+        include: { apiTokens: true },
       })
 
       assert.ok(user, 'User should exist')
@@ -95,7 +95,7 @@ describe('Auth API', () => {
 
     it('should return 400 for missing email', async () => {
       const result = await makeRequest('POST', '/api/v1/auth/register', {
-        password: 'testpassword123'
+        password: 'testpassword123',
       })
 
       assert.strictEqual(result.status, 400)
@@ -104,7 +104,7 @@ describe('Auth API', () => {
 
     it('should return 400 for missing password', async () => {
       const result = await makeRequest('POST', '/api/v1/auth/register', {
-        emailAddress: `auth-test-no-pass-${Date.now()}@example.com`
+        emailAddress: `auth-test-no-pass-${Date.now()}@example.com`,
       })
 
       assert.strictEqual(result.status, 400)
@@ -114,7 +114,7 @@ describe('Auth API', () => {
     it('should return 400 for short password', async () => {
       const result = await makeRequest('POST', '/api/v1/auth/register', {
         emailAddress: `auth-test-short-pass-${Date.now()}@example.com`,
-        password: 'short'
+        password: 'short',
       })
 
       assert.strictEqual(result.status, 400)
@@ -127,13 +127,13 @@ describe('Auth API', () => {
       // First registration
       await makeRequest('POST', '/api/v1/auth/register', {
         emailAddress: email,
-        password: 'testpassword123'
+        password: 'testpassword123',
       })
 
       // Second registration with same email
       const result = await makeRequest('POST', '/api/v1/auth/register', {
         emailAddress: email,
-        password: 'testpassword123'
+        password: 'testpassword123',
       })
 
       assert.strictEqual(result.status, 409)
@@ -152,7 +152,7 @@ describe('Auth API', () => {
 
       const result = await makeRequest('POST', '/api/v1/auth/register', {
         emailAddress: testEmail,
-        password: testPassword
+        password: testPassword,
       })
 
       assert.strictEqual(result.status, 201)
@@ -162,7 +162,7 @@ describe('Auth API', () => {
     it('should login and return apiToken', async () => {
       const result = await makeRequest('POST', '/api/v1/auth/login', {
         emailAddress: testEmail,
-        password: testPassword
+        password: testPassword,
       })
 
       assert.strictEqual(result.status, 200)
@@ -175,17 +175,21 @@ describe('Auth API', () => {
     it('should return same apiToken as registration', async () => {
       const result = await makeRequest('POST', '/api/v1/auth/login', {
         emailAddress: testEmail,
-        password: testPassword
+        password: testPassword,
       })
 
       assert.strictEqual(result.status, 200)
-      assert.strictEqual(result.data.apiToken, registeredApiToken, 'apiToken should match the one from registration')
+      assert.strictEqual(
+        result.data.apiToken,
+        registeredApiToken,
+        'apiToken should match the one from registration'
+      )
     })
 
     it('should return 401 for invalid credentials', async () => {
       const result = await makeRequest('POST', '/api/v1/auth/login', {
         emailAddress: testEmail,
-        password: 'wrongpassword'
+        password: 'wrongpassword',
       })
 
       assert.strictEqual(result.status, 401)
@@ -195,7 +199,7 @@ describe('Auth API', () => {
     it('should return 401 for non-existent user', async () => {
       const result = await makeRequest('POST', '/api/v1/auth/login', {
         emailAddress: 'nonexistent@example.com',
-        password: 'testpassword123'
+        password: 'testpassword123',
       })
 
       assert.strictEqual(result.status, 401)
@@ -210,7 +214,7 @@ describe('Auth API', () => {
       const email = `auth-test-apitoken-${Date.now()}@example.com`
       const result = await makeRequest('POST', '/api/v1/auth/register', {
         emailAddress: email,
-        password: 'testpassword123'
+        password: 'testpassword123',
       })
 
       assert.strictEqual(result.status, 201)

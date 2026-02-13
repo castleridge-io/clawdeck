@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react'
-import { getBoards, getTasks, createTask, updateTask, deleteTask, assignTask, claimTask, completeTask } from './lib/api'
+import {
+  getBoards,
+  getTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  assignTask,
+  claimTask,
+  completeTask,
+} from './lib/api'
 import { wsClient } from './lib/websocket'
 import KanbanBoard from './components/KanbanBoard'
 import Header from './components/Header'
@@ -63,15 +72,17 @@ function App() {
       const boardsData = await getBoards().catch(() => [])
 
       // Filter to OpenClaw agent boards
-      const agentBoards = boardsData.filter(board =>
-        AGENTS.some(agent => board.name.includes(agent.name))
+      const agentBoards = boardsData.filter((board) =>
+        AGENTS.some((agent) => board.name.includes(agent.name))
       )
 
       setBoards(agentBoards)
 
       // Load tasks for all agent boards
-      const allTasksPromises = agentBoards.map(board =>
-        getTasks(board.id).catch(() => []).then(t => Array.isArray(t) ? t : [])
+      const allTasksPromises = agentBoards.map((board) =>
+        getTasks(board.id)
+          .catch(() => [])
+          .then((t) => (Array.isArray(t) ? t : []))
       )
       const allTasksData = await Promise.all(allTasksPromises)
       const flatTasks = allTasksData.flat()
@@ -156,9 +167,9 @@ function App() {
   const stats = {
     totalBoards: boards.length,
     totalTasks: allTasks.length,
-    inbox: allTasks.filter(t => t.status === 'inbox').length,
-    inProgress: allTasks.filter(t => t.status === 'in_progress').length,
-    done: allTasks.filter(t => t.status === 'done').length,
+    inbox: allTasks.filter((t) => t.status === 'inbox').length,
+    inProgress: allTasks.filter((t) => t.status === 'in_progress').length,
+    done: allTasks.filter((t) => t.status === 'done').length,
   }
 
   if (loading) {
@@ -167,13 +178,13 @@ function App() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-red-500/10 border border-red-500 rounded-lg p-8 text-center">
-          <h2 className="text-xl font-bold text-red-400 mb-2">⚠️ Error Loading Data</h2>
-          <p className="text-red-300 mb-4">{error}</p>
+      <div className='flex items-center justify-center min-h-screen'>
+        <div className='bg-red-500/10 border border-red-500 rounded-lg p-8 text-center'>
+          <h2 className='text-xl font-bold text-red-400 mb-2'>⚠️ Error Loading Data</h2>
+          <p className='text-red-300 mb-4'>{error}</p>
           <button
             onClick={loadData}
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
+            className='px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg'
           >
             Retry
           </button>
@@ -183,7 +194,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className='min-h-screen bg-slate-900'>
       <Header
         stats={stats}
         selectedBoard={selectedBoard}
@@ -196,7 +207,7 @@ function App() {
       {selectedBoard && (
         <KanbanBoard
           board={selectedBoard}
-          tasks={allTasks.filter(t => t.board_id === selectedBoard.id)}
+          tasks={allTasks.filter((t) => t.board_id === selectedBoard.id)}
           columns={COLUMNS}
           onTaskUpdate={handleUpdateTask}
           onTaskDelete={handleDeleteTask}

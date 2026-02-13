@@ -15,8 +15,8 @@ async function setupTestEnvironment () {
       passwordDigest: 'hash',
       agentAutoMode: true,
       agentName: 'TestAgent',
-      agentEmoji: '🤖'
-    }
+      agentEmoji: '🤖',
+    },
   })
 
   // Create test API token
@@ -25,8 +25,8 @@ async function setupTestEnvironment () {
     data: {
       token: testToken,
       name: 'Test Token',
-      userId: testUser.id
-    }
+      userId: testUser.id,
+    },
   })
 
   // Create test board
@@ -34,8 +34,8 @@ async function setupTestEnvironment () {
     data: {
       name: 'Test Board',
       userId: testUser.id,
-      position: 0
-    }
+      position: 0,
+    },
   })
 }
 
@@ -55,10 +55,10 @@ async function makeRequest (method, path, body = null, headers = {}) {
   const options = {
     method,
     headers: {
-      'Authorization': `Bearer ${testToken}`,
+      Authorization: `Bearer ${testToken}`,
       'X-Agent-Name': 'TestAgent',
-      ...headers
-    }
+      ...headers,
+    },
   }
 
   // Only set Content-Type if we have a body
@@ -76,7 +76,7 @@ async function makeRequest (method, path, body = null, headers = {}) {
     const text = await response.text()
     return {
       status: response.status,
-      data: text ? JSON.parse(text) : null
+      data: text ? JSON.parse(text) : null,
     }
   } catch (error) {
     return { status: 0, error: error.message }
@@ -111,8 +111,8 @@ describe('Tasks API', () => {
           userId: testUser.id,
           status: 'up_next',
           assignedToAgent: true,
-          assignedAt: new Date()
-        }
+          assignedAt: new Date(),
+        },
       })
 
       const result = await makeRequest('GET', '/api/v1/tasks?assigned=true')
@@ -132,7 +132,7 @@ describe('Tasks API', () => {
         description: 'New task description',
         board_id: testBoard.id.toString(),
         status: 'inbox',
-        priority: 'medium'
+        priority: 'medium',
       })
 
       assert.strictEqual(result.status, 201)
@@ -142,7 +142,7 @@ describe('Tasks API', () => {
 
     it('should require board_id', async () => {
       const result = await makeRequest('POST', '/api/v1/tasks', {
-        name: 'Task without board'
+        name: 'Task without board',
       })
 
       assert.strictEqual(result.status, 400)
@@ -155,7 +155,7 @@ describe('Tasks API', () => {
       // Disable auto mode
       await prisma.user.update({
         where: { id: testUser.id },
-        data: { agentAutoMode: false }
+        data: { agentAutoMode: false },
       })
 
       const result = await makeRequest('GET', '/api/v1/tasks/next')
@@ -165,7 +165,7 @@ describe('Tasks API', () => {
       // Re-enable for other tests
       await prisma.user.update({
         where: { id: testUser.id },
-        data: { agentAutoMode: true }
+        data: { agentAutoMode: true },
       })
     })
 
@@ -178,8 +178,8 @@ describe('Tasks API', () => {
           userId: testUser.id,
           status: 'up_next',
           priority: 'medium',
-          position: 1
-        }
+          position: 1,
+        },
       })
 
       const result = await makeRequest('GET', '/api/v1/tasks/next')
@@ -196,13 +196,13 @@ describe('Tasks API', () => {
           name: 'Task to Update',
           boardId: testBoard.id,
           userId: testUser.id,
-          status: 'inbox'
-        }
+          status: 'inbox',
+        },
       })
 
       const result = await makeRequest('PATCH', `/api/v1/tasks/${task.id}`, {
         status: 'in_progress',
-        activity_note: 'Starting work on this task'
+        activity_note: 'Starting work on this task',
       })
 
       assert.strictEqual(result.status, 200)
@@ -211,7 +211,7 @@ describe('Tasks API', () => {
 
     it('should return 404 for non-existent task', async () => {
       const result = await makeRequest('PATCH', '/api/v1/tasks/999999999', {
-        status: 'done'
+        status: 'done',
       })
 
       assert.strictEqual(result.status, 404)
@@ -225,8 +225,8 @@ describe('Tasks API', () => {
           name: 'Task to Claim',
           boardId: testBoard.id,
           userId: testUser.id,
-          status: 'up_next'
-        }
+          status: 'up_next',
+        },
       })
 
       const result = await makeRequest('PATCH', `/api/v1/tasks/${task.id}/claim`)
@@ -244,8 +244,8 @@ describe('Tasks API', () => {
           name: 'Task to Assign',
           boardId: testBoard.id,
           userId: testUser.id,
-          status: 'inbox'
-        }
+          status: 'inbox',
+        },
       })
 
       const result = await makeRequest('PATCH', `/api/v1/tasks/${task.id}/assign`)
@@ -263,8 +263,8 @@ describe('Tasks API', () => {
           name: 'Task to Delete',
           boardId: testBoard.id,
           userId: testUser.id,
-          status: 'inbox'
-        }
+          status: 'inbox',
+        },
       })
 
       const result = await makeRequest('DELETE', `/api/v1/tasks/${task.id}`)
@@ -273,7 +273,7 @@ describe('Tasks API', () => {
 
       // Verify deletion
       const deleted = await prisma.task.findUnique({
-        where: { id: task.id }
+        where: { id: task.id },
       })
       assert.strictEqual(deleted, null)
     })

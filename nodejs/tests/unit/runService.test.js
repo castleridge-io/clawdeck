@@ -17,8 +17,8 @@ async function setupTestEnvironment () {
       passwordDigest: 'hash',
       agentAutoMode: true,
       agentName: 'TestAgent',
-      agentEmoji: '🤖'
-    }
+      agentEmoji: '🤖',
+    },
   })
 
   // Create test board
@@ -26,8 +26,8 @@ async function setupTestEnvironment () {
     data: {
       name: 'Test Board',
       userId: testUser.id,
-      position: 0
-    }
+      position: 0,
+    },
   })
 
   workflowService = createWorkflowService()
@@ -63,24 +63,24 @@ describe('Run Service', () => {
             stepId: 'step1',
             agentId: 'agent1',
             inputTemplate: 'Input {var}',
-            expects: 'output'
-          }
-        ]
+            expects: 'output',
+          },
+        ],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const data = {
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
         task: 'Test task description',
-        context: { key: 'value' }
+        context: { key: 'value' },
       }
 
       const run = await runService.createRun(data)
@@ -98,14 +98,14 @@ describe('Run Service', () => {
         data: {
           name: 'Test Task Invalid',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const data = {
         workflowId: 'non-existent-workflow-id',
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       }
 
       await assert.rejects(
@@ -121,21 +121,21 @@ describe('Run Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'auto-id-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Auto ID',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const data = {
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       }
 
       const run = await runService.createRun(data)
@@ -153,29 +153,29 @@ describe('Run Service', () => {
             stepId: 'step1',
             agentId: 'agent1',
             inputTemplate: 'Input {var}',
-            expects: 'output1'
+            expects: 'output1',
           },
           {
             stepId: 'step2',
             agentId: 'agent2',
             inputTemplate: 'Input {var}',
-            expects: 'output2'
-          }
-        ]
+            expects: 'output2',
+          },
+        ],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Multi Step',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const data = {
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       }
 
       const run = await runService.createRun(data)
@@ -193,21 +193,21 @@ describe('Run Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'get-run-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Get Run',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const created = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const run = await runService.getRun(created.id)
@@ -239,35 +239,35 @@ describe('Run Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'list-runs-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task1 = await prisma.task.create({
         data: {
           name: 'Test Task List 1',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const task2 = await prisma.task.create({
         data: {
           name: 'Test Task List 2',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task1.id.toString(),
-        task: 'Test task 1'
+        task: 'Test task 1',
       })
 
       await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task2.id.toString(),
-        task: 'Test task 2'
+        task: 'Test task 2',
       })
 
       const runs = await runService.listRuns()
@@ -279,35 +279,35 @@ describe('Run Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'filter-task-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task1 = await prisma.task.create({
         data: {
           name: 'Test Task Filter 1',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const task2 = await prisma.task.create({
         data: {
           name: 'Test Task Filter 2',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task1.id.toString(),
-        task: 'Test task 1'
+        task: 'Test task 1',
       })
 
       await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task2.id.toString(),
-        task: 'Test task 2'
+        task: 'Test task 2',
       })
 
       const runs = await runService.listRuns({ taskId: task1.id.toString() })
@@ -320,35 +320,35 @@ describe('Run Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'filter-status-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task1 = await prisma.task.create({
         data: {
           name: 'Test Task Status 1',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const task2 = await prisma.task.create({
         data: {
           name: 'Test Task Status 2',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run1 = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task1.id.toString(),
-        task: 'Test task 1'
+        task: 'Test task 1',
       })
 
       const run2 = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task2.id.toString(),
-        task: 'Test task 2'
+        task: 'Test task 2',
       })
 
       // Update run1 to completed
@@ -366,21 +366,21 @@ describe('Run Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'update-status-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Update Status',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const updated = await runService.updateRunStatus(run.id, 'completed')
@@ -392,21 +392,21 @@ describe('Run Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'fail-status-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Fail Status',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const updated = await runService.updateRunStatus(run.id, 'failed')
@@ -418,21 +418,21 @@ describe('Run Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'invalid-status-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Invalid Status',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       await assert.rejects(
@@ -460,27 +460,27 @@ describe('Run Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'by-task-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task By Task ID',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task 1'
+        task: 'Test task 1',
       })
 
       await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task 2'
+        task: 'Test task 2',
       })
 
       const runs = await runService.getRunsByTaskId(task.id.toString())
@@ -493,8 +493,8 @@ describe('Run Service', () => {
         data: {
           name: 'Test Task No Runs',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const runs = await runService.getRunsByTaskId(task.id.toString())

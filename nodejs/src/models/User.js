@@ -5,26 +5,20 @@ const SALT_ROUNDS = 12
 
 export class User {
   static async findByEmail (email) {
-    const result = await query(
-      'SELECT * FROM users WHERE email_address = $1',
-      [email]
-    )
+    const result = await query('SELECT * FROM users WHERE email_address = $1', [email])
     return result.rows[0] || null
   }
 
   static async findById (id) {
-    const result = await query(
-      'SELECT * FROM users WHERE id = $1',
-      [id]
-    )
+    const result = await query('SELECT * FROM users WHERE id = $1', [id])
     return result.rows[0] || null
   }
 
   static async findByProviderUid (provider, uid) {
-    const result = await query(
-      'SELECT * FROM users WHERE provider = $1 AND uid = $2',
-      [provider, uid]
-    )
+    const result = await query('SELECT * FROM users WHERE provider = $1 AND uid = $2', [
+      provider,
+      uid,
+    ])
     return result.rows[0] || null
   }
 
@@ -80,7 +74,7 @@ export class User {
   }
 
   static _camelToSnake (str) {
-    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+    return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
   }
 
   static _snakeToCamel (str) {
@@ -93,7 +87,7 @@ export class User {
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this._toCamelCase(item))
+      return obj.map((item) => this._toCamelCase(item))
     }
 
     const result = {}
@@ -119,6 +113,6 @@ export class User {
     }
 
     const result = await query(sql, params)
-    return result.rows.map(row => this._toCamelCase(row))
+    return result.rows.map((row) => this._toCamelCase(row))
   }
 }

@@ -14,8 +14,8 @@ async function setupTestEnvironment () {
       passwordDigest: 'hash',
       agentAutoMode: true,
       agentName: 'TestAgent',
-      agentEmoji: '🤖'
-    }
+      agentEmoji: '🤖',
+    },
   })
 
   // Create test API token
@@ -24,8 +24,8 @@ async function setupTestEnvironment () {
     data: {
       token: testToken,
       name: 'Settings Test Token',
-      userId: testUser.id
-    }
+      userId: testUser.id,
+    },
   })
 }
 
@@ -41,9 +41,9 @@ async function makeRequest (method, path, body = null) {
   const options = {
     method,
     headers: {
-      'Authorization': `Bearer ${testToken}`,
-      'X-Agent-Name': 'TestAgent'
-    }
+      Authorization: `Bearer ${testToken}`,
+      'X-Agent-Name': 'TestAgent',
+    },
   }
 
   // Only set Content-Type if we have a body
@@ -61,7 +61,7 @@ async function makeRequest (method, path, body = null) {
     const text = await response.text()
     return {
       status: response.status,
-      data: text ? JSON.parse(text) : null
+      data: text ? JSON.parse(text) : null,
     }
   } catch (error) {
     return { status: 0, error: error.message }
@@ -95,11 +95,16 @@ describe('Settings API', () => {
 
   describe('PATCH /api/v1/settings', () => {
     it('should update agent settings', async () => {
-      const result = await makeRequest('PATCH', '/api/v1/settings', {
-        agent_name: 'Jarvis',
-        agent_emoji: '🔧',
-        agent_auto_mode: false
-      }, testToken)
+      const result = await makeRequest(
+        'PATCH',
+        '/api/v1/settings',
+        {
+          agent_name: 'Jarvis',
+          agent_emoji: '🔧',
+          agent_auto_mode: false,
+        },
+        testToken
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.success, true)
@@ -108,19 +113,29 @@ describe('Settings API', () => {
       assert.strictEqual(result.data.data.agent_auto_mode, false)
 
       // Reset for other tests
-      await makeRequest('PATCH', '/api/v1/settings', {
-        agent_name: 'TestAgent',
-        agent_emoji: '🤖',
-        agent_auto_mode: true
-      }, testToken)
+      await makeRequest(
+        'PATCH',
+        '/api/v1/settings',
+        {
+          agent_name: 'TestAgent',
+          agent_emoji: '🤖',
+          agent_auto_mode: true,
+        },
+        testToken
+      )
     })
   })
 
   describe('POST /api/v1/settings/regenerate_token', () => {
     it('should generate new API token', async () => {
-      const result = await makeRequest('POST', '/api/v1/settings/regenerate_token', {
-        name: 'New Token'
-      }, testToken)
+      const result = await makeRequest(
+        'POST',
+        '/api/v1/settings/regenerate_token',
+        {
+          name: 'New Token',
+        },
+        testToken
+      )
 
       assert.strictEqual(result.status, 201)
       assert.strictEqual(result.data.success, true)

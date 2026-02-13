@@ -99,7 +99,7 @@ export interface ServiceError extends Error {
 /**
  * Create a service error
  */
-export function createServiceError(message: string, code: string, status: number): ServiceError {
+export function createServiceError (message: string, code: string, status: number): ServiceError {
   const error = new Error(message) as ServiceError
   error.code = code
   error.status = status

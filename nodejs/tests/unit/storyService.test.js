@@ -19,16 +19,16 @@ async function setupTestEnvironment () {
       passwordDigest: 'hash',
       agentAutoMode: true,
       agentName: 'TestAgent',
-      agentEmoji: '🤖'
-    }
+      agentEmoji: '🤖',
+    },
   })
 
   testBoard = await prisma.board.create({
     data: {
       name: 'Test Board',
       userId: testUser.id,
-      position: 0
-    }
+      position: 0,
+    },
   })
 
   workflowService = createWorkflowService()
@@ -60,21 +60,21 @@ describe('Story Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'test-story-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const data = {
@@ -83,7 +83,7 @@ describe('Story Service', () => {
         storyId: 'story-1',
         title: 'User authentication',
         description: 'Implement user login and signup',
-        acceptanceCriteria: 'User can login with email and password'
+        acceptanceCriteria: 'User can login with email and password',
       }
 
       const story = await storyService.createStory(data)
@@ -103,7 +103,7 @@ describe('Story Service', () => {
         storyId: 'story-1',
         title: 'Test Story',
         description: 'Test description',
-        acceptanceCriteria: 'Test criteria'
+        acceptanceCriteria: 'Test criteria',
       }
 
       await assert.rejects(
@@ -121,21 +121,21 @@ describe('Story Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'get-story-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Get Story',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const created = await storyService.createStory({
@@ -144,7 +144,7 @@ describe('Story Service', () => {
         storyId: 'story-1',
         title: 'Test Story',
         description: 'Test description',
-        acceptanceCriteria: 'Test criteria'
+        acceptanceCriteria: 'Test criteria',
       })
 
       const story = await storyService.getStory(created.id)
@@ -166,21 +166,21 @@ describe('Story Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'list-stories-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task List Stories',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       // Create stories in reverse order
@@ -190,7 +190,7 @@ describe('Story Service', () => {
         storyId: 'story-2',
         title: 'Story 2',
         description: 'Second story',
-        acceptanceCriteria: 'Criteria 2'
+        acceptanceCriteria: 'Criteria 2',
       })
 
       await storyService.createStory({
@@ -199,7 +199,7 @@ describe('Story Service', () => {
         storyId: 'story-1',
         title: 'Story 1',
         description: 'First story',
-        acceptanceCriteria: 'Criteria 1'
+        acceptanceCriteria: 'Criteria 1',
       })
 
       const stories = await storyService.listStoriesByRunId(run.id)
@@ -213,21 +213,21 @@ describe('Story Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'no-stories-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task No Stories',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const stories = await storyService.listStoriesByRunId(run.id)
@@ -241,21 +241,21 @@ describe('Story Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'update-story-running-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Update Running',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const story = await storyService.createStory({
@@ -264,7 +264,7 @@ describe('Story Service', () => {
         storyId: 'story-1',
         title: 'Test Story',
         description: 'Test description',
-        acceptanceCriteria: 'Test criteria'
+        acceptanceCriteria: 'Test criteria',
       })
 
       const updated = await storyService.updateStoryStatus(story.id, 'running')
@@ -276,21 +276,21 @@ describe('Story Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'update-story-completed-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Update Completed',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const story = await storyService.createStory({
@@ -299,7 +299,7 @@ describe('Story Service', () => {
         storyId: 'story-1',
         title: 'Test Story',
         description: 'Test description',
-        acceptanceCriteria: 'Test criteria'
+        acceptanceCriteria: 'Test criteria',
       })
 
       const output = { result: 'success', implementation: 'completed' }
@@ -313,21 +313,21 @@ describe('Story Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'update-story-failed-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Update Failed',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const story = await storyService.createStory({
@@ -336,7 +336,7 @@ describe('Story Service', () => {
         storyId: 'story-1',
         title: 'Test Story',
         description: 'Test description',
-        acceptanceCriteria: 'Test criteria'
+        acceptanceCriteria: 'Test criteria',
       })
 
       const updated = await storyService.updateStoryStatus(story.id, 'failed')
@@ -348,21 +348,21 @@ describe('Story Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'invalid-story-status-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Invalid Story Status',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const story = await storyService.createStory({
@@ -371,7 +371,7 @@ describe('Story Service', () => {
         storyId: 'story-1',
         title: 'Test Story',
         description: 'Test description',
-        acceptanceCriteria: 'Test criteria'
+        acceptanceCriteria: 'Test criteria',
       })
 
       await assert.rejects(
@@ -399,21 +399,21 @@ describe('Story Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'increment-story-retry-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Increment Story Retry',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const story = await storyService.createStory({
@@ -423,7 +423,7 @@ describe('Story Service', () => {
         title: 'Test Story',
         description: 'Test description',
         acceptanceCriteria: 'Test criteria',
-        maxRetries: 3
+        maxRetries: 3,
       })
 
       const updated = await storyService.incrementStoryRetry(story.id)
@@ -435,21 +435,21 @@ describe('Story Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'max-story-retries-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Max Story Retries',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const story = await storyService.createStory({
@@ -459,7 +459,7 @@ describe('Story Service', () => {
         title: 'Test Story',
         description: 'Test description',
         acceptanceCriteria: 'Test criteria',
-        maxRetries: 2
+        maxRetries: 2,
       })
 
       // Increment to max

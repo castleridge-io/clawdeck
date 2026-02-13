@@ -18,8 +18,8 @@ async function setupTestEnvironment () {
       passwordDigest: 'hash',
       agentAutoMode: true,
       agentName: 'StepTestAgent',
-      agentEmoji: '🧪'
-    }
+      agentEmoji: '🧪',
+    },
   })
 
   // Create test API token
@@ -28,8 +28,8 @@ async function setupTestEnvironment () {
     data: {
       token: testToken,
       name: 'Step Test Token',
-      userId: testUser.id
-    }
+      userId: testUser.id,
+    },
   })
 
   // Create test board
@@ -37,8 +37,8 @@ async function setupTestEnvironment () {
     data: {
       name: 'Step Test Board',
       userId: testUser.id,
-      position: 0
-    }
+      position: 0,
+    },
   })
 
   // Create test workflow
@@ -50,10 +50,10 @@ async function setupTestEnvironment () {
         steps: [
           { stepId: 'plan', agentId: 'planner', inputTemplate: 'Plan: {task}' },
           { stepId: 'implement', agentId: 'developer', inputTemplate: 'Implement: {task}' },
-          { stepId: 'verify', agentId: 'verifier', inputTemplate: 'Verify: {task}' }
-        ]
-      }
-    }
+          { stepId: 'verify', agentId: 'verifier', inputTemplate: 'Verify: {task}' },
+        ],
+      },
+    },
   })
 
   // Create test task
@@ -61,8 +61,8 @@ async function setupTestEnvironment () {
     data: {
       name: 'Step Test Task',
       boardId: testBoard.id,
-      userId: testUser.id
-    }
+      userId: testUser.id,
+    },
   })
 
   // Create test run
@@ -73,8 +73,8 @@ async function setupTestEnvironment () {
       taskId: testTask.id.toString(),
       task: 'Test task for steps',
       status: 'running',
-      context: '{}'
-    }
+      context: '{}',
+    },
   })
 }
 
@@ -97,10 +97,10 @@ async function makeRequest (method, path, body = null, headers = {}) {
   const options = {
     method,
     headers: {
-      'Authorization': `Bearer ${testToken}`,
+      Authorization: `Bearer ${testToken}`,
       'X-Agent-Name': 'StepTestAgent',
-      ...headers
-    }
+      ...headers,
+    },
   }
 
   if (body !== null) {
@@ -116,7 +116,7 @@ async function makeRequest (method, path, body = null, headers = {}) {
     const text = await response.text()
     return {
       status: response.status,
-      data: text ? JSON.parse(text) : null
+      data: text ? JSON.parse(text) : null,
     }
   } catch (error) {
     return { status: 0, error: error.message }
@@ -127,7 +127,7 @@ async function makeRequest (method, path, body = null, headers = {}) {
 function createStepData (overrides) {
   return {
     expects: 'output',
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -159,8 +159,8 @@ describe('Steps API', () => {
           agentId: 'planner',
           stepIndex: 0,
           inputTemplate: 'Plan: {task}',
-          status: 'waiting'
-        })
+          status: 'waiting',
+        }),
       })
 
       await prisma.step.create({
@@ -172,8 +172,8 @@ describe('Steps API', () => {
           stepIndex: 1,
           inputTemplate: 'Implement: {task}',
           expects: 'code',
-          status: 'waiting'
-        })
+          status: 'waiting',
+        }),
       })
 
       const result = await makeRequest('GET', `/api/v1/runs/${testRun.id}/steps`)
@@ -209,8 +209,8 @@ describe('Steps API', () => {
           agentId: 'planner',
           stepIndex: 0,
           inputTemplate: 'Plan: {task}',
-          status: 'completed'
-        })
+          status: 'completed',
+        }),
       })
 
       await prisma.step.create({
@@ -221,8 +221,8 @@ describe('Steps API', () => {
           agentId: 'developer',
           stepIndex: 1,
           inputTemplate: 'Implement: {task}',
-          status: 'waiting'
-        })
+          status: 'waiting',
+        }),
       })
 
       const result = await makeRequest('GET', `/api/v1/runs/${testRun.id}/steps/pending`)
@@ -241,8 +241,8 @@ describe('Steps API', () => {
           agentId: 'planner',
           stepIndex: 0,
           inputTemplate: 'Plan: {task}',
-          status: 'completed'
-        })
+          status: 'completed',
+        }),
       })
 
       const result = await makeRequest('GET', `/api/v1/runs/${testRun.id}/steps/pending`)
@@ -263,8 +263,8 @@ describe('Steps API', () => {
           agentId: 'planner',
           stepIndex: 0,
           inputTemplate: 'Plan: {task}',
-          status: 'waiting'
-        })
+          status: 'waiting',
+        }),
       })
 
       const result = await makeRequest('GET', `/api/v1/runs/${testRun.id}/steps/${step.id}`)
@@ -296,13 +296,16 @@ describe('Steps API', () => {
           agentId: 'StepTestAgent',
           stepIndex: 0,
           inputTemplate: 'Plan: {task}',
-          status: 'waiting'
-        })
+          status: 'waiting',
+        }),
       })
     })
 
     it('should claim a step successfully', async () => {
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${testStep.id}/claim`)
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${testStep.id}/claim`
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.success, true)
@@ -327,7 +330,10 @@ describe('Steps API', () => {
       await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${testStep.id}/claim`)
 
       // Try to claim again
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${testStep.id}/claim`)
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${testStep.id}/claim`
+      )
 
       assert.strictEqual(result.status, 409) // Conflict
       assert.ok(result.data.error.includes('cannot be claimed'))
@@ -342,11 +348,14 @@ describe('Steps API', () => {
           agentId: 'different-agent',
           stepIndex: 1,
           inputTemplate: 'Implement: {task}',
-          status: 'waiting'
-        })
+          status: 'waiting',
+        }),
       })
 
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${assignedStep.id}/claim`)
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${assignedStep.id}/claim`
+      )
 
       assert.strictEqual(result.status, 403)
       assert.ok(result.data.error.includes('assigned to agent'))
@@ -356,10 +365,13 @@ describe('Steps API', () => {
       // Update run to completed status
       await prisma.run.update({
         where: { id: testRun.id },
-        data: { status: 'completed' }
+        data: { status: 'completed' },
       })
 
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${testStep.id}/claim`)
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${testStep.id}/claim`
+      )
 
       assert.strictEqual(result.status, 400)
       assert.ok(result.data.error.includes('Run status'))
@@ -368,7 +380,7 @@ describe('Steps API', () => {
       // Reset run status
       await prisma.run.update({
         where: { id: testRun.id },
-        data: { status: 'running' }
+        data: { status: 'running' },
       })
     })
 
@@ -376,10 +388,13 @@ describe('Steps API', () => {
       // Update run to failed status
       await prisma.run.update({
         where: { id: testRun.id },
-        data: { status: 'failed' }
+        data: { status: 'failed' },
       })
 
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${testStep.id}/claim`)
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${testStep.id}/claim`
+      )
 
       assert.strictEqual(result.status, 400)
       assert.ok(result.data.error.includes('Run status'))
@@ -388,7 +403,7 @@ describe('Steps API', () => {
       // Reset run status
       await prisma.run.update({
         where: { id: testRun.id },
-        data: { status: 'running' }
+        data: { status: 'running' },
       })
     })
 
@@ -402,8 +417,8 @@ describe('Steps API', () => {
           agentId: 'StepTestAgent',
           stepIndex: 0,
           inputTemplate: 'Setup: {task}',
-          status: 'waiting'
-        })
+          status: 'waiting',
+        }),
       })
 
       // Create a later step (higher stepIndex) that we'll try to claim
@@ -415,12 +430,15 @@ describe('Steps API', () => {
           agentId: 'StepTestAgent',
           stepIndex: 2,
           inputTemplate: 'Implement: {task}',
-          status: 'waiting'
-        })
+          status: 'waiting',
+        }),
       })
 
       // Try to claim the later step while previous step is still waiting
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${laterStep.id}/claim`)
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${laterStep.id}/claim`
+      )
 
       assert.strictEqual(result.status, 400)
       assert.ok(result.data.error.includes('Previous steps not completed'))
@@ -440,8 +458,8 @@ describe('Steps API', () => {
           agentId: 'StepTestAgent',
           stepIndex: 0,
           inputTemplate: 'Setup: {task}',
-          status: 'completed'
-        })
+          status: 'completed',
+        }),
       })
 
       // Create a later step
@@ -453,12 +471,15 @@ describe('Steps API', () => {
           agentId: 'StepTestAgent',
           stepIndex: 1,
           inputTemplate: 'Implement: {task}',
-          status: 'waiting'
-        })
+          status: 'waiting',
+        }),
       })
 
       // Should be able to claim the later step
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${laterStep.id}/claim`)
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${laterStep.id}/claim`
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.data.status, 'running')
@@ -478,15 +499,19 @@ describe('Steps API', () => {
           agentId: 'StepTestAgent',
           stepIndex: 0,
           inputTemplate: 'Plan: {task}',
-          status: 'running'
-        })
+          status: 'running',
+        }),
       })
     })
 
     it('should complete a step successfully', async () => {
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${testStep.id}/complete`, {
-        output: { plan: 'Test plan output' }
-      })
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${testStep.id}/complete`,
+        {
+          output: { plan: 'Test plan output' },
+        }
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.success, true)
@@ -497,12 +522,16 @@ describe('Steps API', () => {
     it('should fail to complete non-running step', async () => {
       await prisma.step.update({
         where: { id: testStep.id },
-        data: { status: 'waiting' }
+        data: { status: 'waiting' },
       })
 
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${testStep.id}/complete`, {
-        output: { plan: 'Test' }
-      })
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${testStep.id}/complete`,
+        {
+          output: { plan: 'Test' },
+        }
+      )
 
       assert.strictEqual(result.status, 400)
       assert.ok(result.data.error.includes('cannot be completed'))
@@ -510,9 +539,13 @@ describe('Steps API', () => {
 
     it('should mark run as completed when all steps done', async () => {
       // Complete the only step
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${testStep.id}/complete`, {
-        output: { plan: 'Done' }
-      })
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${testStep.id}/complete`,
+        {
+          output: { plan: 'Done' },
+        }
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.run_completed, true)
@@ -537,15 +570,19 @@ describe('Steps API', () => {
           stepIndex: 0,
           inputTemplate: 'Plan: {task}',
           status: 'running',
-          maxRetries: 3
-        })
+          maxRetries: 3,
+        }),
       })
     })
 
     it('should fail a step and queue retry', async () => {
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${testStep.id}/fail`, {
-        error: 'Something went wrong'
-      })
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${testStep.id}/fail`,
+        {
+          error: 'Something went wrong',
+        }
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.success, true)
@@ -555,7 +592,11 @@ describe('Steps API', () => {
     })
 
     it('should require error message', async () => {
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${testStep.id}/fail`, {})
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${testStep.id}/fail`,
+        {}
+      )
 
       assert.strictEqual(result.status, 400)
       // Schema validation returns a different error format
@@ -566,12 +607,16 @@ describe('Steps API', () => {
       // Set retry count to max
       await prisma.step.update({
         where: { id: testStep.id },
-        data: { retryCount: 3 }
+        data: { retryCount: 3 },
       })
 
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${testStep.id}/fail`, {
-        error: 'Final failure'
-      })
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/steps/${testStep.id}/fail`,
+        {
+          error: 'Final failure',
+        }
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.will_retry, false)
@@ -593,13 +638,13 @@ describe('Steps API', () => {
           agentId: 'StepTestAgent',
           stepIndex: 0,
           inputTemplate: 'Plan: {task}',
-          status: 'waiting'
-        })
+          status: 'waiting',
+        }),
       })
 
       const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {
         status: 'awaiting_approval',
-        output: { needsReview: true }
+        output: { needsReview: true },
       })
 
       assert.strictEqual(result.status, 200)
@@ -616,12 +661,12 @@ describe('Steps API', () => {
           agentId: 'StepTestAgent',
           stepIndex: 0,
           inputTemplate: 'Plan: {task}',
-          status: 'completed'
-        })
+          status: 'completed',
+        }),
       })
 
       const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {
-        status: 'waiting'
+        status: 'waiting',
       })
 
       assert.strictEqual(result.status, 400)
@@ -637,12 +682,12 @@ describe('Steps API', () => {
           agentId: 'StepTestAgent',
           stepIndex: 0,
           inputTemplate: 'Plan: {task}',
-          status: 'failed'
-        })
+          status: 'failed',
+        }),
       })
 
       const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {
-        status: 'completed'
+        status: 'completed',
       })
 
       assert.strictEqual(result.status, 400)
@@ -657,8 +702,8 @@ describe('Steps API', () => {
           storyIndex: 0,
           storyId: 'story-1',
           title: 'Test Story',
-          status: 'running'
-        }
+          status: 'running',
+        },
       })
 
       const step = await prisma.step.create({
@@ -670,12 +715,12 @@ describe('Steps API', () => {
           stepIndex: 0,
           inputTemplate: 'Implement: {story}',
           type: 'loop',
-          status: 'running'
-        })
+          status: 'running',
+        }),
       })
 
       const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {
-        current_story_id: story.id
+        current_story_id: story.id,
       })
 
       assert.strictEqual(result.status, 200)
@@ -694,12 +739,12 @@ describe('Steps API', () => {
           inputTemplate: 'Implement: {story}',
           type: 'loop',
           status: 'running',
-          currentStoryId: 'old-story-id'
-        })
+          currentStoryId: 'old-story-id',
+        }),
       })
 
       const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {
-        current_story_id: null
+        current_story_id: null,
       })
 
       assert.strictEqual(result.status, 200)
@@ -718,12 +763,12 @@ describe('Steps API', () => {
           agentId: 'StepTestAgent',
           stepIndex: 0,
           inputTemplate: 'Test',
-          status: 'waiting'
-        })
+          status: 'waiting',
+        }),
       })
 
       const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {
-        status: 'invalid_status'
+        status: 'invalid_status',
       })
 
       assert.strictEqual(result.status, 400)
@@ -738,12 +783,12 @@ describe('Steps API', () => {
           agentId: 'StepTestAgent',
           stepIndex: 0,
           inputTemplate: 'Test',
-          status: 'running'
-        })
+          status: 'running',
+        }),
       })
 
       const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/steps/${step.id}/fail`, {
-        output: 'some output'
+        output: 'some output',
       })
 
       assert.strictEqual(result.status, 400)
@@ -758,8 +803,8 @@ describe('Steps API', () => {
           agentId: 'StepTestAgent',
           stepIndex: 0,
           inputTemplate: 'Test',
-          status: 'waiting'
-        })
+          status: 'waiting',
+        }),
       })
 
       const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/steps/${step.id}`, {})
@@ -779,8 +824,8 @@ describe('Steps API', () => {
           stepIndex: 0,
           inputTemplate: 'Test',
           status: 'completed',
-          output: 'this is not valid json {{{'
-        })
+          output: 'this is not valid json {{{',
+        }),
       })
 
       const result = await makeRequest('GET', `/api/v1/runs/${testRun.id}/steps/${step.id}`)

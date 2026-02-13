@@ -30,7 +30,7 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
-function renderSidebar() {
+function renderSidebar () {
   return render(
     <BrowserRouter>
       <SidebarProvider>

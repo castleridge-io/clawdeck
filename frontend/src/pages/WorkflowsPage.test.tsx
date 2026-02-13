@@ -28,7 +28,7 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
-function renderWorkflowsPage() {
+function renderWorkflowsPage () {
   return render(
     <BrowserRouter>
       <WorkflowsPage />
@@ -217,7 +217,16 @@ describe('WorkflowsPage', () => {
           id: '1',
           name: 'Test Workflow',
           description: 'A test',
-          steps: [{ stepId: 'step1', agentId: 'agent1', inputTemplate: 'test', expects: 'result', type: 'single', position: 0 }],
+          steps: [
+            {
+              stepId: 'step1',
+              agentId: 'agent1',
+              inputTemplate: 'test',
+              expects: 'result',
+              type: 'single',
+              position: 0,
+            },
+          ],
           createdAt: '2024-01-01T00:00:00Z',
         },
       ])
@@ -245,7 +254,11 @@ describe('WorkflowsPage', () => {
           createdAt: '2024-01-01T00:00:00Z',
         },
       ])
-      vi.mocked(api.triggerRun).mockResolvedValueOnce({ id: 'run-1', workflow_id: '1', status: 'running' })
+      vi.mocked(api.triggerRun).mockResolvedValueOnce({
+        id: 'run-1',
+        workflow_id: '1',
+        status: 'running',
+      })
 
       const mockAlert = vi.spyOn(window, 'alert')
       mockAlert.mockImplementation(() => {})

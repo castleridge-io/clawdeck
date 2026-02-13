@@ -1,16 +1,25 @@
 # ClawDeck Development Guide
 
+## Project Requirements
+
+**TypeScript is REQUIRED for all backend code.**
+
+- All new services, routes, and middleware MUST be written in TypeScript (`.ts`)
+- Existing JavaScript files should be converted to TypeScript when modified
+- Use strict type checking - no `any`, `as unknown as`, or `@ts-ignore`
+- Run `yarn typecheck` or `tsc --noEmit` before committing
+
 ## Docker / Local Development
 
 Non-standard ports are used by default to avoid conflicts with other Docker containers.
 
 ### Port Configuration (Defaults)
 
-| Service | Standard Port | ClawDeck Port |
-|---------|---------------|---------------|
-| API     | 3000          | 3333          |
-| PostgreSQL | 5432        | 15432         |
-| Redis   | 6379          | 16379         |
+| Service    | Standard Port | ClawDeck Port |
+| ---------- | ------------- | ------------- |
+| API        | 3000          | 3333          |
+| PostgreSQL | 5432          | 15432         |
+| Redis      | 6379          | 16379         |
 
 ### Running Docker Services
 

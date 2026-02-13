@@ -1,6 +1,7 @@
 {
   "name": "clawdeck-monorepo",
   "private": true,
+  "type": "module",
   "packageManager": "yarn@4.9.1",
   "workspaces": [
     "nodejs",
@@ -11,15 +12,27 @@
     "dev:frontend": "yarn workspace clawdeck-frontend dev",
     "build": "yarn workspaces foreach -Wt run build",
     "test": "yarn workspace clawdeck test",
-    "test:frontend": "yarn workspace clawdeck-frontend test"
+    "test:frontend": "yarn workspace clawdeck-frontend test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "yarn workspaces foreach -Wt run typecheck"
   },
   "dependencies": {
     "@playwright/test": "^1.58.2",
-    "yaml": "^2.8.2"
+    "passport": "^0.7.0",
+    "passport-github2": "^0.1.12",
+    "passport-google-oauth20": "^2.0.0",
+    "yaml": "^2.8.2",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^25.2.3",
-    "@types/pg": "^8.16.0"
+    "@types/pg": "^8.16.0",
+    "eslint": "^9.17.0",
+    "neostandard": "^0.12.0",
+    "prettier": "^3.4.0"
   }
 }

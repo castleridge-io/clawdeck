@@ -9,7 +9,7 @@ const ARCHIVE_DELAY_HOURS = parseInt(process.env.ARCHIVE_DELAY_HOURS || '24', 10
 const SCHEDULER_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
 
 // Helper function to check if archiving is enabled
-function isArchiveEnabled(): boolean {
+function isArchiveEnabled (): boolean {
   return process.env.ARCHIVE_ENABLED !== 'false'
 }
 
@@ -38,7 +38,7 @@ class ArchiveScheduler {
   private intervalId: NodeJS.Timeout | null = null
   private isRunning: boolean = false
 
-  start(): void {
+  start (): void {
     if (this.isRunning) {
       console.log('Archive scheduler already running')
       return
@@ -60,7 +60,7 @@ class ArchiveScheduler {
     }, SCHEDULER_INTERVAL_MS)
   }
 
-  stop(): void {
+  stop (): void {
     if (this.intervalId) {
       clearInterval(this.intervalId)
       this.intervalId = null
@@ -69,7 +69,7 @@ class ArchiveScheduler {
     }
   }
 
-  async run(): Promise<void> {
+  async run (): Promise<void> {
     try {
       const cutoffDate = new Date()
       cutoffDate.setHours(cutoffDate.getHours() - ARCHIVE_DELAY_HOURS)
@@ -83,23 +83,25 @@ class ArchiveScheduler {
           status: 'done',
           archived: false,
           completedAt: {
-            lt: cutoffDate
-          }
+            lt: cutoffDate,
+          },
         },
         include: {
           board: {
             select: {
-              userId: true
-            }
-          }
-        }
+              userId: true,
+            },
+          },
+        },
       })
 
       if (tasksToArchive.length === 0) {
         return
       }
 
-      console.log(`Archiving ${tasksToArchive.length} task(s) completed before ${cutoffDate.toISOString()}`)
+      console.log(
+        `Archiving ${tasksToArchive.length} task(s) completed before ${cutoffDate.toISOString()}`
+      )
 
       for (const task of tasksToArchive) {
         await this.archiveTask(task as TaskWithBoard)
@@ -111,15 +113,15 @@ class ArchiveScheduler {
     }
   }
 
-  async archiveTask(task: TaskWithBoard): Promise<void> {
+  async archiveTask (task: TaskWithBoard): Promise<void> {
     const updatedTask = await prisma.task.update({
       where: { id: task.id },
       data: {
         archived: true,
         archivedAt: new Date(),
         archiveScheduled: false,
-        archiveScheduledAt: null
-      }
+        archiveScheduledAt: null,
+      },
     })
 
     // Record activity
@@ -132,8 +134,8 @@ class ArchiveScheduler {
         fieldName: 'archived',
         oldValue: 'false',
         newValue: 'true',
-        source: 'scheduler'
-      }
+        source: 'scheduler',
+      },
     })
 
     // Broadcast WebSocket event
@@ -141,7 +143,7 @@ class ArchiveScheduler {
     wsManager.broadcastTaskEvent(task.board?.userId ?? null, 'task_archived', taskData)
   }
 
-  taskToJson(task: Task): TaskJson {
+  taskToJson (task: Task): TaskJson {
     return {
       id: task.id.toString(),
       name: task.name,
@@ -156,21 +158,21 @@ class ArchiveScheduler {
       archived: task.archived,
       archived_at: task.archivedAt?.toISOString() ?? null,
       created_at: task.createdAt.toISOString(),
-      updated_at: task.updatedAt.toISOString()
+      updated_at: task.updatedAt.toISOString(),
     }
   }
 
   // Schedule a task for immediate archiving (override delay)
-  async scheduleImmediateArchive(taskId: string | bigint): Promise<TaskJson> {
+  async scheduleImmediateArchive (taskId: string | bigint): Promise<TaskJson> {
     const task = await prisma.task.findUnique({
       where: { id: BigInt(taskId) },
       include: {
         board: {
           select: {
-            userId: true
-          }
-        }
-      }
+            userId: true,
+          },
+        },
+      },
     })
 
     if (!task) {
@@ -189,7 +191,7 @@ class ArchiveScheduler {
 
     // Fetch the updated task to return
     const updatedTask = await prisma.task.findUnique({
-      where: { id: BigInt(taskId) }
+      where: { id: BigInt(taskId) },
     })
 
     if (!updatedTask) {

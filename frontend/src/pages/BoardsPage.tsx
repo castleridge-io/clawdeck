@@ -1,10 +1,23 @@
 import { useState, useEffect, useMemo } from 'react'
-import { getBoards, getAgents, getTasks, createTask, updateTask, deleteTask, assignTask, claimTask, completeTask } from '../lib/api'
+import {
+  getBoards,
+  getAgents,
+  getTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  assignTask,
+  claimTask,
+  completeTask,
+} from '../lib/api'
 import { wsClient } from '../lib/websocket'
 import type { Board, Agent, Task, Column, TaskStatus } from '../types'
 import KanbanBoard from '../components/KanbanBoard'
 import TaskModal from '../components/TaskModal'
-import TaskFilters, { type TaskFilters as TaskFiltersType, filterTasks } from '../components/TaskFilters'
+import TaskFilters, {
+  type TaskFilters as TaskFiltersType,
+  filterTasks,
+} from '../components/TaskFilters'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const COLUMNS: Column[] = [
@@ -15,7 +28,7 @@ const COLUMNS: Column[] = [
   { id: 'done', name: 'Done', color: 'green' },
 ]
 
-export default function BoardsPage() {
+export default function BoardsPage () {
   const [boards, setBoards] = useState<Board[]>([])
   const [agents, setAgents] = useState<Agent[]>([])
   const [allTasks, setAllTasks] = useState<Task[]>([])
@@ -35,9 +48,9 @@ export default function BoardsPage() {
   // Extract available tags from all tasks
   const availableTags = useMemo(() => {
     const tagSet = new Set<string>()
-    allTasks.forEach(task => {
+    allTasks.forEach((task) => {
       const extendedTask = task as Task & { tags?: string[] }
-      extendedTask.tags?.forEach(tag => tagSet.add(tag))
+      extendedTask.tags?.forEach((tag) => tagSet.add(tag))
     })
     return Array.from(tagSet).sort()
   }, [allTasks])
@@ -45,7 +58,7 @@ export default function BoardsPage() {
   // Filter tasks for the selected board
   const filteredTasks = useMemo(() => {
     if (!selectedBoard) return []
-    const boardTasks = allTasks.filter(t => t.board_id === selectedBoard.id)
+    const boardTasks = allTasks.filter((t) => t.board_id === selectedBoard.id)
     return filterTasks(boardTasks, filters)
   }, [selectedBoard, allTasks, filters])
 
@@ -65,7 +78,7 @@ export default function BoardsPage() {
     }
   }, [])
 
-  async function loadData() {
+  async function loadData () {
     try {
       setError(null)
 
@@ -74,7 +87,7 @@ export default function BoardsPage() {
         getBoards().catch((): Board[] => []),
       ])
 
-      const formattedAgents: Agent[] = agentsData.map(agent => ({
+      const formattedAgents: Agent[] = agentsData.map((agent) => ({
         id: agent.uuid,
         uuid: agent.uuid,
         emoji: agent.emoji,
@@ -84,14 +97,17 @@ export default function BoardsPage() {
       }))
       setAgents(formattedAgents)
 
-      const agentBoards = boardsData.filter(board =>
-        board.agent_id || formattedAgents.some(agent => board.name.includes(agent.name))
+      const agentBoards = boardsData.filter(
+        (board) =>
+          board.agent_id || formattedAgents.some((agent) => board.name.includes(agent.name))
       )
 
       setBoards(agentBoards)
 
-      const allTasksPromises = agentBoards.map(board =>
-        getTasks(board.id).catch((): Task[] => []).then(t => Array.isArray(t) ? t : [])
+      const allTasksPromises = agentBoards.map((board) =>
+        getTasks(board.id)
+          .catch((): Task[] => [])
+          .then((t) => (Array.isArray(t) ? t : []))
       )
       const allTasksData = await Promise.all(allTasksPromises)
       const flatTasks = allTasksData.flat()
@@ -108,7 +124,7 @@ export default function BoardsPage() {
     }
   }
 
-  async function handleCreateTask(taskData: Partial<Task>) {
+  async function handleCreateTask (taskData: Partial<Task>) {
     if (!selectedBoard) return
 
     try {
@@ -123,7 +139,7 @@ export default function BoardsPage() {
     }
   }
 
-  async function handleUpdateTask(taskId: string, updates: Partial<Task>) {
+  async function handleUpdateTask (taskId: string, updates: Partial<Task>) {
     try {
       await updateTask(taskId, updates)
       await loadData()
@@ -132,7 +148,7 @@ export default function BoardsPage() {
     }
   }
 
-  async function handleDeleteTask(taskId: string) {
+  async function handleDeleteTask (taskId: string) {
     if (!confirm('Are you sure you want to delete this task?')) return
 
     try {
@@ -143,7 +159,7 @@ export default function BoardsPage() {
     }
   }
 
-  async function handleAssignTask(taskId: string) {
+  async function handleAssignTask (taskId: string) {
     try {
       await assignTask(taskId)
       await loadData()
@@ -152,7 +168,7 @@ export default function BoardsPage() {
     }
   }
 
-  async function handleClaimTask(taskId: string) {
+  async function handleClaimTask (taskId: string) {
     try {
       await claimTask(taskId)
       await loadData()
@@ -161,7 +177,7 @@ export default function BoardsPage() {
     }
   }
 
-  async function handleCompleteTask(taskId: string) {
+  async function handleCompleteTask (taskId: string) {
     try {
       await completeTask(taskId)
       await loadData()
@@ -176,13 +192,13 @@ export default function BoardsPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-red-500/10 border border-red-500 rounded-lg p-8 text-center">
-          <h2 className="text-xl font-bold text-red-400 mb-2">Error Loading Data</h2>
-          <p className="text-red-300 mb-4">{error}</p>
+      <div className='flex items-center justify-center min-h-screen'>
+        <div className='bg-red-500/10 border border-red-500 rounded-lg p-8 text-center'>
+          <h2 className='text-xl font-bold text-red-400 mb-2'>Error Loading Data</h2>
+          <p className='text-red-300 mb-4'>{error}</p>
           <button
             onClick={loadData}
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
+            className='px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg'
           >
             Retry
           </button>
@@ -192,42 +208,49 @@ export default function BoardsPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className='p-6'>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className='flex items-center justify-between mb-6'>
         <div>
-          <h1 className="text-2xl font-bold text-white">Boards</h1>
-          <p className="text-slate-400">Manage your task boards</p>
+          <h1 className='text-2xl font-bold text-white'>Boards</h1>
+          <p className='text-slate-400'>Manage your task boards</p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className='flex items-center gap-4'>
           {/* Board Selector */}
-          {boards.length > 0 ? (
-            <select
-              value={selectedBoard?.id || ''}
-              onChange={(e) => {
-                const board = boards.find(b => b.id === e.target.value)
-                setSelectedBoard(board || null)
-              }}
-              className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {boards.map(board => (
-                <option key={board.id} value={board.id}>
-                  {board.name}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <span className="text-slate-400 text-sm">No boards available</span>
-          )}
+          {boards.length > 0
+            ? (
+              <select
+                value={selectedBoard?.id || ''}
+                onChange={(e) => {
+                  const board = boards.find((b) => b.id === e.target.value)
+                  setSelectedBoard(board || null)
+                }}
+                className='px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+              >
+                {boards.map((board) => (
+                  <option key={board.id} value={board.id}>
+                    {board.name}
+                  </option>
+                ))}
+              </select>
+              )
+            : (
+              <span className='text-slate-400 text-sm'>No boards available</span>
+              )}
 
           <button
             onClick={() => setShowTaskModal(true)}
             disabled={boards.length === 0}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2"
+            className='px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2'
           >
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg fill='none' viewBox='0 0 24 24' stroke='currentColor' className='w-5 h-5'>
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={2}
+                d='M12 4v16m8-8H4'
+              />
             </svg>
             New Task
           </button>
@@ -235,7 +258,7 @@ export default function BoardsPage() {
       </div>
 
       {/* Filters */}
-      <div className="mb-4">
+      <div className='mb-4'>
         <TaskFilters
           filters={filters}
           onFiltersChange={setFilters}

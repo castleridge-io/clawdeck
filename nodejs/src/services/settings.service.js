@@ -5,32 +5,34 @@ const OPENCLAW_SETTINGS_KEY = 'openclaw'
 /**
  * Create settings service
  */
-export function createSettingsService() {
+export function createSettingsService () {
   return {
     /**
      * Get OpenClaw settings
      * @returns {Promise<object>} OpenClaw settings
      */
-    async getOpenClawSettings() {
+    async getOpenClawSettings () {
       const setting = await prisma.systemSettings.findUnique({
-        where: { key: OPENCLAW_SETTINGS_KEY }
+        where: { key: OPENCLAW_SETTINGS_KEY },
       })
 
       if (!setting) {
         return {
           url: '',
           apiKey: '',
-          connected: false
+          connected: false,
         }
       }
 
       const value = setting.value
       return {
         url: value.url || '',
-        apiKey: value.apiKey ? '••••••••' + (value.apiKey.length > 8 ? value.apiKey.slice(-4) : '') : '',
+        apiKey: value.apiKey
+          ? '••••••••' + (value.apiKey.length > 8 ? value.apiKey.slice(-4) : '')
+          : '',
         hasApiKey: !!value.apiKey,
         connected: value.connected || false,
-        lastChecked: value.lastChecked || null
+        lastChecked: value.lastChecked || null,
       }
     },
 
@@ -41,27 +43,28 @@ export function createSettingsService() {
      * @param {string} [data.apiKey] - OpenClaw API key (optional, won't update if not provided)
      * @returns {Promise<object>} Updated settings
      */
-    async updateOpenClawSettings(data) {
+    async updateOpenClawSettings (data) {
       const existing = await prisma.systemSettings.findUnique({
-        where: { key: OPENCLAW_SETTINGS_KEY }
+        where: { key: OPENCLAW_SETTINGS_KEY },
       })
 
       const currentValue = existing?.value || {}
 
       // Only update apiKey if provided and not masked
-      const newApiKey = data.apiKey && !data.apiKey.startsWith('••••') ? data.apiKey : currentValue.apiKey
+      const newApiKey =
+        data.apiKey && !data.apiKey.startsWith('••••') ? data.apiKey : currentValue.apiKey
 
       const newValue = {
         url: data.url !== undefined ? data.url : currentValue.url,
         apiKey: newApiKey,
         connected: currentValue.connected || false,
-        lastChecked: currentValue.lastChecked || null
+        lastChecked: currentValue.lastChecked || null,
       }
 
       await prisma.systemSettings.upsert({
         where: { key: OPENCLAW_SETTINGS_KEY },
         update: { value: newValue },
-        create: { key: OPENCLAW_SETTINGS_KEY, value: newValue }
+        create: { key: OPENCLAW_SETTINGS_KEY, value: newValue },
       })
 
       return {
@@ -69,7 +72,7 @@ export function createSettingsService() {
         apiKey: newValue.apiKey ? '••••••••' + newValue.apiKey.slice(-4) : '',
         hasApiKey: !!newValue.apiKey,
         connected: newValue.connected,
-        lastChecked: newValue.lastChecked
+        lastChecked: newValue.lastChecked,
       }
     },
 
@@ -77,9 +80,9 @@ export function createSettingsService() {
      * Test OpenClaw connection
      * @returns {Promise<object>} Connection test result
      */
-    async testOpenClawConnection() {
+    async testOpenClawConnection () {
       const setting = await prisma.systemSettings.findUnique({
-        where: { key: OPENCLAW_SETTINGS_KEY }
+        where: { key: OPENCLAW_SETTINGS_KEY },
       })
 
       if (!setting) {
@@ -95,8 +98,8 @@ export function createSettingsService() {
       try {
         const response = await fetch(`${url}/health`, {
           method: 'GET',
-          headers: apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {},
-          signal: AbortSignal.timeout(10000) // 10 second timeout
+          headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+          signal: AbortSignal.timeout(10000), // 10 second timeout
         })
 
         const connected = response.ok
@@ -108,9 +111,9 @@ export function createSettingsService() {
             value: {
               ...setting.value,
               connected,
-              lastChecked: new Date().toISOString()
-            }
-          }
+              lastChecked: new Date().toISOString(),
+            },
+          },
         })
 
         if (connected) {
@@ -126,14 +129,14 @@ export function createSettingsService() {
             value: {
               ...setting.value,
               connected: false,
-              lastChecked: new Date().toISOString()
-            }
-          }
+              lastChecked: new Date().toISOString(),
+            },
+          },
         })
 
         return {
           success: false,
-          error: error instanceof Error ? error.message : 'Connection failed'
+          error: error instanceof Error ? error.message : 'Connection failed',
         }
       }
     },
@@ -142,9 +145,9 @@ export function createSettingsService() {
      * Clear OpenClaw API key (for security)
      * @returns {Promise<void>}
      */
-    async clearOpenClawApiKey() {
+    async clearOpenClawApiKey () {
       const existing = await prisma.systemSettings.findUnique({
-        where: { key: OPENCLAW_SETTINGS_KEY }
+        where: { key: OPENCLAW_SETTINGS_KEY },
       })
 
       if (existing) {
@@ -154,11 +157,11 @@ export function createSettingsService() {
             value: {
               ...existing.value,
               apiKey: null,
-              connected: false
-            }
-          }
+              connected: false,
+            },
+          },
         })
       }
-    }
+    },
   }
 }

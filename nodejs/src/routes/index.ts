@@ -11,8 +11,9 @@ import { runsRoutes } from './runs.js'
 import { stepsRoutes } from './steps.js'
 import { storiesRoutes } from './stories.js'
 import { agentsRoutes } from './agents.js'
+import { oauthRoutes } from './oauth.routes.js'
 
-export async function registerRoutes(
+export async function registerRoutes (
   fastify: FastifyInstance,
   opts: FastifyPluginOptions
 ): Promise<void> {
@@ -26,6 +27,7 @@ export async function registerRoutes(
   await fastify.register(workflowsRoutes, { prefix: '/workflows' })
   await fastify.register(runsRoutes, { prefix: '/runs' })
   await fastify.register(agentsRoutes, { prefix: '/agents' })
+  await fastify.register(oauthRoutes, { prefix: '/oauth' })
   // Nested routes under runs
   await fastify.register(stepsRoutes, { prefix: '/runs/:runId/steps' })
   await fastify.register(storiesRoutes, { prefix: '/runs/:runId/stories' })

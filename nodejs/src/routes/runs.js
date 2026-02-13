@@ -2,7 +2,7 @@ import { authenticateRequest } from '../middleware/auth.js'
 import { createRunService } from '../services/run.service.js'
 
 // Helper function to convert run to JSON response
-function runToJson(run) {
+function runToJson (run) {
   return {
     id: run.id,
     workflow_id: run.workflowId.toString(),
@@ -15,37 +15,39 @@ function runToJson(run) {
     awaiting_approval_since: run.awaitingApprovalSince,
     created_at: run.createdAt.toISOString(),
     updated_at: run.updatedAt.toISOString(),
-    steps: run.steps?.map(step => ({
-      id: step.id,
-      step_id: step.stepId,
-      agent_id: step.agentId,
-      step_index: step.stepIndex,
-      input_template: step.inputTemplate,
-      expects: step.expects,
-      status: step.status,
-      output: step.output ? JSON.parse(step.output) : null,
-      retry_count: step.retryCount,
-      max_retries: step.maxRetries,
-      type: step.type,
-      loop_config: step.loopConfig ? JSON.parse(step.loopConfig) : null,
-      current_story_id: step.currentStoryId
-    })) || [],
-    stories: run.stories?.map(story => ({
-      id: story.id,
-      story_index: story.storyIndex,
-      story_id: story.storyId,
-      title: story.title,
-      description: story.description,
-      acceptance_criteria: story.acceptanceCriteria,
-      status: story.status,
-      output: story.output ? JSON.parse(story.output) : null,
-      retry_count: story.retryCount,
-      max_retries: story.maxRetries
-    })) || []
+    steps:
+      run.steps?.map((step) => ({
+        id: step.id,
+        step_id: step.stepId,
+        agent_id: step.agentId,
+        step_index: step.stepIndex,
+        input_template: step.inputTemplate,
+        expects: step.expects,
+        status: step.status,
+        output: step.output ? JSON.parse(step.output) : null,
+        retry_count: step.retryCount,
+        max_retries: step.maxRetries,
+        type: step.type,
+        loop_config: step.loopConfig ? JSON.parse(step.loopConfig) : null,
+        current_story_id: step.currentStoryId,
+      })) || [],
+    stories:
+      run.stories?.map((story) => ({
+        id: story.id,
+        story_index: story.storyIndex,
+        story_id: story.storyId,
+        title: story.title,
+        description: story.description,
+        acceptance_criteria: story.acceptanceCriteria,
+        status: story.status,
+        output: story.output ? JSON.parse(story.output) : null,
+        retry_count: story.retryCount,
+        max_retries: story.maxRetries,
+      })) || [],
   }
 }
 
-export async function runsRoutes(fastify, opts) {
+export async function runsRoutes (fastify, opts) {
   const runService = createRunService()
 
   // Apply authentication to all routes
@@ -67,15 +69,15 @@ export async function runsRoutes(fastify, opts) {
 
     return {
       success: true,
-      data: runs.map(run => ({
+      data: runs.map((run) => ({
         id: run.id,
         workflow_id: run.workflowId.toString(),
         task_id: run.taskId,
         task: run.task,
         status: run.status,
         created_at: run.createdAt.toISOString(),
-        updated_at: run.updatedAt.toISOString()
-      }))
+        updated_at: run.updatedAt.toISOString(),
+      })),
     }
   })
 
@@ -89,7 +91,7 @@ export async function runsRoutes(fastify, opts) {
 
     return {
       success: true,
-      data: runToJson(run)
+      data: runToJson(run),
     }
   })
 
@@ -111,12 +113,12 @@ export async function runsRoutes(fastify, opts) {
         taskId: task_id,
         task,
         context,
-        notifyUrl: notify_url
+        notifyUrl: notify_url,
       })
 
       return reply.code(201).send({
         success: true,
-        data: runToJson(run)
+        data: runToJson(run),
       })
     } catch (error) {
       if (error.message.includes('not found')) {
@@ -139,7 +141,7 @@ export async function runsRoutes(fastify, opts) {
 
       return {
         success: true,
-        data: runToJson(run)
+        data: runToJson(run),
       }
     } catch (error) {
       if (error.message.includes('not found')) {

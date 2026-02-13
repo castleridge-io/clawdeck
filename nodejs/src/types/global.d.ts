@@ -1,5 +1,4 @@
-import type { User } from '@prisma/client'
-import type { PrismaClient } from '@prisma/client'
+import type { User, PrismaClient } from '@prisma/client'
 import type { FastifyInstance } from 'fastify'
 
 // Extend Fastify types

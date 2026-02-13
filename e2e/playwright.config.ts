@@ -6,10 +6,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
-  reporter: [
-    ['list'],
-    ['html', { outputDir: '../e2e-results/html' }],
-  ],
+  reporter: [['list'], ['html', { outputDir: '../e2e-results/html' }]],
   use: {
     baseURL: process.env.FRONTEND_URL || 'http://localhost:4002',
     trace: 'on-first-retry',

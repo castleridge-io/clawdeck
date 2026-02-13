@@ -4,10 +4,10 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode
 }
 
-export function Card({ children, className = '', ...props }: CardProps) {
+export function Card ({ children, className = '', ...props }: CardProps) {
   return (
     <div
-      data-testid="card"
+      data-testid='card'
       className={`bg-slate-800 rounded-lg border border-slate-700 ${className}`}
       {...props}
     >
@@ -16,10 +16,10 @@ export function Card({ children, className = '', ...props }: CardProps) {
   )
 }
 
-export function CardHeader({ children, className = '', ...props }: CardProps) {
+export function CardHeader ({ children, className = '', ...props }: CardProps) {
   return (
     <div
-      data-testid="card-header"
+      data-testid='card-header'
       className={`p-4 border-b border-slate-700 ${className}`}
       {...props}
     >
@@ -28,10 +28,10 @@ export function CardHeader({ children, className = '', ...props }: CardProps) {
   )
 }
 
-export function CardTitle({ children, className = '', ...props }: CardProps) {
+export function CardTitle ({ children, className = '', ...props }: CardProps) {
   return (
     <h3
-      data-testid="card-title"
+      data-testid='card-title'
       className={`text-lg font-semibold text-white ${className}`}
       {...props}
     >
@@ -40,13 +40,9 @@ export function CardTitle({ children, className = '', ...props }: CardProps) {
   )
 }
 
-export function CardContent({ children, className = '', ...props }: CardProps) {
+export function CardContent ({ children, className = '', ...props }: CardProps) {
   return (
-    <div
-      data-testid="card-content"
-      className={`p-4 ${className}`}
-      {...props}
-    >
+    <div data-testid='card-content' className={`p-4 ${className}`} {...props}>
       {children}
     </div>
   )

@@ -15,9 +15,9 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - '${POSTGRES_PORT:-5432}:5432'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-U", "clawdeck"]
+      test: ['CMD-SHELL', 'pg_isready', '-U', 'clawdeck']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,14 +48,14 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "${API_PORT:-3000}:3000"
+      - '${API_PORT:-3000}:3000'
     volumes:
       - .:/app
       - /app/node_modules
     networks:
       - clawdeck-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -T 5 -t 1 -O /dev/null http://127.0.0.1:3000/up"]
+      test: ['CMD-SHELL', 'wget -q -T 5 -t 1 -O /dev/null http://127.0.0.1:3000/up']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -70,9 +70,9 @@ services:
     volumes:
       - redis_data:/data
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - '${REDIS_PORT:-6379}:6379'
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -90,11 +90,11 @@ services:
     restart: unless-stopped
     environment:
       VITE_API_URL: http://api:3000
-      VITE_DEV_LOGIN: "true"
+      VITE_DEV_LOGIN: 'true'
     depends_on:
       - api
     ports:
-      - "${FRONTEND_PORT:-3002}:3002"
+      - '${FRONTEND_PORT:-3002}:3002'
     volumes:
       - ../frontend:/app
       - /app/node_modules
@@ -109,8 +109,8 @@ services:
     depends_on:
       - api
     ports:
-      - "${NGINX_HTTP_PORT:-80}:80"
-      - "${NGINX_HTTPS_PORT:-443}:443"
+      - '${NGINX_HTTP_PORT:-80}:80'
+      - '${NGINX_HTTPS_PORT:-443}:443'
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro

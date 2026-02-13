@@ -12,7 +12,7 @@ export async function settingsRoutes (fastify, opts) {
   fastify.get('/', async (request) => {
     const apiTokens = await prisma.apiToken.findMany({
       where: { userId: BigInt(request.user.id) },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     })
 
     return {
@@ -24,14 +24,14 @@ export async function settingsRoutes (fastify, opts) {
         agent_name: request.user.agentName,
         agent_emoji: request.user.agentEmoji,
         agent_last_active_at: request.user.agentLastActiveAt?.toISOString(),
-        api_tokens: apiTokens.map(t => ({
+        api_tokens: apiTokens.map((t) => ({
           id: t.id.toString(),
           name: t.name,
           token: t.token,
           last_used_at: t.lastUsedAt?.toISOString(),
-          created_at: t.createdAt.toISOString()
-        }))
-      }
+          created_at: t.createdAt.toISOString(),
+        })),
+      },
     }
   })
 
@@ -52,7 +52,7 @@ export async function settingsRoutes (fastify, opts) {
 
     const updatedUser = await prisma.user.update({
       where: { id: BigInt(request.user.id) },
-      data: updateData
+      data: updateData,
     })
 
     return {
@@ -63,8 +63,8 @@ export async function settingsRoutes (fastify, opts) {
         agent_auto_mode: updatedUser.agentAutoMode,
         agent_name: updatedUser.agentName,
         agent_emoji: updatedUser.agentEmoji,
-        agent_last_active_at: updatedUser.agentLastActiveAt?.toISOString()
-      }
+        agent_last_active_at: updatedUser.agentLastActiveAt?.toISOString(),
+      },
     }
   })
 
@@ -78,8 +78,8 @@ export async function settingsRoutes (fastify, opts) {
       data: {
         token,
         name: name || 'API Token',
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     return reply.code(201).send({
@@ -88,8 +88,8 @@ export async function settingsRoutes (fastify, opts) {
         id: apiToken.id.toString(),
         name: apiToken.name,
         token: apiToken.token,
-        created_at: apiToken.createdAt.toISOString()
-      }
+        created_at: apiToken.createdAt.toISOString(),
+      },
     })
   })
 
@@ -102,7 +102,7 @@ export async function settingsRoutes (fastify, opts) {
     const settings = await settingsService.getOpenClawSettings()
     return {
       success: true,
-      data: settings
+      data: settings,
     }
   })
 
@@ -113,7 +113,7 @@ export async function settingsRoutes (fastify, opts) {
     const settings = await settingsService.updateOpenClawSettings({ url, apiKey })
     return {
       success: true,
-      data: settings
+      data: settings,
     }
   })
 
@@ -122,7 +122,7 @@ export async function settingsRoutes (fastify, opts) {
     const result = await settingsService.testOpenClawConnection()
     return {
       success: result.success,
-      data: result
+      data: result,
     }
   })
 

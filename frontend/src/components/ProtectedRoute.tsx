@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
   children: ReactNode
 }
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+export default function ProtectedRoute ({ children }: ProtectedRouteProps) {
   const { isAuthenticated, loading } = useAuth()
   const location = useLocation()
 
@@ -16,7 +16,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <Navigate to='/login' state={{ from: location }} replace />
   }
 
   return <>{children}</>

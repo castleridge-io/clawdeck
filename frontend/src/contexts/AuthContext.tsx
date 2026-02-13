@@ -15,13 +15,13 @@ interface LoginResult {
   error?: string
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
+export function AuthProvider ({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(getStoredUser())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function checkAuth() {
+    async function checkAuth () {
       const token = getToken()
       if (!token) {
         setLoading(false)
@@ -31,12 +31,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const response = await fetch(`${API_BASE}/auth/me`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         })
 
         if (response.ok) {
-          const userData = await response.json() as User
+          const userData = (await response.json()) as User
           setUser(userData)
           setStoredUser(userData)
         } else {
@@ -53,39 +53,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
     checkAuth()
   }, [])
 
-  const login = useCallback(async (emailAddress: string, password: string): Promise<LoginResult> => {
-    setError(null)
-    setLoading(true)
+  const login = useCallback(
+    async (emailAddress: string, password: string): Promise<LoginResult> => {
+      setError(null)
+      setLoading(true)
 
-    try {
-      const response = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ emailAddress, password }),
-      })
+      try {
+        const response = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ emailAddress, password }),
+        })
 
-      // Handle empty response body
-      const text = await response.text()
-      const data = text ? JSON.parse(text) : {}
+        // Handle empty response body
+        const text = await response.text()
+        const data = text ? JSON.parse(text) : {}
 
-      if (!response.ok) {
-        throw new Error(data.error || `Login failed (${response.status})`)
+        if (!response.ok) {
+          throw new Error(data.error || `Login failed (${response.status})`)
+        }
+
+        setToken(data.token)
+        setUser(data.user)
+        setStoredUser(data.user)
+        return { success: true }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Login failed'
+        setError(message)
+        return { success: false, error: message }
+      } finally {
+        setLoading(false)
       }
-
-      setToken(data.token)
-      setUser(data.user)
-      setStoredUser(data.user)
-      return { success: true }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed'
-      setError(message)
-      return { success: false, error: message }
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+    },
+    []
+  )
 
   const logout = useCallback(async (): Promise<void> => {
     const token = getToken()
@@ -95,7 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         await fetch(`${API_BASE}/auth/logout`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         })
       } catch (err) {
@@ -116,14 +119,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated: !!user && !!getToken(),
   }
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export function useAuth(): AuthContextValue {
+export function useAuth (): AuthContextValue {
   const context = useContext(AuthContext)
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider')

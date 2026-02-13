@@ -71,28 +71,32 @@ export class AuthService {
   private fastify: FastifyInstance
   private prisma: typeof prisma
 
-  constructor(fastify: FastifyInstance) {
+  constructor (fastify: FastifyInstance) {
     this.fastify = fastify
     this.prisma = prisma
   }
 
-  async hashPassword(password: string): Promise<string> {
+  async hashPassword (password: string): Promise<string> {
     return bcrypt.hash(password, SALT_ROUNDS)
   }
 
-  async verifyPassword(password: string, hash: string): Promise<boolean> {
+  async verifyPassword (password: string, hash: string): Promise<boolean> {
     return bcrypt.compare(password, hash)
   }
 
-  generateSecureToken(): string {
+  generateSecureToken (): string {
     return crypto.randomBytes(32).toString('base64url')
   }
 
-  generateApiToken(): string {
+  generateApiToken (): string {
     return crypto.randomBytes(32).toString('hex')
   }
 
-  async createSession(userId: bigint | string, ipAddress?: string | null, userAgent?: string | null): Promise<string> {
+  async createSession (
+    userId: bigint | string,
+    ipAddress?: string | null,
+    userAgent?: string | null
+  ): Promise<string> {
     const session = await this.prisma.session.create({
       data: {
         userId: BigInt(userId),
@@ -104,19 +108,19 @@ export class AuthService {
     return session.id.toString()
   }
 
-  async deleteSession(sessionId: string): Promise<void> {
+  async deleteSession (sessionId: string): Promise<void> {
     await this.prisma.session.delete({
       where: { id: BigInt(sessionId) },
     })
   }
 
-  async deleteAllUserSessions(userId: string | bigint): Promise<void> {
+  async deleteAllUserSessions (userId: string | bigint): Promise<void> {
     await this.prisma.session.deleteMany({
       where: { userId: BigInt(userId) },
     })
   }
 
-  async getSession(sessionId: string): Promise<SessionWithUser | null> {
+  async getSession (sessionId: string): Promise<SessionWithUser | null> {
     const session = await this.prisma.session.findUnique({
       where: { id: BigInt(sessionId) },
       include: { user: true },
@@ -135,14 +139,14 @@ export class AuthService {
     return session as SessionWithUser
   }
 
-  generateSessionToken(sessionId: string): string {
+  generateSessionToken (sessionId: string): string {
     return this.fastify.jwt.sign(
       { sessionId: sessionId.toString() },
       { expiresIn: JWT_TTL_SECONDS }
     )
   }
 
-  async verifySessionToken(token: string): Promise<User | null> {
+  async verifySessionToken (token: string): Promise<User | null> {
     try {
       const payload = this.fastify.jwt.verify<JWTPayload>(token)
       const session = await this.getSession(payload.sessionId)
@@ -157,7 +161,7 @@ export class AuthService {
     }
   }
 
-  async verifyApiToken(token: string): Promise<User | null> {
+  async verifyApiToken (token: string): Promise<User | null> {
     if (!token) {
       return null
     }
@@ -179,7 +183,7 @@ export class AuthService {
     return (apiToken as ApiTokenWithUser).user
   }
 
-  async verifyAgentToken(token: string): Promise<User | null> {
+  async verifyAgentToken (token: string): Promise<User | null> {
     if (!token) {
       return null
     }
@@ -187,7 +191,7 @@ export class AuthService {
     const apiToken = await this.prisma.apiToken.findFirst({
       where: {
         token,
-        name: 'Default'
+        name: 'Default',
       },
       include: { user: true },
     })
@@ -204,7 +208,7 @@ export class AuthService {
     return (apiToken as ApiTokenWithUser).user
   }
 
-  async register(
+  async register (
     emailAddress: string,
     password?: string,
     agentAutoMode: boolean = true,
@@ -249,7 +253,7 @@ export class AuthService {
     return { user, apiToken: apiToken.token }
   }
 
-  async login(
+  async login (
     emailAddress: string,
     password: string,
     ipAddress?: string,
@@ -275,7 +279,7 @@ export class AuthService {
     return { user, token }
   }
 
-  async loginWithApiToken(
+  async loginWithApiToken (
     token: string,
     ipAddress?: string,
     userAgent?: string
@@ -292,17 +296,17 @@ export class AuthService {
     return { user, token: sessionToken }
   }
 
-  async logout(sessionId: string): Promise<void> {
+  async logout (sessionId: string): Promise<void> {
     await this.deleteSession(sessionId)
   }
 
-  async getUserById(userId: string | bigint): Promise<User | null> {
+  async getUserById (userId: string | bigint): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: { id: BigInt(userId) },
     })
   }
 
-  async updateProfile(userId: string | bigint, data: UpdateProfileData): Promise<User> {
+  async updateProfile (userId: string | bigint, data: UpdateProfileData): Promise<User> {
     const updateData: Prisma.UserUpdateInput = {}
 
     if (data.emailAddress) {
@@ -331,7 +335,7 @@ export class AuthService {
     })
   }
 
-  async updatePassword(userId: string | bigint, newPassword: string): Promise<User> {
+  async updatePassword (userId: string | bigint, newPassword: string): Promise<User> {
     if (!newPassword || newPassword.length < 8) {
       throw new Error('Password must be at least 8 characters')
     }
@@ -344,7 +348,7 @@ export class AuthService {
     })
   }
 
-  async getApiToken(userId: string | bigint): Promise<ApiToken> {
+  async getApiToken (userId: string | bigint): Promise<ApiToken> {
     let apiToken = await this.prisma.apiToken.findFirst({
       where: { userId: BigInt(userId), name: 'Default' },
     })
@@ -362,11 +366,11 @@ export class AuthService {
     return apiToken
   }
 
-  async regenerateApiToken(userId: string | bigint): Promise<ApiToken> {
+  async regenerateApiToken (userId: string | bigint): Promise<ApiToken> {
     await this.prisma.apiToken.deleteMany({
       where: {
         userId: BigInt(userId),
-        name: 'Default'
+        name: 'Default',
       },
     })
 
@@ -379,7 +383,7 @@ export class AuthService {
     })
   }
 
-  async createOnboardingBoard(userId: bigint): Promise<Board | void> {
+  async createOnboardingBoard (userId: bigint): Promise<Board | void> {
     const existingBoards = await this.prisma.board.count({
       where: { userId: BigInt(userId) },
     })
@@ -399,7 +403,7 @@ export class AuthService {
     })
   }
 
-  async getAllUsers(page: number = 1, limit: number = 50): Promise<UserListResult> {
+  async getAllUsers (page: number = 1, limit: number = 50): Promise<UserListResult> {
     const skip = (page - 1) * limit
 
     const [users, total] = await Promise.all([
@@ -429,7 +433,7 @@ export class AuthService {
     ])
 
     return {
-      users: users.map(u => ({
+      users: users.map((u) => ({
         ...u,
         id: u.id.toString(),
         _count: {
@@ -444,7 +448,7 @@ export class AuthService {
     }
   }
 
-  async getUserStats(): Promise<UserStats> {
+  async getUserStats (): Promise<UserStats> {
     const [totalUsers, totalBoards, totalTasks, activeUsers] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.board.count(),
@@ -467,6 +471,6 @@ export class AuthService {
   }
 }
 
-export function createAuthService(fastify: FastifyInstance): AuthService {
+export function createAuthService (fastify: FastifyInstance): AuthService {
   return new AuthService(fastify)
 }

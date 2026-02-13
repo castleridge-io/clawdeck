@@ -13,11 +13,11 @@ services:
       POSTGRES_DB: clawdeck_test
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "15433:5432"  # Different port from dev postgres
+      - '15433:5432' # Different port from dev postgres
     networks:
       - clawdeck-test-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-U", "clawdeck_test"]
+      test: ['CMD-SHELL', 'pg_isready', '-U', 'clawdeck_test']
       interval: 5s
       timeout: 3s
       retries: 5
@@ -56,7 +56,7 @@ services:
       JWT_SECRET: test-secret-for-testing-only
       PORT: 3000
       TEST_BASE_URL: http://api-test:3000
-      AUTO_MIGRATE: "false"  # Skip migrations, api-test already handles them
+      AUTO_MIGRATE: 'false' # Skip migrations, api-test already handles them
     depends_on:
       postgres-test:
         condition: service_healthy
@@ -89,7 +89,7 @@ services:
         condition: service_started
     networks:
       - clawdeck-test-network
-    entrypoint: ["sh", "-c", "npx prisma generate && node --test tests/e2e/archive-e2e.test.js"]
+    entrypoint: ['sh', '-c', 'npx prisma generate && node --test tests/e2e/archive-e2e.test.js']
     volumes:
       - ./tests:/app/tests:ro
       - ./src:/app/src:ro

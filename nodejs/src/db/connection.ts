@@ -25,7 +25,7 @@ export const pool = new pg.Pool({
   connectionTimeoutMillis: 2000,
 } as PoolConfig)
 
-export async function query<T extends QueryResultRow = QueryResultRow>(
+export async function query<T extends QueryResultRow = QueryResultRow> (
   text: string,
   params?: unknown[]
 ): Promise<QueryResult<T>> {

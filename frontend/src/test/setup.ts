@@ -20,9 +20,9 @@ const localStorageMock = {
     delete localStorageStore[key]
   }),
   clear: vi.fn(() => {
-    Object.keys(localStorageStore).forEach(key => delete localStorageStore[key])
+    Object.keys(localStorageStore).forEach((key) => delete localStorageStore[key])
   }),
-  get length() {
+  get length () {
     return Object.keys(localStorageStore).length
   },
   key: vi.fn((index: number) => Object.keys(localStorageStore)[index] ?? null),
@@ -40,5 +40,5 @@ global.fetch = vi.fn()
 beforeEach(() => {
   vi.clearAllMocks()
   // Clear localStorage store
-  Object.keys(localStorageStore).forEach(key => delete localStorageStore[key])
+  Object.keys(localStorageStore).forEach((key) => delete localStorageStore[key])
 })

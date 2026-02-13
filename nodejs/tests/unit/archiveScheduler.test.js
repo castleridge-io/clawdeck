@@ -8,7 +8,7 @@ let testUser
 let testBoard
 let testTasks = []
 
-async function setupTestEnvironment() {
+async function setupTestEnvironment () {
   // Create test user
   testUser = await prisma.user.create({
     data: {
@@ -16,8 +16,8 @@ async function setupTestEnvironment() {
       passwordDigest: 'hash',
       agentAutoMode: true,
       agentName: 'TestAgent',
-      agentEmoji: '🤖'
-    }
+      agentEmoji: '🤖',
+    },
   })
 
   // Create test board
@@ -25,8 +25,8 @@ async function setupTestEnvironment() {
     data: {
       name: 'Test Archive Board',
       userId: testUser.id,
-      position: 0
-    }
+      position: 0,
+    },
   })
 
   // Create test tasks with various completion dates
@@ -42,8 +42,8 @@ async function setupTestEnvironment() {
         userId: testUser.id,
         status: 'done',
         completed: true,
-        completedAt: oldDate
-      }
+        completedAt: oldDate,
+      },
     }),
     // Recent completed task (should NOT be archived)
     prisma.task.create({
@@ -53,8 +53,8 @@ async function setupTestEnvironment() {
         userId: testUser.id,
         status: 'done',
         completed: true,
-        completedAt: now
-      }
+        completedAt: now,
+      },
     }),
     // Incomplete task (should NOT be archived)
     prisma.task.create({
@@ -62,13 +62,13 @@ async function setupTestEnvironment() {
         name: 'Incomplete Task',
         boardId: testBoard.id,
         userId: testUser.id,
-        status: 'in_progress'
-      }
-    })
+        status: 'in_progress',
+      },
+    }),
   ])
 }
 
-async function cleanupTestEnvironment() {
+async function cleanupTestEnvironment () {
   await prisma.taskActivity.deleteMany({})
   await prisma.task.deleteMany({})
   await prisma.board.deleteMany({})
@@ -159,8 +159,8 @@ describe('Archive Scheduler Service', () => {
           userId: testUser.id,
           status: 'done',
           completed: true,
-          completedAt: new Date()
-        }
+          completedAt: new Date(),
+        },
       })
 
       const result = await archiveScheduler.scheduleImmediateArchive(task.id.toString())
@@ -170,7 +170,7 @@ describe('Archive Scheduler Service', () => {
 
       // Verify in database
       const archivedTask = await prisma.task.findUnique({
-        where: { id: task.id }
+        where: { id: task.id },
       })
       assert.strictEqual(archivedTask.archived, true)
       assert.ok(archivedTask.archivedAt)
@@ -191,8 +191,8 @@ describe('Archive Scheduler Service', () => {
           name: 'Incomplete Task',
           boardId: testBoard.id,
           userId: testUser.id,
-          status: 'in_progress'
-        }
+          status: 'in_progress',
+        },
       })
 
       await assert.rejects(
@@ -213,8 +213,8 @@ describe('Archive Scheduler Service', () => {
           completed: true,
           completedAt: new Date(),
           archived: true,
-          archivedAt: new Date()
-        }
+          archivedAt: new Date(),
+        },
       })
 
       await assert.rejects(
@@ -237,8 +237,8 @@ describe('Archive Scheduler Service', () => {
           userId: testUser.id,
           status: 'done',
           completed: true,
-          completedAt: oldDate
-        }
+          completedAt: oldDate,
+        },
       })
 
       // Run the scheduler
@@ -246,7 +246,7 @@ describe('Archive Scheduler Service', () => {
 
       // Verify the task was archived
       const archivedTask = await prisma.task.findUnique({
-        where: { id: task.id }
+        where: { id: task.id },
       })
       assert.strictEqual(archivedTask.archived, true)
       assert.ok(archivedTask.archivedAt)
@@ -261,8 +261,8 @@ describe('Archive Scheduler Service', () => {
           userId: testUser.id,
           status: 'done',
           completed: true,
-          completedAt: new Date()
-        }
+          completedAt: new Date(),
+        },
       })
 
       // Run the scheduler
@@ -270,7 +270,7 @@ describe('Archive Scheduler Service', () => {
 
       // Verify the task was NOT archived
       const notArchivedTask = await prisma.task.findUnique({
-        where: { id: task.id }
+        where: { id: task.id },
       })
       assert.strictEqual(notArchivedTask.archived, false)
     })
@@ -284,18 +284,18 @@ describe('Archive Scheduler Service', () => {
           userId: testUser.id,
           status: 'done',
           completed: true,
-          completedAt: oldDate
-        }
+          completedAt: oldDate,
+        },
       })
 
       await archiveScheduler.run()
 
       const activities = await prisma.taskActivity.findMany({
-        where: { taskId: task.id }
+        where: { taskId: task.id },
       })
 
       assert.ok(activities.length > 0)
-      const archiveActivity = activities.find(a => a.action === 'archived')
+      const archiveActivity = activities.find((a) => a.action === 'archived')
       assert.ok(archiveActivity)
       assert.strictEqual(archiveActivity.fieldName, 'archived')
       assert.strictEqual(archiveActivity.oldValue, 'false')
@@ -314,8 +314,8 @@ describe('Archive Scheduler Service', () => {
           completed: true,
           completedAt: new Date(),
           archived: true,
-          archivedAt: new Date()
-        }
+          archivedAt: new Date(),
+        },
       })
 
       const json = archiveScheduler.taskToJson(task)

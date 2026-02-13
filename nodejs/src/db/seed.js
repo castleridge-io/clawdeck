@@ -1,13 +1,13 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcrypt'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
-async function seed() {
-  console.log('🌱 Seeding ClawDeck database...');
+async function seed () {
+  console.log('🌱 Seeding ClawDeck database...')
 
   // Create dev admin user (for easy dev login)
-  const devPassword = await bcrypt.hash('admin', 10);
+  const devPassword = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD || 'changeme', 10)
 
   const devUser = await prisma.user.upsert({
     where: { emailAddress: 'admin' },
@@ -18,30 +18,30 @@ async function seed() {
       admin: true,
       agentAutoMode: false,
       agentName: 'Admin',
-      agentEmoji: '🔧'
-    }
-  });
+      agentEmoji: '🔧',
+    },
+  })
 
-  console.log(`✅ Dev user created/updated: ${devUser.emailAddress} (ID: ${devUser.id})`);
+  console.log(`✅ Dev user created/updated: ${devUser.emailAddress} (ID: ${devUser.id})`)
 
   // Create OpenClaw system user
-  const hashedPassword = await bcrypt.hash('openclaw', 10);
+  const openclawPassword = await bcrypt.hash(process.env.SEED_OPENCLAW_PASSWORD || 'changeme', 10)
 
   const user = await prisma.user.upsert({
     where: { emailAddress: 'openclaw@system.local' },
     update: {},
     create: {
       emailAddress: 'openclaw@system.local',
-      passwordDigest: hashedPassword,
+      passwordDigest: openclawPassword,
       admin: true,
-      agentAutoMode: false
-    }
-  });
+      agentAutoMode: false,
+    },
+  })
 
-  console.log(`✅ User created/updated: ${user.emailAddress} (ID: ${user.id})`);
+  console.log(`✅ User created/updated: ${user.emailAddress} (ID: ${user.id})`)
 
-  // Create API token
-  const tokenValue = 'oc-sys-6e07444c51f93cb9ab69282a06878195-b3032039';
+  // Create API token (use env var or generate random token)
+  const tokenValue = process.env.SEED_API_TOKEN || `oc-sys-${crypto.randomUUID()}`
 
   const token = await prisma.apiToken.upsert({
     where: { token: tokenValue },
@@ -50,11 +50,11 @@ async function seed() {
       token: tokenValue,
       userId: user.id,
       name: 'OpenClaw Migration Token',
-      lastUsedAt: new Date()
-    }
-  });
+      lastUsedAt: new Date(),
+    },
+  })
 
-  console.log(`✅ API token created: ${token.token.substring(0, 20)}...`);
+  console.log(`✅ API token created: ${token.token.substring(0, 20)}...`)
 
   // Create agent boards
   const agents = [
@@ -64,8 +64,8 @@ async function seed() {
     { id: 'mike-qa', icon: '🧪', name: 'Mike QA', color: 'green' },
     { id: 'richard', icon: '📚', name: 'Richard', color: 'yellow' },
     { id: 'nolan', icon: '⚙️', name: 'Nolan', color: 'gray' },
-    { id: 'elsa', icon: '📢', name: 'Elsa', color: 'orange' }
-  ];
+    { id: 'elsa', icon: '📢', name: 'Elsa', color: 'orange' },
+  ]
 
   for (const agentData of agents) {
     // Create or update agent
@@ -74,7 +74,7 @@ async function seed() {
       update: {
         name: agentData.name,
         emoji: agentData.icon,
-        color: agentData.color
+        color: agentData.color,
       },
       create: {
         name: agentData.name,
@@ -82,9 +82,9 @@ async function seed() {
         emoji: agentData.icon,
         color: agentData.color,
         description: `${agentData.name} agent board`,
-        position: agents.indexOf(agentData)
-      }
-    });
+        position: agents.indexOf(agentData),
+      },
+    })
 
     // Create or update board linked to agent
     const board = await prisma.board.upsert({
@@ -93,7 +93,7 @@ async function seed() {
         name: `${agentData.name} Board`,
         icon: agentData.icon,
         color: agentData.color,
-        agentId: agent.id
+        agentId: agent.id,
       },
       create: {
         id: 40 + agents.indexOf(agentData),
@@ -102,10 +102,12 @@ async function seed() {
         color: agentData.color,
         userId: user.id,
         agentId: agent.id,
-        position: agents.indexOf(agentData)
-      }
-    });
-    console.log(`✅ Agent & Board created: ${agentData.name} (Agent ID: ${agent.id}, Board ID: ${board.id})`);
+        position: agents.indexOf(agentData),
+      },
+    })
+    console.log(
+      `✅ Agent & Board created: ${agentData.name} (Agent ID: ${agent.id}, Board ID: ${board.id})`
+    )
   }
 
   // Create default workflows
@@ -118,30 +120,33 @@ async function seed() {
           stepId: 'design',
           name: 'Design Phase',
           agentId: 'architect',
-          inputTemplate: 'Design the following feature:\n\nTask: {{task}}\n\nProvide a detailed technical design document including:\n1. Overview\n2. Architecture\n3. Implementation approach\n4. API changes\n5. Database changes (if any)\n6. Testing strategy',
+          inputTemplate:
+            'Design the following feature:\n\nTask: {{task}}\n\nProvide a detailed technical design document including:\n1. Overview\n2. Architecture\n3. Implementation approach\n4. API changes\n5. Database changes (if any)\n6. Testing strategy',
           expects: 'design_document',
           type: 'single',
-          position: 0
+          position: 0,
         },
         {
           stepId: 'implement',
           name: 'Implementation Phase',
           agentId: 'developer',
-          inputTemplate: 'Implement the following design:\n\nDesign Document:\n{{design_document}}\n\nOriginal Task: {{task}}\n\nWrite clean, well-tested code following the design specifications.',
+          inputTemplate:
+            'Implement the following design:\n\nDesign Document:\n{{design_document}}\n\nOriginal Task: {{task}}\n\nWrite clean, well-tested code following the design specifications.',
           expects: 'implementation',
           type: 'single',
-          position: 1
+          position: 1,
         },
         {
           stepId: 'review',
           name: 'Code Review',
           agentId: 'reviewer',
-          inputTemplate: 'Review the following implementation:\n\nImplementation:\n{{implementation}}\n\nDesign Document:\n{{design_document}}\n\nProvide feedback on code quality, adherence to design, and any potential improvements.',
+          inputTemplate:
+            'Review the following implementation:\n\nImplementation:\n{{implementation}}\n\nDesign Document:\n{{design_document}}\n\nProvide feedback on code quality, adherence to design, and any potential improvements.',
           expects: 'approval',
           type: 'approval',
-          position: 2
-        }
-      ]
+          position: 2,
+        },
+      ],
     },
     {
       name: 'bug-fix',
@@ -151,30 +156,33 @@ async function seed() {
           stepId: 'investigate',
           name: 'Investigation',
           agentId: 'investigator',
-          inputTemplate: 'Investigate the following bug:\n\nBug Report: {{task}}\n\n1. Reproduce the issue\n2. Identify the root cause\n3. Document findings\n4. Propose a fix strategy',
+          inputTemplate:
+            'Investigate the following bug:\n\nBug Report: {{task}}\n\n1. Reproduce the issue\n2. Identify the root cause\n3. Document findings\n4. Propose a fix strategy',
           expects: 'investigation_report',
           type: 'single',
-          position: 0
+          position: 0,
         },
         {
           stepId: 'fix',
           name: 'Fix Implementation',
           agentId: 'developer',
-          inputTemplate: 'Fix the bug based on the investigation:\n\nInvestigation Report:\n{{investigation_report}}\n\nOriginal Bug: {{task}}\n\nImplement a fix that addresses the root cause without introducing regressions.',
+          inputTemplate:
+            'Fix the bug based on the investigation:\n\nInvestigation Report:\n{{investigation_report}}\n\nOriginal Bug: {{task}}\n\nImplement a fix that addresses the root cause without introducing regressions.',
           expects: 'fix_implementation',
           type: 'single',
-          position: 1
+          position: 1,
         },
         {
           stepId: 'verify',
           name: 'Verification',
           agentId: 'qa',
-          inputTemplate: 'Verify the bug fix:\n\nFix Implementation:\n{{fix_implementation}}\n\nOriginal Bug: {{task}}\n\n1. Confirm the fix resolves the reported issue\n2. Check for any regressions\n3. Verify edge cases\n4. Report verification results',
+          inputTemplate:
+            'Verify the bug fix:\n\nFix Implementation:\n{{fix_implementation}}\n\nOriginal Bug: {{task}}\n\n1. Confirm the fix resolves the reported issue\n2. Check for any regressions\n3. Verify edge cases\n4. Report verification results',
           expects: 'verification_report',
           type: 'single',
-          position: 2
-        }
-      ]
+          position: 2,
+        },
+      ],
     },
     {
       name: 'content-review',
@@ -184,32 +192,33 @@ async function seed() {
           stepId: 'review',
           name: 'Content Review',
           agentId: 'reviewer',
-          inputTemplate: 'Review the following content:\n\nContent: {{task}}\n\nCheck for:\n1. Accuracy\n2. Completeness\n3. Quality\n4. Brand guidelines compliance\n\nApprove or request changes.',
+          inputTemplate:
+            'Review the following content:\n\nContent: {{task}}\n\nCheck for:\n1. Accuracy\n2. Completeness\n3. Quality\n4. Brand guidelines compliance\n\nApprove or request changes.',
           expects: 'approval',
           type: 'approval',
-          position: 0
-        }
-      ]
-    }
-  ];
+          position: 0,
+        },
+      ],
+    },
+  ]
 
   for (const workflowData of defaultWorkflows) {
     const existingWorkflow = await prisma.workflow.findFirst({
-      where: { name: workflowData.name }
-    });
+      where: { name: workflowData.name },
+    })
 
     if (existingWorkflow) {
       // Delete existing steps and recreate
       await prisma.workflowStep.deleteMany({
-        where: { workflowId: existingWorkflow.id }
-      });
+        where: { workflowId: existingWorkflow.id },
+      })
 
       await prisma.workflow.update({
         where: { id: existingWorkflow.id },
         data: {
-          description: workflowData.description
-        }
-      });
+          description: workflowData.description,
+        },
+      })
 
       // Create new steps
       for (const step of workflowData.steps) {
@@ -222,20 +231,20 @@ async function seed() {
             inputTemplate: step.inputTemplate,
             expects: step.expects,
             type: step.type,
-            position: step.position
-          }
-        });
+            position: step.position,
+          },
+        })
       }
-      console.log(`✅ Workflow updated: ${workflowData.name}`);
+      console.log(`✅ Workflow updated: ${workflowData.name}`)
     } else {
       // Create new workflow
       const workflow = await prisma.workflow.create({
         data: {
           name: workflowData.name,
           description: workflowData.description,
-          config: {}
-        }
-      });
+          config: {},
+        },
+      })
 
       // Create steps
       for (const step of workflowData.steps) {
@@ -248,22 +257,22 @@ async function seed() {
             inputTemplate: step.inputTemplate,
             expects: step.expects,
             type: step.type,
-            position: step.position
-          }
-        });
+            position: step.position,
+          },
+        })
       }
-      console.log(`✅ Workflow created: ${workflowData.name}`);
+      console.log(`✅ Workflow created: ${workflowData.name}`)
     }
   }
 
-  console.log('🎉 Seeding complete!');
+  console.log('🎉 Seeding complete!')
 }
 
 seed()
   .catch((e) => {
-    console.error('❌ Seeding failed:', e);
-    process.exit(1);
+    console.error('❌ Seeding failed:', e)
+    process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect();
-  });
+    await prisma.$disconnect()
+  })

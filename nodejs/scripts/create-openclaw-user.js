@@ -9,9 +9,9 @@ import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 const SALT_ROUNDS = 12
-const DEFAULT_PASSWORD = 'openclaw'
+const DEFAULT_PASSWORD = process.env.OPENCLAW_PASSWORD || 'changeme'
 
-async function createOpenClawUser() {
+async function createOpenClawUser () {
   try {
     console.log('🔐 Creating OpenClaw system user in ClawDeck...\n')
 
@@ -20,7 +20,7 @@ async function createOpenClawUser() {
 
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
-      where: { emailAddress: 'openclaw@system.local' }
+      where: { emailAddress: 'openclaw@system.local' },
     })
 
     if (existingUser) {
@@ -32,8 +32,8 @@ async function createOpenClawUser() {
           agentAutoMode: true,
           agentName: 'OpenClaw System',
           agentEmoji: '🤖',
-          passwordDigest: passwordDigest
-        }
+          passwordDigest,
+        },
       })
 
       console.log('\n📋 OpenClaw System User Details:')
@@ -54,8 +54,8 @@ async function createOpenClawUser() {
         agentAutoMode: true,
         agentName: 'OpenClaw System',
         agentEmoji: '🤖',
-        passwordDigest: passwordDigest
-      }
+        passwordDigest,
+      },
     })
 
     console.log('\n📋 OpenClaw System User Details:')
@@ -68,7 +68,6 @@ async function createOpenClawUser() {
     console.log('   Created:', user.createdAt.toISOString())
 
     return user
-
   } catch (error) {
     console.error('❌ Error:', error.message)
     throw error
@@ -82,7 +81,7 @@ createOpenClawUser()
     console.log('\n✅ Phase 1.2: User creation completed')
     process.exit(0)
   })
-  .catch(error => {
+  .catch((error) => {
     console.error('\n❌ Phase 1.2: User creation failed')
     process.exit(1)
   })

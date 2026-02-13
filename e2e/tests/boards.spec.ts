@@ -3,8 +3,8 @@ import { login, createBoard, deleteBoard, createTask, deleteTask } from '../help
 
 test.describe('Boards / Kanban', () => {
   let token: string
-  let createdBoardIds: string[] = []
-  let createdTaskIds: string[] = []
+  const createdBoardIds: string[] = []
+  const createdTaskIds: string[] = []
 
   test.beforeAll(async ({ request }) => {
     token = await login(request)
@@ -89,7 +89,10 @@ test.describe('Boards / Kanban', () => {
     await page.locator('textarea[name="description"]').fill('Task description')
 
     // Save
-    await page.getByRole('button', { name: /save|create/i }).first().click()
+    await page
+      .getByRole('button', { name: /save|create/i })
+      .first()
+      .click()
 
     // Should show in kanban
     await expect(page.getByText(taskName)).toBeVisible({ timeout: 10000 })
@@ -126,8 +129,11 @@ test.describe('Boards / Kanban', () => {
     await page.getByText(task.name).click()
 
     // Click delete (handle confirmation dialog)
-    page.on('dialog', dialog => dialog.accept())
-    await page.getByRole('button', { name: /delete/i }).first().click()
+    page.on('dialog', (dialog) => dialog.accept())
+    await page
+      .getByRole('button', { name: /delete/i })
+      .first()
+      .click()
 
     // Should be gone
     await expect(page.getByText(task.name)).not.toBeVisible({ timeout: 5000 })

@@ -1,4 +1,9 @@
-import type { FastifyRequest, FastifyReply, HookHandlerDoneFunction, FastifyInstance } from 'fastify'
+import type {
+  FastifyRequest,
+  FastifyReply,
+  HookHandlerDoneFunction,
+  FastifyInstance,
+} from 'fastify'
 import { prisma } from '../db/prisma.js'
 import type { User } from '@prisma/client'
 import { createAuthService } from '../services/auth.service.js'
@@ -18,7 +23,10 @@ declare module 'fastify' {
  * 2. API token (Bearer token for API access)
  * 3. Agent headers (X-Agent-Name, X-Agent-Emoji for agent identification)
  */
-export async function authenticateRequest(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+export async function authenticateRequest (
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
   const authService = createAuthService(request.server)
   const authHeader = request.headers.authorization
   const agentName = request.headers['x-agent-name'] as string | undefined
@@ -65,7 +73,10 @@ export async function authenticateRequest(request: FastifyRequest, reply: Fastif
 /**
  * Authenticate requests with admin role requirement
  */
-export async function authenticateAdmin(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+export async function authenticateAdmin (
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
   await authenticateRequest(request, reply)
 
   if (!request.user.admin) {
@@ -79,7 +90,10 @@ export async function authenticateAdmin(request: FastifyRequest, reply: FastifyR
  * Optional authentication - attaches user if valid token provided,
  * but doesn't throw if missing/invalid
  */
-export async function optionalAuthenticate(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+export async function optionalAuthenticate (
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
   const authService = createAuthService(request.server)
   const authHeader = request.headers.authorization
 
@@ -102,21 +116,23 @@ export async function optionalAuthenticate(request: FastifyRequest, reply: Fasti
 
   if (user) {
     request.user = user
-    request.agentName = (request.headers['x-agent-name'] as string | undefined) ?? user.agentName ?? null
-    request.agentEmoji = (request.headers['x-agent-emoji'] as string | undefined) ?? user.agentEmoji ?? null
+    request.agentName =
+      (request.headers['x-agent-name'] as string | undefined) ?? user.agentName ?? null
+    request.agentEmoji =
+      (request.headers['x-agent-emoji'] as string | undefined) ?? user.agentEmoji ?? null
   }
 }
 
 /**
  * Decorator to apply authentication to routes
  */
-export async function authenticateRoutes(fastify: FastifyInstance): Promise<void> {
+export async function authenticateRoutes (fastify: FastifyInstance): Promise<void> {
   fastify.addHook('onRequest', authenticateRequest)
 }
 
 /**
  * Decorator to apply admin authentication to routes
  */
-export async function authenticateAdminRoutes(fastify: FastifyInstance): Promise<void> {
+export async function authenticateAdminRoutes (fastify: FastifyInstance): Promise<void> {
   fastify.addHook('onRequest', authenticateAdmin)
 }

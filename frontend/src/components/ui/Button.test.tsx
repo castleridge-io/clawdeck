@@ -15,12 +15,12 @@ describe('Button', () => {
   })
 
   it('applies secondary variant', () => {
-    render(<Button variant="secondary">Secondary</Button>)
+    render(<Button variant='secondary'>Secondary</Button>)
     expect(screen.getByTestId('button')).toHaveClass('bg-slate-700')
   })
 
   it('applies danger variant', () => {
-    render(<Button variant="danger">Danger</Button>)
+    render(<Button variant='danger'>Danger</Button>)
     expect(screen.getByTestId('button')).toHaveClass('bg-red-600')
   })
 
@@ -46,21 +46,25 @@ describe('Button', () => {
   it('does not call onClick when disabled', async () => {
     const user = userEvent.setup()
     const onClick = vi.fn()
-    render(<Button disabled onClick={onClick}>Click</Button>)
+    render(
+      <Button disabled onClick={onClick}>
+        Click
+      </Button>
+    )
     await user.click(screen.getByTestId('button'))
     expect(onClick).not.toHaveBeenCalled()
   })
 
   it('applies custom className', () => {
-    render(<Button className="custom-class">Custom</Button>)
+    render(<Button className='custom-class'>Custom</Button>)
     expect(screen.getByTestId('button')).toHaveClass('custom-class')
   })
 
   it('applies size variants', () => {
-    const { rerender } = render(<Button size="sm">Small</Button>)
+    const { rerender } = render(<Button size='sm'>Small</Button>)
     expect(screen.getByTestId('button')).toHaveClass('px-3', 'py-1.5', 'text-sm')
 
-    rerender(<Button size="lg">Large</Button>)
+    rerender(<Button size='lg'>Large</Button>)
     expect(screen.getByTestId('button')).toHaveClass('px-6', 'py-3', 'text-lg')
   })
 })

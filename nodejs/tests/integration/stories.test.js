@@ -18,8 +18,8 @@ async function setupTestEnvironment () {
       passwordDigest: 'hash',
       agentAutoMode: true,
       agentName: 'StoryTestAgent',
-      agentEmoji: '📖'
-    }
+      agentEmoji: '📖',
+    },
   })
 
   // Create test API token
@@ -28,8 +28,8 @@ async function setupTestEnvironment () {
     data: {
       token: testToken,
       name: 'Story Test Token',
-      userId: testUser.id
-    }
+      userId: testUser.id,
+    },
   })
 
   // Create test board
@@ -37,8 +37,8 @@ async function setupTestEnvironment () {
     data: {
       name: 'Story Test Board',
       userId: testUser.id,
-      position: 0
-    }
+      position: 0,
+    },
   })
 
   // Create test workflow
@@ -48,10 +48,15 @@ async function setupTestEnvironment () {
       description: 'Workflow for story testing',
       config: {
         steps: [
-          { stepId: 'implement', agentId: 'developer', inputTemplate: 'Implement: {story}', type: 'loop' }
-        ]
-      }
-    }
+          {
+            stepId: 'implement',
+            agentId: 'developer',
+            inputTemplate: 'Implement: {story}',
+            type: 'loop',
+          },
+        ],
+      },
+    },
   })
 
   // Create test task
@@ -59,8 +64,8 @@ async function setupTestEnvironment () {
     data: {
       name: 'Story Test Task',
       boardId: testBoard.id,
-      userId: testUser.id
-    }
+      userId: testUser.id,
+    },
   })
 
   // Create test run
@@ -71,8 +76,8 @@ async function setupTestEnvironment () {
       taskId: testTask.id.toString(),
       task: 'Test task for stories',
       status: 'running',
-      context: '{}'
-    }
+      context: '{}',
+    },
   })
 }
 
@@ -95,10 +100,10 @@ async function makeRequest (method, path, body = null, headers = {}) {
   const options = {
     method,
     headers: {
-      'Authorization': `Bearer ${testToken}`,
+      Authorization: `Bearer ${testToken}`,
       'X-Agent-Name': 'StoryTestAgent',
-      ...headers
-    }
+      ...headers,
+    },
   }
 
   if (body !== null) {
@@ -114,7 +119,7 @@ async function makeRequest (method, path, body = null, headers = {}) {
     const text = await response.text()
     return {
       status: response.status,
-      data: text ? JSON.parse(text) : null
+      data: text ? JSON.parse(text) : null,
     }
   } catch (error) {
     return { status: 0, error: error.message }
@@ -149,8 +154,8 @@ describe('Stories API', () => {
           storyId: 'story-1',
           title: 'First story',
           description: 'First story description',
-          status: 'pending'
-        }
+          status: 'pending',
+        },
       })
 
       await prisma.story.create({
@@ -161,8 +166,8 @@ describe('Stories API', () => {
           storyId: 'story-2',
           title: 'Second story',
           description: 'Second story description',
-          status: 'pending'
-        }
+          status: 'pending',
+        },
       })
 
       const result = await makeRequest('GET', `/api/v1/runs/${testRun.id}/stories`)
@@ -194,8 +199,8 @@ describe('Stories API', () => {
           title: 'Get story test',
           description: 'Description',
           acceptanceCriteria: '- Criteria 1\n- Criteria 2',
-          status: 'pending'
-        }
+          status: 'pending',
+        },
       })
 
       const result = await makeRequest('GET', `/api/v1/runs/${testRun.id}/stories/${story.id}`)
@@ -208,7 +213,10 @@ describe('Stories API', () => {
     })
 
     it('should return 404 for non-existent story', async () => {
-      const result = await makeRequest('GET', `/api/v1/runs/${testRun.id}/stories/non-existent-story`)
+      const result = await makeRequest(
+        'GET',
+        `/api/v1/runs/${testRun.id}/stories/non-existent-story`
+      )
 
       assert.strictEqual(result.status, 404)
       assert.strictEqual(result.data.error, 'Story not found')
@@ -222,7 +230,7 @@ describe('Stories API', () => {
         story_id: 'new-story',
         title: 'New Story',
         description: 'New story description',
-        acceptance_criteria: ['AC1', 'AC2', 'AC3']
+        acceptance_criteria: ['AC1', 'AC2', 'AC3'],
       })
 
       assert.strictEqual(result.status, 201)
@@ -234,7 +242,7 @@ describe('Stories API', () => {
 
     it('should require title', async () => {
       const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/stories`, {
-        description: 'Story without title'
+        description: 'Story without title',
       })
 
       assert.strictEqual(result.status, 400)
@@ -243,7 +251,7 @@ describe('Stories API', () => {
 
     it('should return 404 for non-existent run', async () => {
       const result = await makeRequest('POST', '/api/v1/runs/non-existent-run/stories', {
-        title: 'Test'
+        title: 'Test',
       })
 
       assert.strictEqual(result.status, 404)
@@ -255,7 +263,7 @@ describe('Stories API', () => {
         story_index: 100,
         story_id: 'object-criteria-story',
         title: 'Story with object criteria',
-        acceptance_criteria: { functionality: 'Must work', performance: 'Fast' }
+        acceptance_criteria: { functionality: 'Must work', performance: 'Fast' },
       })
 
       assert.strictEqual(result.status, 201)
@@ -269,7 +277,7 @@ describe('Stories API', () => {
         story_index: 101,
         story_id: 'string-criteria-story',
         title: 'Story with string criteria',
-        acceptance_criteria: 'Custom acceptance criteria string'
+        acceptance_criteria: 'Custom acceptance criteria string',
       })
 
       assert.strictEqual(result.status, 201)
@@ -290,13 +298,16 @@ describe('Stories API', () => {
           storyId: 'story-start',
           title: 'Story to start',
           description: 'Description',
-          status: 'pending'
-        }
+          status: 'pending',
+        },
       })
     })
 
     it('should start a story successfully', async () => {
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/stories/${testStory.id}/start`)
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/stories/${testStory.id}/start`
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.success, true)
@@ -306,10 +317,13 @@ describe('Stories API', () => {
     it('should fail to start non-pending story', async () => {
       await prisma.story.update({
         where: { id: testStory.id },
-        data: { status: 'running' }
+        data: { status: 'running' },
       })
 
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/stories/${testStory.id}/start`)
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/stories/${testStory.id}/start`
+      )
 
       assert.strictEqual(result.status, 400)
       assert.ok(result.data.error.includes('cannot be started'))
@@ -329,31 +343,42 @@ describe('Stories API', () => {
           storyId: 'story-complete',
           title: 'Story to complete',
           description: 'Description',
-          status: 'running'
-        }
+          status: 'running',
+        },
       })
     })
 
     it('should complete a story successfully', async () => {
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/stories/${testStory.id}/complete`, {
-        output: { implemented: true, files: ['file1.js', 'file2.js'] }
-      })
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/stories/${testStory.id}/complete`,
+        {
+          output: { implemented: true, files: ['file1.js', 'file2.js'] },
+        }
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.success, true)
       assert.strictEqual(result.data.data.status, 'completed')
-      assert.deepStrictEqual(result.data.data.output, { implemented: true, files: ['file1.js', 'file2.js'] })
+      assert.deepStrictEqual(result.data.data.output, {
+        implemented: true,
+        files: ['file1.js', 'file2.js'],
+      })
     })
 
     it('should fail to complete non-running story', async () => {
       await prisma.story.update({
         where: { id: testStory.id },
-        data: { status: 'pending' }
+        data: { status: 'pending' },
       })
 
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/stories/${testStory.id}/complete`, {
-        output: { done: true }
-      })
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/stories/${testStory.id}/complete`,
+        {
+          output: { done: true },
+        }
+      )
 
       assert.strictEqual(result.status, 400)
       assert.ok(result.data.error.includes('cannot be completed'))
@@ -374,15 +399,19 @@ describe('Stories API', () => {
           title: 'Story to fail',
           description: 'Description',
           status: 'running',
-          maxRetries: 3
-        }
+          maxRetries: 3,
+        },
       })
     })
 
     it('should fail a story and queue retry', async () => {
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/stories/${testStory.id}/fail`, {
-        error: 'Implementation failed'
-      })
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/stories/${testStory.id}/fail`,
+        {
+          error: 'Implementation failed',
+        }
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.success, true)
@@ -392,7 +421,11 @@ describe('Stories API', () => {
     })
 
     it('should require error message', async () => {
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/stories/${testStory.id}/fail`, {})
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/stories/${testStory.id}/fail`,
+        {}
+      )
 
       assert.strictEqual(result.status, 400)
       assert.ok(result.data.error.includes('error message is required'))
@@ -402,12 +435,16 @@ describe('Stories API', () => {
       // Set retry count to max
       await prisma.story.update({
         where: { id: testStory.id },
-        data: { retryCount: 3 }
+        data: { retryCount: 3 },
       })
 
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/stories/${testStory.id}/fail`, {
-        error: 'Final failure'
-      })
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/stories/${testStory.id}/fail`,
+        {
+          error: 'Final failure',
+        }
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.will_retry, false)
@@ -427,19 +464,23 @@ describe('Stories API', () => {
           expects: 'implementation',
           type: 'loop',
           status: 'running',
-          currentStoryId: testStory.id
-        }
+          currentStoryId: testStory.id,
+        },
       })
 
       // Set story retry count to max
       await prisma.story.update({
         where: { id: testStory.id },
-        data: { retryCount: 3 }
+        data: { retryCount: 3 },
       })
 
-      const result = await makeRequest('POST', `/api/v1/runs/${testRun.id}/stories/${testStory.id}/fail`, {
-        error: 'Final failure - step should also fail'
-      })
+      const result = await makeRequest(
+        'POST',
+        `/api/v1/runs/${testRun.id}/stories/${testStory.id}/fail`,
+        {
+          error: 'Final failure - step should also fail',
+        }
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.will_retry, false)
@@ -460,17 +501,19 @@ describe('Stories API', () => {
           storyId: 'story-patch',
           title: 'Story to patch',
           description: 'Description',
-          status: 'completed'
-        }
+          status: 'completed',
+        },
       })
 
       const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/stories/${story.id}`, {
-        output: { notes: 'Added some notes after completion' }
+        output: { notes: 'Added some notes after completion' },
       })
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.success, true)
-      assert.deepStrictEqual(result.data.data.output, { notes: 'Added some notes after completion' })
+      assert.deepStrictEqual(result.data.data.output, {
+        notes: 'Added some notes after completion',
+      })
     })
 
     it('should require status or output', async () => {
@@ -482,11 +525,15 @@ describe('Stories API', () => {
           storyId: 'story-patch-2',
           title: 'Story 2',
           description: 'Description',
-          status: 'pending'
-        }
+          status: 'pending',
+        },
       })
 
-      const result = await makeRequest('PATCH', `/api/v1/runs/${testRun.id}/stories/${story.id}`, {})
+      const result = await makeRequest(
+        'PATCH',
+        `/api/v1/runs/${testRun.id}/stories/${story.id}`,
+        {}
+      )
 
       assert.strictEqual(result.status, 400)
       assert.ok(result.data.error.includes('status or output'))

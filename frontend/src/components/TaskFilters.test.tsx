@@ -24,7 +24,7 @@ describe('TaskFilters', () => {
     vi.clearAllMocks()
   })
 
-  function renderTaskFilters(filters: TaskFiltersType = defaultFilters) {
+  function renderTaskFilters (filters: TaskFiltersType = defaultFilters) {
     return render(
       <TaskFilters
         filters={filters}

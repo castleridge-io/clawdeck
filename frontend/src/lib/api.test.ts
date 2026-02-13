@@ -57,10 +57,7 @@ describe('api module', () => {
       const result = await getTasks('board-123')
 
       expect(result).toEqual(mockTasks)
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/v1/tasks?board_id=board-123',
-        expect.any(Object)
-      )
+      expect(fetch).toHaveBeenCalledWith('/api/v1/tasks?board_id=board-123', expect.any(Object))
     })
   })
 

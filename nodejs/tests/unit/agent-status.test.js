@@ -7,7 +7,7 @@ import assert from 'node:assert'
  * - idle: last active within 30 minutes
  * - offline: last active more than 30 minutes ago or never
  */
-function computeAgentStatus(lastActiveAt) {
+function computeAgentStatus (lastActiveAt) {
   if (!lastActiveAt) return 'offline'
 
   const now = new Date()

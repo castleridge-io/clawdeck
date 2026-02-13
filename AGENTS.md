@@ -9,6 +9,7 @@ ClawDeck is a Rails 8.1 todo application with passwordless email authentication 
 ## Development Commands
 
 ### Initial Setup
+
 ```bash
 bin/setup              # Install dependencies, prepare database, start server
 bin/setup --skip-server  # Setup without starting the server
@@ -16,6 +17,7 @@ bin/setup --reset      # Setup with database reset
 ```
 
 ### Running the Application
+
 ```bash
 bin/dev                # Start development server (web + Tailwind CSS watch)
 bin/rails server       # Start web server only
@@ -23,6 +25,7 @@ bin/rails tailwindcss:watch  # Watch and rebuild Tailwind CSS
 ```
 
 ### Database
+
 ```bash
 bin/rails db:prepare   # Create, migrate, and seed database
 bin/rails db:migrate   # Run pending migrations
@@ -31,6 +34,7 @@ bin/rails db:seed:replant  # Truncate and reseed
 ```
 
 ### Testing
+
 ```bash
 bin/rails test         # Run all unit/integration tests
 bin/rails test:system  # Run system tests (Capybara + Selenium)
@@ -39,6 +43,7 @@ bin/rails test test/models/user_test.rb:10  # Run specific test line
 ```
 
 ### Code Quality and Security
+
 ```bash
 bin/rubocop            # Run RuboCop linter (Omakase Ruby style)
 bin/rubocop -a         # Auto-correct offenses
@@ -49,6 +54,7 @@ bin/ci                 # Run full CI suite (setup, linting, security, tests)
 ```
 
 ### Asset Management
+
 ```bash
 bin/rails assets:precompile  # Precompile assets for production
 bin/importmap pin <package>  # Pin JavaScript package from CDN
@@ -56,6 +62,7 @@ bin/importmap unpin <package>  # Unpin JavaScript package
 ```
 
 ### Deployment
+
 ```bash
 ssh root@YOUR_SERVER_IP  # SSH to production VPS
 systemctl status puma         # Check Puma status
@@ -69,6 +76,7 @@ tail -f /var/log/clawdeck/solid_queue.log  # View job logs
 ## Architecture
 
 ### Technology Stack
+
 - **Ruby/Rails**: 3.3.1 / 8.1.0
 - **Database**: PostgreSQL with multi-database setup (primary, cache, queue, cable)
 - **Background Jobs**: Solid Queue (database-backed)
@@ -81,6 +89,7 @@ tail -f /var/log/clawdeck/solid_queue.log  # View job logs
 - **Web Server**: Puma with Nginx reverse proxy
 
 ### Application Structure
+
 The application follows standard Rails 8 conventions with these key components:
 
 - **Module Name**: `ClawDeck` (config/application.rb:9)
@@ -89,6 +98,7 @@ The application follows standard Rails 8 conventions with these key components:
 - **Asset Pipeline**: Propshaft for static assets, importmap-rails for JavaScript modules
 
 ### Key Models and Relationships
+
 - **User**: Email-based authentication with 6-digit verification codes (15-minute expiry)
   - `has_many :sessions` - User sessions with user_agent and IP tracking
   - `has_many :projects` - User's todo projects
@@ -124,7 +134,9 @@ The application follows standard Rails 8 conventions with these key components:
   - Stored in signed, permanent, httponly, lax same-site cookies
 
 ### Authentication System
+
 Passwordless email authentication using 6-digit verification codes:
+
 1. User enters email address
 2. System generates 6-digit code (valid for 15 minutes)
 3. Code sent via Resend API
@@ -132,19 +144,23 @@ Passwordless email authentication using 6-digit verification codes:
 5. Session stored in signed cookie with user_agent and IP tracking
 
 Key concerns: `Authentication` module in app/controllers/concerns/authentication.rb provides:
+
 - `require_authentication` - Before action for protected routes
 - `allow_unauthenticated_access` - Class method to skip auth
 - `start_new_session_for(user)` - Creates session with cookie
 - `terminate_session` - Destroys session and cookie
 
 ### Email Configuration
+
 - Development: Uses letter_opener gem (emails open in browser)
 - Production: SMTP (configure in production.rb)
 - Mailers:
   - `PasswordsMailer` - Password reset emails
 
 ### Database Configuration
+
 Development uses local PostgreSQL. Production uses multi-database setup:
+
 - `primary`: Main application data (users, projects, tasks, sessions)
 - `cache`: Solid Cache data (db/cache_migrate)
 - `queue`: Solid Queue jobs (db/queue_migrate)
@@ -153,6 +169,7 @@ Development uses local PostgreSQL. Production uses multi-database setup:
 Connection pooling uses `DB_POOL` env var or `RAILS_MAX_THREADS` (default: 5).
 
 ### Routes
+
 - Root: `pages#home` (unauthenticated landing page)
 - Sessions: `resource :session` with custom verify actions (GET/POST)
 - Passwords: `resources :passwords, param: :token`
@@ -167,7 +184,9 @@ Connection pooling uses `DB_POOL` env var or `RAILS_MAX_THREADS` (default: 5).
 - Health: GET /up (rails/health#show)
 
 ### CI Pipeline
+
 GitHub Actions runs on PR and push to main:
+
 1. **scan_ruby**: Brakeman (security) + bundler-audit (gem vulnerabilities)
 2. **scan_js**: importmap audit (JS vulnerabilities)
 3. **lint**: RuboCop style check
@@ -175,6 +194,7 @@ GitHub Actions runs on PR and push to main:
 5. **system-test**: System tests with PostgreSQL service (screenshots on failure)
 
 Local CI command (`bin/ci`) runs:
+
 1. Setup (dependencies + database)
 2. RuboCop style check
 3. Security audits (bundler-audit, importmap audit, brakeman)
@@ -183,7 +203,9 @@ Local CI command (`bin/ci`) runs:
 6. Database seed test
 
 ### Deployment Flow
+
 GitHub Actions auto-deploys on push to main:
+
 1. SSH to VPS (using VPS_HOST and VPS_SSH_KEY secrets)
 2. Pull latest code from main branch
 3. Install dependencies (`bundle install --deployment`)
@@ -197,6 +219,7 @@ GitHub Actions auto-deploys on push to main:
 Deployment scripts are in `.github/workflows/deploy.yml`.
 
 ### Production Environment
+
 - **Location**: DigitalOcean VPS at /var/www/clawdeck
 - **Services**:
   - Puma (web server on port 3000)
@@ -208,13 +231,15 @@ Deployment scripts are in `.github/workflows/deploy.yml`.
   - Required: RAILS_MASTER_KEY, DATABASE_PASSWORD, DATABASE_USERNAME, RESEND_API_KEY
 
 ### Testing Configuration
+
 - Test parallelization enabled (uses all processor cores)
-- Fixtures loaded from test/fixtures/*.yml
+- Fixtures loaded from test/fixtures/\*.yml
 - Custom test helper: test/test_helpers/session_test_helper.rb
 - System tests use Capybara + Selenium WebDriver
 - GitHub Actions uses PostgreSQL 16 service container
 
 ### Frontend Architecture
+
 - **Stimulus Controllers**: Located in app/javascript/controllers/
   - Drag-and-drop: `sortable_controller.js`, `projects_sortable_controller.js`, `task_list_sortable_controller.js`
   - Inline editing: `inline_task_controller.js`, `inline_task_list_controller.js`, `inline_project_controller.js`
@@ -226,6 +251,7 @@ Deployment scripts are in `.github/workflows/deploy.yml`.
   - Task list operations use turbo_stream for DOM updates
 
 ### Development Guidelines
+
 - Never default to regular JS if you can use Turbo/Hotwire to accomplish the same thing
 - Always follow Rails conventions and use DRY principles
 - This project is deployed via Github actions by pushing to main branch

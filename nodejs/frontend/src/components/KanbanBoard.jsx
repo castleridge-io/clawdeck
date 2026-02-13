@@ -9,7 +9,17 @@ const STATUS_LABELS = {
   done: 'Done',
 }
 
-export default function KanbanBoard({ board, tasks, columns, onTaskUpdate, onTaskDelete, onTaskAssign, onTaskClaim, onTaskComplete, onTaskEdit }) {
+export default function KanbanBoard({
+  board,
+  tasks,
+  columns,
+  onTaskUpdate,
+  onTaskDelete,
+  onTaskAssign,
+  onTaskClaim,
+  onTaskComplete,
+  onTaskEdit,
+}) {
   const [draggedTask, setDraggedTask] = useState(null)
 
   function handleDragStart(task) {
@@ -32,14 +42,14 @@ export default function KanbanBoard({ board, tasks, columns, onTaskUpdate, onTas
   }
 
   const tasksByColumn = columns.reduce((acc, column) => {
-    acc[column.id] = tasks.filter(task => task.status === column.id)
+    acc[column.id] = tasks.filter((task) => task.status === column.id)
     return acc
   }, {})
 
   return (
-    <div className="kanban-board">
-      <div className="kanban-columns">
-        {columns.map(column => {
+    <div className='kanban-board'>
+      <div className='kanban-columns'>
+        {columns.map((column) => {
           const columnTasks = tasksByColumn[column.id] || []
 
           return (
@@ -49,22 +59,22 @@ export default function KanbanBoard({ board, tasks, columns, onTaskUpdate, onTas
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(column.id)}
             >
-              <div className="column-header">
-                <div className="column-title">
+              <div className='column-header'>
+                <div className='column-title'>
                   <div className={`column-indicator column-indicator-${column.color}`} />
                   <h3>{column.name}</h3>
                 </div>
-                <span className="column-count">{columnTasks.length}</span>
+                <span className='column-count'>{columnTasks.length}</span>
               </div>
 
-              <div className="column-tasks">
+              <div className='column-tasks'>
                 {columnTasks.length === 0 ? (
-                  <div className="empty-column">
+                  <div className='empty-column'>
                     <p>No tasks</p>
-                    <span className="empty-hint">Drag tasks here or create new ones</span>
+                    <span className='empty-hint'>Drag tasks here or create new ones</span>
                   </div>
                 ) : (
-                  columnTasks.map(task => (
+                  columnTasks.map((task) => (
                     <TaskCard
                       key={task.id}
                       task={task}
@@ -87,7 +97,16 @@ export default function KanbanBoard({ board, tasks, columns, onTaskUpdate, onTas
   )
 }
 
-function TaskCard({ task, onDragStart, onEdit, onDelete, onAssign, onClaim, onComplete, isDragging }) {
+function TaskCard({
+  task,
+  onDragStart,
+  onEdit,
+  onDelete,
+  onAssign,
+  onClaim,
+  onComplete,
+  isDragging,
+}) {
   const [showActions, setShowActions] = useState(false)
 
   const priorityColors = {
@@ -105,47 +124,42 @@ function TaskCard({ task, onDragStart, onEdit, onDelete, onAssign, onClaim, onCo
       onDragEnd={() => {}}
       onClick={() => setShowActions(!showActions)}
     >
-      <div className="task-priority" style={{ backgroundColor: priorityColors[task.priority] || priorityColors.none }} />
+      <div
+        className='task-priority'
+        style={{ backgroundColor: priorityColors[task.priority] || priorityColors.none }}
+      />
 
-      <div className="task-content">
-        <h4 className="task-title">{task.name}</h4>
-        {task.description && (
-          <p className="task-description">{task.description}</p>
-        )}
+      <div className='task-content'>
+        <h4 className='task-title'>{task.name}</h4>
+        {task.description && <p className='task-description'>{task.description}</p>}
       </div>
 
-      <div className="task-meta">
-        <div className="task-tags">
-          {task.tags?.map(tag => (
-            <span key={tag} className="task-tag">{tag}</span>
+      <div className='task-meta'>
+        <div className='task-tags'>
+          {task.tags?.map((tag) => (
+            <span key={tag} className='task-tag'>
+              {tag}
+            </span>
           ))}
         </div>
 
-        <div className="task-actions">
-          {task.assigned_to_agent && (
-            <span className="task-badge assigned">✓ Assigned</span>
-          )}
-          {task.agent_claimed_at && (
-            <span className="task-badge claimed">⚡ Active</span>
-          )}
+        <div className='task-actions'>
+          {task.assigned_to_agent && <span className='task-badge assigned'>✓ Assigned</span>}
+          {task.agent_claimed_at && <span className='task-badge claimed'>⚡ Active</span>}
         </div>
       </div>
 
       {showActions && (
-        <div className="task-action-buttons" onClick={e => e.stopPropagation()}>
-          <button
-            onClick={() => onEdit(task)}
-            className="action-btn edit"
-            title="Edit task"
-          >
+        <div className='task-action-buttons' onClick={(e) => e.stopPropagation()}>
+          <button onClick={() => onEdit(task)} className='action-btn edit' title='Edit task'>
             ✏️ Edit
           </button>
 
           {!task.assigned_to_agent && (
             <button
               onClick={() => onAssign(task.id)}
-              className="action-btn assign"
-              title="Assign to agent"
+              className='action-btn assign'
+              title='Assign to agent'
             >
               📋 Assign
             </button>
@@ -154,8 +168,8 @@ function TaskCard({ task, onDragStart, onEdit, onDelete, onAssign, onClaim, onCo
           {task.assigned_to_agent && task.status === 'up_next' && (
             <button
               onClick={() => onClaim(task.id)}
-              className="action-btn claim"
-              title="Claim task"
+              className='action-btn claim'
+              title='Claim task'
             >
               ⚡ Claim
             </button>
@@ -164,8 +178,8 @@ function TaskCard({ task, onDragStart, onEdit, onDelete, onAssign, onClaim, onCo
           {task.status !== 'done' && (
             <button
               onClick={() => onComplete(task.id)}
-              className="action-btn complete"
-              title="Mark as done"
+              className='action-btn complete'
+              title='Mark as done'
             >
               ✅ Complete
             </button>
@@ -173,8 +187,8 @@ function TaskCard({ task, onDragStart, onEdit, onDelete, onAssign, onClaim, onCo
 
           <button
             onClick={() => onDelete(task.id)}
-            className="action-btn delete"
-            title="Delete task"
+            className='action-btn delete'
+            title='Delete task'
           >
             🗑️ Delete
           </button>

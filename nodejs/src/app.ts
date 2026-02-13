@@ -15,16 +15,16 @@ import { archiveScheduler } from './services/archiveScheduler.js'
 
 dotenv.config()
 
-export default async function app(
+export default async function app (
   fastify: FastifyInstance,
   opts: FastifyPluginOptions
 ): Promise<void> {
   await fastify.register(cors, {
-    origin: process.env.CORS_ORIGIN || '*'
+    origin: process.env.CORS_ORIGIN || '*',
   })
 
   await fastify.register(jwt, {
-    secret: process.env.JWT_SECRET || 'dev-secret-change-in-production'
+    secret: process.env.JWT_SECRET || 'dev-secret-change-in-production',
   })
 
   await fastify.register(multipart)
@@ -36,9 +36,10 @@ export default async function app(
   fastify.decorate('prisma', prisma)
 
   fastify.setSerializerCompiler(() => {
-    return (data: unknown) => JSON.stringify(data, (_key: string, value: unknown) => {
-      return typeof value === 'bigint' ? value.toString() : value
-    })
+    return (data: unknown) =>
+      JSON.stringify(data, (_key: string, value: unknown) => {
+        return typeof value === 'bigint' ? value.toString() : value
+      })
   })
 
   fastify.get('/up', async () => {
@@ -57,7 +58,7 @@ export default async function app(
       try {
         const apiToken = await prisma.apiToken.findUnique({
           where: { token },
-          include: { user: true }
+          include: { user: true },
         })
 
         if (!apiToken) {
@@ -67,7 +68,7 @@ export default async function app(
 
         await prisma.apiToken.update({
           where: { id: apiToken.id },
-          data: { lastUsedAt: new Date() }
+          data: { lastUsedAt: new Date() },
         })
 
         const userId = apiToken.userId
@@ -75,7 +76,6 @@ export default async function app(
         wsManager.addClient(userId, connection)
 
         console.log(`WebSocket client connected for user ${userId}`)
-
       } catch (error) {
         console.error('WebSocket authentication failed:', error)
         connection.socket.close(1008, 'Authentication failed')

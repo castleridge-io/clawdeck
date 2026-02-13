@@ -3,7 +3,7 @@ import { createWorkflowService } from '../services/workflow.service.js'
 import { parseWorkflowYaml } from '../services/yaml-import.service.js'
 
 // Helper function to convert workflow to JSON response
-function workflowToJson(workflow) {
+function workflowToJson (workflow) {
   if (!workflow) return null
   return {
     id: workflow.id.toString ? workflow.id.toString() : workflow.id,
@@ -11,11 +11,11 @@ function workflowToJson(workflow) {
     description: workflow.description,
     steps: workflow.steps || [],
     created_at: workflow.createdAt ? workflow.createdAt.toISOString() : workflow.created_at,
-    updated_at: workflow.updatedAt ? workflow.updatedAt.toISOString() : workflow.updated_at
+    updated_at: workflow.updatedAt ? workflow.updatedAt.toISOString() : workflow.updated_at,
   }
 }
 
-export async function workflowsRoutes(fastify, opts) {
+export async function workflowsRoutes (fastify, opts) {
   const workflowService = createWorkflowService()
 
   // Apply authentication to all routes
@@ -34,7 +34,7 @@ export async function workflowsRoutes(fastify, opts) {
 
     return {
       success: true,
-      data: workflows.map(workflowToJson)
+      data: workflows.map(workflowToJson),
     }
   })
 
@@ -48,7 +48,7 @@ export async function workflowsRoutes(fastify, opts) {
 
     return {
       success: true,
-      data: workflowToJson(workflow)
+      data: workflowToJson(workflow),
     }
   })
 
@@ -60,12 +60,12 @@ export async function workflowsRoutes(fastify, opts) {
       const workflow = await workflowService.createWorkflow({
         name,
         description,
-        steps
+        steps,
       })
 
       return reply.code(201).send({
         success: true,
-        data: workflowToJson(workflow)
+        data: workflowToJson(workflow),
       })
     } catch (error) {
       if (error.message.includes('is required') || error.message.includes('must be an array')) {
@@ -83,7 +83,7 @@ export async function workflowsRoutes(fastify, opts) {
       const workflow = await workflowService.updateWorkflow(request.params.id, {
         name,
         description,
-        steps
+        steps,
       })
 
       if (!workflow) {
@@ -92,7 +92,7 @@ export async function workflowsRoutes(fastify, opts) {
 
       return {
         success: true,
-        data: workflowToJson(workflow)
+        data: workflowToJson(workflow),
       }
     } catch (error) {
       if (error.message.includes('is required') || error.message.includes('must be an array')) {
@@ -132,7 +132,7 @@ export async function workflowsRoutes(fastify, opts) {
 
       return reply.code(201).send({
         success: true,
-        data: workflowToJson(workflow)
+        data: workflowToJson(workflow),
       })
     } catch (error) {
       if (error.message.includes('YAML') || error.message.includes('is required')) {

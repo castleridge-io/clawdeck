@@ -5,12 +5,12 @@ const VALID_STATUSES = ['pending', 'running', 'completed', 'failed']
 /**
  * Create story service
  */
-export function createStoryService() {
+export function createStoryService () {
   return {
     /**
      * Create a new story
      */
-    async createStory(data) {
+    async createStory (data) {
       const {
         runId,
         storyIndex,
@@ -18,12 +18,12 @@ export function createStoryService() {
         title,
         description,
         acceptanceCriteria,
-        maxRetries = 3
+        maxRetries = 3,
       } = data
 
       // Verify run exists
       const run = await prisma.run.findUnique({
-        where: { id: runId }
+        where: { id: runId },
       })
 
       if (!run) {
@@ -42,40 +42,40 @@ export function createStoryService() {
           title,
           description,
           acceptanceCriteria,
-          maxRetries
-        }
+          maxRetries,
+        },
       })
     },
 
     /**
      * Get story by ID
      */
-    async getStory(id) {
+    async getStory (id) {
       return await prisma.story.findUnique({
-        where: { id }
+        where: { id },
       })
     },
 
     /**
      * List stories by run ID
      */
-    async listStoriesByRunId(runId) {
+    async listStoriesByRunId (runId) {
       return await prisma.story.findMany({
         where: { runId },
-        orderBy: { storyIndex: 'asc' }
+        orderBy: { storyIndex: 'asc' },
       })
     },
 
     /**
      * Update story status
      */
-    async updateStoryStatus(id, status, output = null) {
+    async updateStoryStatus (id, status, output = null) {
       if (!VALID_STATUSES.includes(status)) {
         throw new Error(`Invalid status: ${status}. Must be one of: ${VALID_STATUSES.join(', ')}`)
       }
 
       const story = await prisma.story.findUnique({
-        where: { id }
+        where: { id },
       })
 
       if (!story) {
@@ -90,16 +90,16 @@ export function createStoryService() {
 
       return await prisma.story.update({
         where: { id },
-        data: updateData
+        data: updateData,
       })
     },
 
     /**
      * Increment story retry count
      */
-    async incrementStoryRetry(id) {
+    async incrementStoryRetry (id) {
       const story = await prisma.story.findUnique({
-        where: { id }
+        where: { id },
       })
 
       if (!story) {
@@ -113,9 +113,9 @@ export function createStoryService() {
       return await prisma.story.update({
         where: { id },
         data: {
-          retryCount: story.retryCount + 1
-        }
+          retryCount: story.retryCount + 1,
+        },
       })
-    }
+    },
   }
 }

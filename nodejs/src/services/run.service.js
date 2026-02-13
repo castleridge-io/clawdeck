@@ -7,7 +7,7 @@ const VALID_STATUSES = ['running', 'completed', 'failed']
 /**
  * Create run service
  */
-export function createRunService() {
+export function createRunService () {
   const workflowService = createWorkflowService()
   const stepService = createStepService()
 
@@ -15,7 +15,7 @@ export function createRunService() {
     /**
      * Create a new run
      */
-    async createRun(data) {
+    async createRun (data) {
       const { workflowId, taskId, task, context = {}, notifyUrl } = data
 
       // Verify workflow exists
@@ -36,8 +36,8 @@ export function createRunService() {
           task,
           status: 'running',
           context: JSON.stringify(context),
-          notifyUrl
-        }
+          notifyUrl,
+        },
       })
 
       // Create steps from workflow config
@@ -52,7 +52,7 @@ export function createRunService() {
           inputTemplate: stepConfig.inputTemplate,
           expects: stepConfig.expects,
           type: stepConfig.type,
-          loopConfig: stepConfig.loopConfig
+          loopConfig: stepConfig.loopConfig,
         })
       }
 
@@ -62,24 +62,24 @@ export function createRunService() {
     /**
      * Get run by ID
      */
-    async getRun(id) {
+    async getRun (id) {
       return await prisma.run.findUnique({
         where: { id },
         include: {
           steps: {
-            orderBy: { stepIndex: 'asc' }
+            orderBy: { stepIndex: 'asc' },
           },
           stories: {
-            orderBy: { storyIndex: 'asc' }
-          }
-        }
+            orderBy: { storyIndex: 'asc' },
+          },
+        },
       })
     },
 
     /**
      * List all runs
      */
-    async listRuns(filters = {}) {
+    async listRuns (filters = {}) {
       const where = {}
 
       if (filters.taskId) {
@@ -92,30 +92,30 @@ export function createRunService() {
 
       return await prisma.run.findMany({
         where,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       })
     },
 
     /**
      * Get runs by task ID
      */
-    async getRunsByTaskId(taskId) {
+    async getRunsByTaskId (taskId) {
       return await prisma.run.findMany({
         where: { taskId: taskId.toString() },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       })
     },
 
     /**
      * Update run status
      */
-    async updateRunStatus(id, status) {
+    async updateRunStatus (id, status) {
       if (!VALID_STATUSES.includes(status)) {
         throw new Error(`Invalid status: ${status}. Must be one of: ${VALID_STATUSES.join(', ')}`)
       }
 
       const run = await prisma.run.findUnique({
-        where: { id }
+        where: { id },
       })
 
       if (!run) {
@@ -124,8 +124,8 @@ export function createRunService() {
 
       return await prisma.run.update({
         where: { id },
-        data: { status }
+        data: { status },
       })
-    }
+    },
   }
 }

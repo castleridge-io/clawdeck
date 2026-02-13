@@ -32,7 +32,7 @@ function taskToJson (task) {
     workflow_type: task.workflowType,
     workflow_run_id: task.workflowRunId,
     created_at: task.createdAt.toISOString(),
-    updated_at: task.updatedAt.toISOString()
+    updated_at: task.updatedAt.toISOString(),
   }
 }
 
@@ -50,8 +50,8 @@ async function recordActivity (task, user, action, activityData = {}) {
       oldValue: activityData.oldValue,
       newValue: activityData.newValue,
       note: activityData.note,
-      source: activityData.source || 'api'
-    }
+      source: activityData.source || 'api',
+    },
   })
 }
 
@@ -86,15 +86,12 @@ export async function tasksRoutes (fastify, opts) {
 
     const tasks = await prisma.task.findMany({
       where,
-      orderBy: [
-        { assignedAt: 'asc' },
-        { position: 'asc' }
-      ]
+      orderBy: [{ assignedAt: 'asc' }, { position: 'asc' }],
     })
 
     return {
       success: true,
-      data: tasks.map(taskToJson)
+      data: tasks.map(taskToJson),
     }
   })
 
@@ -110,12 +107,9 @@ export async function tasksRoutes (fastify, opts) {
         userId: BigInt(request.user.id),
         status: 'up_next',
         blocked: false,
-        agentClaimedAt: null
+        agentClaimedAt: null,
       },
-      orderBy: [
-        { priority: 'desc' },
-        { position: 'asc' }
-      ]
+      orderBy: [{ priority: 'desc' }, { position: 'asc' }],
     })
 
     if (!task) {
@@ -135,8 +129,8 @@ export async function tasksRoutes (fastify, opts) {
       where: {
         userId: BigInt(request.user.id),
         status: 'in_progress',
-        agentClaimedAt: { not: null }
-      }
+        agentClaimedAt: { not: null },
+      },
     })
 
     return tasks.map(taskToJson)
@@ -147,8 +141,8 @@ export async function tasksRoutes (fastify, opts) {
     const task = await prisma.task.findFirst({
       where: {
         id: BigInt(request.params.id),
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     if (!task) {
@@ -160,7 +154,15 @@ export async function tasksRoutes (fastify, opts) {
 
   // POST /api/v1/tasks - Create task
   fastify.post('/', async (request, reply) => {
-    const { name, description, board_id, status = 'inbox', priority = 'none', tags = [], workflow_type } = request.body
+    const {
+      name,
+      description,
+      board_id,
+      status = 'inbox',
+      priority = 'none',
+      tags = [],
+      workflow_type,
+    } = request.body
 
     if (!board_id) {
       return reply.code(400).send({ error: 'board_id is required' })
@@ -170,8 +172,8 @@ export async function tasksRoutes (fastify, opts) {
     const board = await prisma.board.findFirst({
       where: {
         id: BigInt(board_id),
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     if (!board) {
@@ -190,7 +192,7 @@ export async function tasksRoutes (fastify, opts) {
     // Get position (put at end)
     const lastTask = await prisma.task.findFirst({
       where: { boardId: BigInt(board_id) },
-      orderBy: { position: 'desc' }
+      orderBy: { position: 'desc' },
     })
 
     const taskData = {
@@ -201,7 +203,7 @@ export async function tasksRoutes (fastify, opts) {
       status: status || 'inbox',
       priority: priority || 'none',
       tags,
-      position: (lastTask?.position ?? -1) + 1
+      position: (lastTask?.position ?? -1) + 1,
     }
 
     // Add workflow fields if provided
@@ -210,7 +212,7 @@ export async function tasksRoutes (fastify, opts) {
     }
 
     const task = await prisma.task.create({
-      data: taskData
+      data: taskData,
     })
 
     // Auto-create Run if workflow_type was provided
@@ -219,13 +221,13 @@ export async function tasksRoutes (fastify, opts) {
         workflowId: workflow.id,
         taskId: task.id.toString(),
         task: task.name || description || 'Task',
-        context: { taskId: task.id.toString() }
+        context: { taskId: task.id.toString() },
       })
 
       // Link task to run
       await prisma.task.update({
         where: { id: task.id },
-        data: { workflowRunId: run.id }
+        data: { workflowRunId: run.id },
       })
 
       task.workflowRunId = run.id
@@ -235,7 +237,7 @@ export async function tasksRoutes (fastify, opts) {
     await recordActivity(task, request.user, 'create', {
       actorName: request.agentName,
       actorEmoji: request.agentEmoji,
-      source: 'api'
+      source: 'api',
     })
 
     // Broadcast task creation
@@ -251,8 +253,8 @@ export async function tasksRoutes (fastify, opts) {
     const task = await prisma.task.findFirst({
       where: {
         id: BigInt(request.params.id),
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     if (!task) {
@@ -263,7 +265,7 @@ export async function tasksRoutes (fastify, opts) {
     const activityData = {
       actorName: request.agentName,
       actorEmoji: request.agentEmoji,
-      source: 'api'
+      source: 'api',
     }
 
     if (status && ['inbox', 'up_next', 'in_progress', 'in_review', 'done'].includes(status)) {
@@ -306,7 +308,7 @@ export async function tasksRoutes (fastify, opts) {
 
     const updatedTask = await prisma.task.update({
       where: { id: task.id },
-      data: updateData
+      data: updateData,
     })
 
     // Record activity
@@ -318,7 +320,7 @@ export async function tasksRoutes (fastify, opts) {
         note: activity_note,
         actorName: request.agentName,
         actorEmoji: request.agentEmoji,
-        source: 'api'
+        source: 'api',
       })
     }
 
@@ -333,8 +335,8 @@ export async function tasksRoutes (fastify, opts) {
     const task = await prisma.task.findFirst({
       where: {
         id: BigInt(request.params.id),
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     if (!task) {
@@ -345,8 +347,8 @@ export async function tasksRoutes (fastify, opts) {
       where: { id: task.id },
       data: {
         agentClaimedAt: new Date(),
-        status: 'in_progress'
-      }
+        status: 'in_progress',
+      },
     })
 
     // Record activity
@@ -356,7 +358,7 @@ export async function tasksRoutes (fastify, opts) {
       fieldName: 'status',
       oldValue: task.status,
       newValue: 'in_progress',
-      source: 'api'
+      source: 'api',
     })
 
     // Broadcast task claim
@@ -370,8 +372,8 @@ export async function tasksRoutes (fastify, opts) {
     const task = await prisma.task.findFirst({
       where: {
         id: BigInt(request.params.id),
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     if (!task) {
@@ -381,15 +383,15 @@ export async function tasksRoutes (fastify, opts) {
     const updatedTask = await prisma.task.update({
       where: { id: task.id },
       data: {
-        agentClaimedAt: null
-      }
+        agentClaimedAt: null,
+      },
     })
 
     // Record activity
     await recordActivity(updatedTask, request.user, 'unclaim', {
       actorName: request.agentName,
       actorEmoji: request.agentEmoji,
-      source: 'api'
+      source: 'api',
     })
 
     // Broadcast task unclaim
@@ -403,8 +405,8 @@ export async function tasksRoutes (fastify, opts) {
     const task = await prisma.task.findFirst({
       where: {
         id: BigInt(request.params.id),
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     if (!task) {
@@ -415,8 +417,8 @@ export async function tasksRoutes (fastify, opts) {
       where: { id: task.id },
       data: {
         assignedToAgent: true,
-        assignedAt: new Date()
-      }
+        assignedAt: new Date(),
+      },
     })
 
     // Record activity
@@ -426,7 +428,7 @@ export async function tasksRoutes (fastify, opts) {
       fieldName: 'assigned_to_agent',
       oldValue: String(task.assignedToAgent),
       newValue: 'true',
-      source: 'api'
+      source: 'api',
     })
 
     // Broadcast task assignment
@@ -440,8 +442,8 @@ export async function tasksRoutes (fastify, opts) {
     const task = await prisma.task.findFirst({
       where: {
         id: BigInt(request.params.id),
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     if (!task) {
@@ -452,8 +454,8 @@ export async function tasksRoutes (fastify, opts) {
       where: { id: task.id },
       data: {
         assignedToAgent: false,
-        assignedAt: null
-      }
+        assignedAt: null,
+      },
     })
 
     // Record activity
@@ -463,7 +465,7 @@ export async function tasksRoutes (fastify, opts) {
       fieldName: 'assigned_to_agent',
       oldValue: 'true',
       newValue: 'false',
-      source: 'api'
+      source: 'api',
     })
 
     // Broadcast task unassignment
@@ -477,8 +479,8 @@ export async function tasksRoutes (fastify, opts) {
     const task = await prisma.task.findFirst({
       where: {
         id: BigInt(request.params.id),
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     if (!task) {
@@ -488,11 +490,14 @@ export async function tasksRoutes (fastify, opts) {
     const taskData = taskToJson(task)
 
     await prisma.task.delete({
-      where: { id: task.id }
+      where: { id: task.id },
     })
 
     // Broadcast task deletion
-    wsManager.broadcastTaskEvent(request.user.id, 'task_deleted', { id: taskData.id, board_id: taskData.board_id })
+    wsManager.broadcastTaskEvent(request.user.id, 'task_deleted', {
+      id: taskData.id,
+      board_id: taskData.board_id,
+    })
 
     return reply.code(204).send()
   })

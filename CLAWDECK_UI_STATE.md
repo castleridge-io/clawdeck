@@ -1,18 +1,22 @@
 # ClawDeck UI - Current State Document
 
 ## Overview
+
 Documenting the current state of the ClawDeck React UI development for OpenClaw task management integration.
 
 ## Context
 
 ### What We're Building
+
 A React-based web UI for the ClawDeck Node.js API to:
+
 - Visualize the 7 agent boards created during migration setup
 - Display tasks with kanban-style column layout
 - Enable task management (create, assign, claim, complete, delete)
 - Provide real-time visibility into OpenClaw agent work
 
 ### Why This Matters
+
 - The original ClawDeck has a Rails UI but Ruby isn't installed on this system
 - We have a working Node.js API (port 3001) that needs a frontend
 - OpenClaw agents are JavaScript-based, so a React UI fits the architecture
@@ -22,6 +26,7 @@ A React-based web UI for the ClawDeck Node.js API to:
 ### ✅ Completed Components
 
 #### 1. Project Structure
+
 **Location**: `~/tools/clawdeck/nodejs/frontend/`
 
 ```
@@ -52,12 +57,14 @@ frontend/
 #### 2. Features Implemented
 
 **Header**:
+
 - Board selector dropdown for all 7 agent boards
 - Live statistics (total boards, tasks, active, done)
 - "New Task" button to open task creation modal
 - Agent emoji and board name display
 
 **Kanban Board**:
+
 - 5 columns: Inbox, Up Next, In Progress, In Review, Done
 - Drag-and-drop task cards between columns
 - Task cards with:
@@ -70,6 +77,7 @@ frontend/
 - Responsive design for mobile
 
 **Task Management**:
+
 - Create new tasks with:
   - Name, description, priority, status, tags
 - Edit existing tasks
@@ -80,6 +88,7 @@ frontend/
 - Real-time updates via API calls
 
 **API Integration** (`src/lib/api.js`):
+
 - `getBoards()` - Fetch all boards
 - `getBoard(id)` - Fetch specific board
 - `getTasks(boardId)` - Fetch tasks for a board
@@ -93,6 +102,7 @@ frontend/
 - `getNextTask()` - Get next available task
 
 #### 3. Styling
+
 - Dark theme matching ClawDeck aesthetic
 - Tailwind CSS for utility-first styling
 - Custom CSS for:
@@ -103,6 +113,7 @@ frontend/
 - Color-coded priorities and statuses
 
 #### 4. Dependencies Installed
+
 ```json
 {
   "dependencies": {
@@ -122,24 +133,26 @@ frontend/
 ### ⏳ Current Blocker
 
 **Port Conflict**: Port 3000 is already in use
+
 - **Solution**: Configured Vite to use port 3002 instead
 - **Status**: Ready to start once port is available
 
 ### 📋 Agent Board Mappings (from Migration Phase 3)
 
-| Agent | Board ID | Name | Emoji |
-|-------|----------|------|-------|
-| Jarvis Leader | 40 | Jarvis Leader Board | 👔 |
-| Dave Engineer | 41 | Dave Engineer Board | 👨‍💻 |
-| Sally Designer | 42 | Sally Designer Board | 👩‍🎨 |
-| Mike QA | 43 | Mike QA Board | 🧪 |
-| Richard | 44 | Richard Board | 📚 |
-| Nolan | 45 | Nolan Board | ⚙️ |
-| Elsa | 46 | Elsa Board | 📢 |
+| Agent          | Board ID | Name                 | Emoji |
+| -------------- | -------- | -------------------- | ----- |
+| Jarvis Leader  | 40       | Jarvis Leader Board  | 👔    |
+| Dave Engineer  | 41       | Dave Engineer Board  | 👨‍💻    |
+| Sally Designer | 42       | Sally Designer Board | 👩‍🎨    |
+| Mike QA        | 43       | Mike QA Board        | 🧪    |
+| Richard        | 44       | Richard Board        | 📚    |
+| Nolan          | 45       | Nolan Board          | ⚙️    |
+| Elsa           | 46       | Elsa Board           | 📢    |
 
 ## How to Run
 
 ### Development Server
+
 ```bash
 cd ~/tools/clawdeck/nodejs/frontend
 yarn dev
@@ -149,12 +162,14 @@ yarn dev
 **API proxy**: `/api` → `http://localhost:3001`
 
 ### Build for Production
+
 ```bash
 cd ~/tools/clawdeck/nodejs/frontend
 yarn build
 ```
 
 ### Preview Production Build
+
 ```bash
 cd ~/tools/clawdeck/nodejs/frontend
 yarn preview
@@ -163,6 +178,7 @@ yarn preview
 ## Configuration Files
 
 ### Vite Config (`vite.config.js`)
+
 ```javascript
 server: {
   port: 3002,
@@ -177,7 +193,9 @@ server: {
 ```
 
 ### API Credentials
+
 The frontend uses this API token (hardcoded for now):
+
 ```
 oc-sys-6e07444c51f93cb9ab69282a06878195-b3032039
 ```
@@ -189,6 +207,7 @@ oc-sys-6e07444c51f93cb9ab69282a06878195-b3032039
    - Update documentation with final port
 
 2. **Start Development Server**
+
    ```bash
    cd ~/tools/clawdeck/nodejs/frontend
    yarn dev
@@ -214,6 +233,7 @@ oc-sys-6e07444c51f93cb9ab69282a06878195-b3032039
 All files are in: `/home/montelai/tools/clawdeck/nodejs/frontend/`
 
 **Configuration:**
+
 - `package.json`
 - `vite.config.js`
 - `tailwind.config.js`
@@ -221,6 +241,7 @@ All files are in: `/home/montelai/tools/clawdeck/nodejs/frontend/`
 - `index.html`
 
 **Source:**
+
 - `src/main.jsx`
 - `src/App.jsx`
 - `src/App.css`
@@ -228,6 +249,7 @@ All files are in: `/home/montelai/tools/clawdeck/nodejs/frontend/`
 - `src/lib/api.js`
 
 **Components:**
+
 - `src/components/Header.jsx` + `Header.css`
 - `src/components/KanbanBoard.jsx` + `KanbanBoard.css`
 - `src/components/TaskModal.jsx` + `TaskModal.css`
@@ -236,11 +258,13 @@ All files are in: `/home/montelai/tools/clawdeck/nodejs/frontend/`
 ## API Connection
 
 ### Backend: ClawDeck Node.js API
+
 - **URL**: `http://localhost:3001/api/v1`
 - **Status**: ✅ Running
 - **Authentication**: Bearer token
 
 ### Endpoints Used
+
 - `GET /boards` - List all boards
 - `GET /tasks?board_id=X` - Get tasks for board
 - `POST /tasks` - Create task
@@ -253,22 +277,26 @@ All files are in: `/home/montelai/tools/clawdeck/nodejs/frontend/`
 ## Technical Notes
 
 ### Framework Choice: React + Vite
+
 - Fast HMR for development
 - Built-in API proxy for backend calls
 - Optimized production builds
 - No build step needed for development
 
 ### CSS: Tailwind CSS
+
 - Utility-first approach
 - Consistent with modern React development
 - Easy customization via theme config
 
 ### State Management
+
 - React hooks (useState, useEffect)
 - Local component state
 - No global state management needed (yet)
 
 ### Drag and Drop
+
 - HTML5 Drag and Drop API
 - Native browser support
 - No external libraries required
@@ -278,15 +306,18 @@ All files are in: `/home/montelai/tools/clawdeck/nodejs/frontend/`
 This UI connects to the OpenClaw migration work:
 
 ### Phase 1 & 2 (Complete)
+
 - ClawDeck API running ✅
 - OpenClaw system user configured ✅
 - API token generated ✅
 
 ### Phase 3 (Complete)
+
 - Agent boards created ✅
 - Board IDs mapped ✅
 
 ### Phase 4 (Pending - UI Required)
+
 - This UI provides the visual interface
 - Agents can use TaskManager client library
 - Real-time task visibility for Jarvis
@@ -294,6 +325,7 @@ This UI connects to the OpenClaw migration work:
 ## Success Criteria
 
 When running, the UI should:
+
 1. ✅ Load all 7 agent boards
 2. ✅ Display tasks in kanban columns
 3. ✅ Allow creating new tasks

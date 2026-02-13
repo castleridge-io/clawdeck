@@ -12,16 +12,16 @@ describe('StepEditor', () => {
     vi.clearAllMocks()
   })
 
-  function renderStepEditor(steps: WorkflowStep[] = defaultSteps) {
-    return render(
-      <StepEditor steps={steps} onChange={mockOnChange} />
-    )
+  function renderStepEditor (steps: WorkflowStep[] = defaultSteps) {
+    return render(<StepEditor steps={steps} onChange={mockOnChange} />)
   }
 
   describe('Empty State', () => {
     it('shows empty state when no steps', () => {
       renderStepEditor([])
-      expect(screen.getByText('No steps defined. Click "Add Step" to create one.')).toBeInTheDocument()
+      expect(
+        screen.getByText('No steps defined. Click "Add Step" to create one.')
+      ).toBeInTheDocument()
     })
 
     it('shows Add Step button', () => {
@@ -65,7 +65,7 @@ describe('StepEditor', () => {
         inputTemplate: 'Template 1',
         expects: 'result1',
         type: 'single',
-        position: 0
+        position: 0,
       },
       {
         stepId: 'step-2',
@@ -74,8 +74,8 @@ describe('StepEditor', () => {
         inputTemplate: 'Template 2',
         expects: 'result2',
         type: 'approval',
-        position: 1
-      }
+        position: 1,
+      },
     ]
 
     it('displays all steps', () => {
@@ -111,7 +111,7 @@ describe('StepEditor', () => {
       inputTemplate: 'Test template',
       expects: 'result',
       type: 'single',
-      position: 0
+      position: 0,
     }
 
     it('expands step when clicked', async () => {
@@ -147,7 +147,7 @@ describe('StepEditor', () => {
       inputTemplate: 'Test template',
       expects: 'result',
       type: 'single',
-      position: 0
+      position: 0,
     }
 
     it('updates step ID', async () => {
@@ -218,7 +218,7 @@ describe('StepEditor', () => {
         inputTemplate: 'Template 1',
         expects: 'result1',
         type: 'single',
-        position: 0
+        position: 0,
       },
       {
         stepId: 'step-2',
@@ -227,8 +227,8 @@ describe('StepEditor', () => {
         inputTemplate: 'Template 2',
         expects: 'result2',
         type: 'single',
-        position: 1
-      }
+        position: 1,
+      },
     ]
 
     it('removes step when delete button is clicked', async () => {
@@ -265,7 +265,7 @@ describe('StepEditor', () => {
         inputTemplate: 'Template 1',
         expects: 'result1',
         type: 'single',
-        position: 0
+        position: 0,
       },
       {
         stepId: 'step-2',
@@ -274,7 +274,7 @@ describe('StepEditor', () => {
         inputTemplate: 'Template 2',
         expects: 'result2',
         type: 'single',
-        position: 1
+        position: 1,
       },
       {
         stepId: 'step-3',
@@ -283,8 +283,8 @@ describe('StepEditor', () => {
         inputTemplate: 'Template 3',
         expects: 'result3',
         type: 'single',
-        position: 2
-      }
+        position: 2,
+      },
     ]
 
     it('moves step up', async () => {

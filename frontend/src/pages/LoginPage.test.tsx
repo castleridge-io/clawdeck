@@ -15,7 +15,7 @@ vi.mock('../contexts/AuthContext', () => ({
 // Store original env
 const originalEnv = import.meta.env.VITE_DEV_LOGIN
 
-function renderLoginPage() {
+function renderLoginPage () {
   return render(
     <BrowserRouter>
       <LoginPage />

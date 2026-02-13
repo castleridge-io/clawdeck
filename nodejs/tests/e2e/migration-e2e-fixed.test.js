@@ -11,14 +11,14 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL || 'postgresql://monte:RMxBU^HPXjYpvUL4bekCbEUCEW$8jy@localhost:5432/clawdeck_test'
-    }
-  }
+      url: process.env.DATABASE_URL,
+    },
+  },
 })
 
 describe('E2E Migration Test - Direct Database', () => {
   let testBoardId = null
-  let testTaskIds = []
+  const testTaskIds = []
   let testUserId = null
 
   before(async () => {
@@ -26,15 +26,15 @@ describe('E2E Migration Test - Direct Database', () => {
 
     // Get or create test user
     let user = await prisma.user.findFirst({
-      where: { emailAddress: 'e2e-test@clawdeck.dev' }
+      where: { emailAddress: 'e2e-test@clawdeck.dev' },
     })
 
     if (!user) {
       user = await prisma.user.create({
         data: {
           emailAddress: 'e2e-test@clawdeck.dev',
-          agentAutoMode: true
-        }
+          agentAutoMode: true,
+        },
       })
     }
 
@@ -43,14 +43,14 @@ describe('E2E Migration Test - Direct Database', () => {
     // Clean up any existing test data
     await prisma.task.deleteMany({
       where: {
-        name: { contains: '[E2E TEST]' }
-      }
+        name: { contains: '[E2E TEST]' },
+      },
     })
 
     await prisma.board.deleteMany({
       where: {
-        name: { contains: '[E2E TEST]' }
-      }
+        name: { contains: '[E2E TEST]' },
+      },
     })
 
     console.log('✅ Pre-test cleanup completed')
@@ -62,14 +62,14 @@ describe('E2E Migration Test - Direct Database', () => {
     // Clean up test data
     await prisma.task.deleteMany({
       where: {
-        name: { contains: '[E2E TEST]' }
-      }
+        name: { contains: '[E2E TEST]' },
+      },
     })
 
     await prisma.board.deleteMany({
       where: {
-        name: { contains: '[E2E TEST]' }
-      }
+        name: { contains: '[E2E TEST]' },
+      },
     })
 
     await prisma.$disconnect()
@@ -98,8 +98,8 @@ describe('E2E Migration Test - Direct Database', () => {
         name: '[E2E TEST] OpenClaw Migration Board',
         icon: '🧪',
         color: 'blue',
-        userId: testUserId
-      }
+        userId: testUserId,
+      },
     })
 
     assert.ok(board, 'Board should be created')
@@ -110,7 +110,7 @@ describe('E2E Migration Test - Direct Database', () => {
 
     // Verify in database
     const dbBoard = await prisma.board.findUnique({
-      where: { id: testBoardId }
+      where: { id: testBoardId },
     })
     assert.ok(dbBoard, 'Board should exist in database')
     assert.strictEqual(dbBoard.name, '[E2E TEST] OpenClaw Migration Board')
@@ -126,7 +126,7 @@ describe('E2E Migration Test - Direct Database', () => {
         userId: testUserId,
         status: 'inbox',
         priority: 'high',
-        tags: ['setup', 'migration']
+        tags: ['setup', 'migration'],
       },
       {
         name: '[E2E TEST] Task 2: Implement Task Manager',
@@ -135,7 +135,7 @@ describe('E2E Migration Test - Direct Database', () => {
         userId: testUserId,
         status: 'inbox',
         priority: 'high',
-        tags: ['implementation', 'task-manager']
+        tags: ['implementation', 'task-manager'],
       },
       {
         name: '[E2E TEST] Task 3: Migrate Agents',
@@ -144,7 +144,7 @@ describe('E2E Migration Test - Direct Database', () => {
         userId: testUserId,
         status: 'inbox',
         priority: 'medium',
-        tags: ['migration', 'agents']
+        tags: ['migration', 'agents'],
       },
       {
         name: '[E2E TEST] Task 4: Test Integration',
@@ -153,7 +153,7 @@ describe('E2E Migration Test - Direct Database', () => {
         userId: testUserId,
         status: 'up_next',
         priority: 'medium',
-        tags: ['testing']
+        tags: ['testing'],
       },
       {
         name: '[E2E TEST] Task 5: Verify Data',
@@ -162,13 +162,13 @@ describe('E2E Migration Test - Direct Database', () => {
         userId: testUserId,
         status: 'up_next',
         priority: 'low',
-        tags: ['verification']
-      }
+        tags: ['verification'],
+      },
     ]
 
     for (const taskData of tasks) {
       const task = await prisma.task.create({
-        data: taskData
+        data: taskData,
       })
       testTaskIds.push(task.id)
     }
@@ -178,8 +178,8 @@ describe('E2E Migration Test - Direct Database', () => {
     // Verify in database
     const dbTasks = await prisma.task.findMany({
       where: {
-        name: { contains: '[E2E TEST]' }
-      }
+        name: { contains: '[E2E TEST]' },
+      },
     })
     assert.strictEqual(dbTasks.length, 5, 'Should have 5 tasks in database')
     console.log('✅ All tasks verified in database')
@@ -192,9 +192,9 @@ describe('E2E Migration Test - Direct Database', () => {
   it('should retrieve all tasks (READ Tasks)', async () => {
     const tasks = await prisma.task.findMany({
       where: {
-        name: { contains: '[E2E TEST]' }
+        name: { contains: '[E2E TEST]' },
       },
-      orderBy: { createdAt: 'asc' }
+      orderBy: { createdAt: 'asc' },
     })
 
     assert.ok(Array.isArray(tasks), 'Should return an array')
@@ -206,7 +206,7 @@ describe('E2E Migration Test - Direct Database', () => {
   it('should retrieve a specific task (READ Single Task)', async () => {
     const taskId = testTaskIds[0]
     const task = await prisma.task.findUnique({
-      where: { id: taskId }
+      where: { id: taskId },
     })
 
     assert.ok(task, 'Task should exist')
@@ -220,15 +220,15 @@ describe('E2E Migration Test - Direct Database', () => {
     const inboxTasks = await prisma.task.findMany({
       where: {
         name: { contains: '[E2E TEST]' },
-        status: 'inbox'
-      }
+        status: 'inbox',
+      },
     })
 
     const upNextTasks = await prisma.task.findMany({
       where: {
         name: { contains: '[E2E TEST]' },
-        status: 'up_next'
-      }
+        status: 'up_next',
+      },
     })
 
     assert.strictEqual(inboxTasks.length, 3, 'Should have 3 inbox tasks')
@@ -247,8 +247,8 @@ describe('E2E Migration Test - Direct Database', () => {
       where: { id: taskId },
       data: {
         assignedToAgent: true,
-        assignedAt: new Date()
-      }
+        assignedAt: new Date(),
+      },
     })
 
     assert.strictEqual(task.assignedToAgent, true)
@@ -258,7 +258,7 @@ describe('E2E Migration Test - Direct Database', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: taskId }
+      where: { id: taskId },
     })
     assert.strictEqual(dbTask.assignedToAgent, true)
     assert.ok(dbTask.assignedAt)
@@ -271,8 +271,8 @@ describe('E2E Migration Test - Direct Database', () => {
       where: { id: taskId },
       data: {
         agentClaimedAt: new Date(),
-        status: 'in_progress'
-      }
+        status: 'in_progress',
+      },
     })
 
     assert.strictEqual(task.status, 'in_progress')
@@ -282,7 +282,7 @@ describe('E2E Migration Test - Direct Database', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: taskId }
+      where: { id: taskId },
     })
     assert.strictEqual(dbTask.status, 'in_progress')
     assert.ok(dbTask.agentClaimedAt)
@@ -295,8 +295,8 @@ describe('E2E Migration Test - Direct Database', () => {
       where: { id: taskId },
       data: {
         status: 'up_next',
-        priority: 'high'
-      }
+        priority: 'high',
+      },
     })
 
     assert.strictEqual(task.status, 'up_next')
@@ -306,7 +306,7 @@ describe('E2E Migration Test - Direct Database', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: taskId }
+      where: { id: taskId },
     })
     assert.strictEqual(dbTask.status, 'up_next')
     assert.strictEqual(dbTask.priority, 'high')
@@ -320,8 +320,8 @@ describe('E2E Migration Test - Direct Database', () => {
       data: {
         status: 'done',
         completed: true,
-        completedAt: new Date()
-      }
+        completedAt: new Date(),
+      },
     })
 
     assert.strictEqual(task.status, 'done')
@@ -332,7 +332,7 @@ describe('E2E Migration Test - Direct Database', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: taskId }
+      where: { id: taskId },
     })
     assert.strictEqual(dbTask.status, 'done')
     assert.strictEqual(dbTask.completed, true)
@@ -347,8 +347,8 @@ describe('E2E Migration Test - Direct Database', () => {
       where: { id: taskId },
       data: {
         agentClaimedAt: new Date(),
-        status: 'in_progress'
-      }
+        status: 'in_progress',
+      },
     })
 
     // Then unclaim it
@@ -356,8 +356,8 @@ describe('E2E Migration Test - Direct Database', () => {
       where: { id: taskId },
       data: {
         agentClaimedAt: null,
-        status: 'inbox'
-      }
+        status: 'inbox',
+      },
     })
 
     assert.ok(!task.agentClaimedAt, 'Should not have claim timestamp')
@@ -366,7 +366,7 @@ describe('E2E Migration Test - Direct Database', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: taskId }
+      where: { id: taskId },
     })
     assert.ok(!dbTask.agentClaimedAt)
     console.log('✅ Task unclaim verified in database')
@@ -378,8 +378,8 @@ describe('E2E Migration Test - Direct Database', () => {
       where: { id: taskId },
       data: {
         assignedToAgent: false,
-        assignedAt: null
-      }
+        assignedAt: null,
+      },
     })
 
     assert.strictEqual(task.assignedToAgent, false)
@@ -388,7 +388,7 @@ describe('E2E Migration Test - Direct Database', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: taskId }
+      where: { id: taskId },
     })
     assert.strictEqual(dbTask.assignedToAgent, false)
     console.log('✅ Task unassignment verified in database')
@@ -402,14 +402,14 @@ describe('E2E Migration Test - Direct Database', () => {
     const taskId = testTaskIds[4]
 
     await prisma.task.delete({
-      where: { id: taskId }
+      where: { id: taskId },
     })
 
     console.log('✅ Deleted task')
 
     // Verify deletion in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: taskId }
+      where: { id: taskId },
     })
     assert.ok(!dbTask, 'Task should not exist in database after deletion')
     console.log('✅ Task deletion verified in database')
@@ -419,7 +419,7 @@ describe('E2E Migration Test - Direct Database', () => {
     // Delete remaining test tasks
     for (const taskId of testTaskIds.slice(0, 4)) {
       await prisma.task.delete({
-        where: { id: taskId }
+        where: { id: taskId },
       })
     }
 
@@ -428,8 +428,8 @@ describe('E2E Migration Test - Direct Database', () => {
     // Verify in database
     const dbTasks = await prisma.task.findMany({
       where: {
-        name: { contains: '[E2E TEST]' }
-      }
+        name: { contains: '[E2E TEST]' },
+      },
     })
     assert.strictEqual(dbTasks.length, 0, 'Should have no tasks in database')
     console.log('✅ All tasks deletion verified in database')
@@ -437,14 +437,14 @@ describe('E2E Migration Test - Direct Database', () => {
 
   it('should delete the test board (DELETE Board)', async () => {
     await prisma.board.delete({
-      where: { id: testBoardId }
+      where: { id: testBoardId },
     })
 
     console.log('✅ Deleted board')
 
     // Verify in database
     const dbBoard = await prisma.board.findUnique({
-      where: { id: testBoardId }
+      where: { id: testBoardId },
     })
     assert.ok(!dbBoard, 'Board should not exist in database after deletion')
     console.log('✅ Board deletion verified in database')
@@ -463,14 +463,14 @@ describe('E2E Migration Test - Direct Database', () => {
     console.log('  ✅ DELETE: Single task, Multiple tasks, Board')
     console.log('\nAll operations verified in PostgreSQL database')
     console.log('\nTest Statistics:')
-    console.log(`  - Boards created: 1`)
-    console.log(`  - Tasks created: 5`)
-    console.log(`  - Tasks assigned: 1`)
-    console.log(`  - Tasks claimed: 2`)
-    console.log(`  - Tasks completed: 1`)
-    console.log(`  - Tasks modified: 1`)
-    console.log(`  - Tasks deleted: 5`)
-    console.log(`  - Boards deleted: 1`)
+    console.log('  - Boards created: 1')
+    console.log('  - Tasks created: 5')
+    console.log('  - Tasks assigned: 1')
+    console.log('  - Tasks claimed: 2')
+    console.log('  - Tasks completed: 1')
+    console.log('  - Tasks modified: 1')
+    console.log('  - Tasks deleted: 5')
+    console.log('  - Boards deleted: 1')
     console.log('\n✅ All E2E tests passed successfully!\n')
     assert.ok(true, 'E2E test completed successfully')
   })

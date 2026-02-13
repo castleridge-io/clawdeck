@@ -8,7 +8,7 @@ let testBoard
 let testToken
 let testTasks = []
 
-async function setupTestEnvironment() {
+async function setupTestEnvironment () {
   // Create test user
   testUser = await prisma.user.create({
     data: {
@@ -16,8 +16,8 @@ async function setupTestEnvironment() {
       passwordDigest: 'hash',
       agentAutoMode: true,
       agentName: 'TestAgent',
-      agentEmoji: '🤖'
-    }
+      agentEmoji: '🤖',
+    },
   })
 
   // Create test API token
@@ -26,8 +26,8 @@ async function setupTestEnvironment() {
     data: {
       token: testToken,
       name: 'Test Token',
-      userId: testUser.id
-    }
+      userId: testUser.id,
+    },
   })
 
   // Create test board
@@ -35,8 +35,8 @@ async function setupTestEnvironment() {
     data: {
       name: 'Test Archive Board',
       userId: testUser.id,
-      position: 0
-    }
+      position: 0,
+    },
   })
 
   // Create test tasks
@@ -54,8 +54,8 @@ async function setupTestEnvironment() {
         completed: true,
         completedAt: oldDate,
         archived: true,
-        archivedAt: now
-      }
+        archivedAt: now,
+      },
     }),
     // Active task
     prisma.task.create({
@@ -63,8 +63,8 @@ async function setupTestEnvironment() {
         name: 'Active Task',
         boardId: testBoard.id,
         userId: testUser.id,
-        status: 'in_progress'
-      }
+        status: 'in_progress',
+      },
     }),
     // Completed but not archived
     prisma.task.create({
@@ -74,13 +74,13 @@ async function setupTestEnvironment() {
         userId: testUser.id,
         status: 'done',
         completed: true,
-        completedAt: now
-      }
-    })
+        completedAt: now,
+      },
+    }),
   ])
 }
 
-async function cleanupTestEnvironment() {
+async function cleanupTestEnvironment () {
   await prisma.taskActivity.deleteMany({})
   await prisma.task.deleteMany({})
   await prisma.board.deleteMany({})
@@ -89,17 +89,17 @@ async function cleanupTestEnvironment() {
   testTasks = []
 }
 
-async function makeRequest(method, path, body = null, headers = {}) {
+async function makeRequest (method, path, body = null, headers = {}) {
   const baseUrl = process.env.API_URL || 'http://localhost:3000'
   const url = new URL(path, baseUrl)
 
   const options = {
     method,
     headers: {
-      'Authorization': `Bearer ${testToken}`,
+      Authorization: `Bearer ${testToken}`,
       'X-Agent-Name': 'TestAgent',
-      ...headers
-    }
+      ...headers,
+    },
   }
 
   if (body !== null) {
@@ -115,7 +115,7 @@ async function makeRequest(method, path, body = null, headers = {}) {
     const text = await response.text()
     return {
       status: response.status,
-      data: text ? JSON.parse(text) : null
+      data: text ? JSON.parse(text) : null,
     }
   } catch (error) {
     return { status: 0, error: error.message }
@@ -137,8 +137,8 @@ describe('Archives API', () => {
       const otherUser = await prisma.user.create({
         data: {
           emailAddress: `other-${Date.now()}@example.com`,
-          passwordDigest: 'hash'
-        }
+          passwordDigest: 'hash',
+        },
       })
 
       const otherToken = `cd_test_${Date.now()}_${Math.random().toString(36).substring(7)}`
@@ -146,12 +146,12 @@ describe('Archives API', () => {
         data: {
           token: otherToken,
           name: 'Other Token',
-          userId: otherUser.id
-        }
+          userId: otherUser.id,
+        },
       })
 
       const result = await makeRequest('GET', '/api/v1/archives', null, {
-        'Authorization': `Bearer ${otherToken}`
+        Authorization: `Bearer ${otherToken}`,
       })
 
       assert.strictEqual(result.status, 200)
@@ -170,7 +170,7 @@ describe('Archives API', () => {
       assert.strictEqual(result.data.success, true)
       assert.ok(result.data.data.length >= 1)
 
-      const archivedTask = result.data.data.find(t => t.name === 'Archived Task')
+      const archivedTask = result.data.data.find((t) => t.name === 'Archived Task')
       assert.ok(archivedTask)
       assert.strictEqual(archivedTask.archived, true)
       assert.ok(archivedTask.archived_at)
@@ -182,8 +182,8 @@ describe('Archives API', () => {
         data: {
           name: 'Other Board',
           userId: testUser.id,
-          position: 1
-        }
+          position: 1,
+        },
       })
 
       await prisma.task.create({
@@ -194,15 +194,15 @@ describe('Archives API', () => {
           status: 'done',
           completed: true,
           archived: true,
-          archivedAt: new Date()
-        }
+          archivedAt: new Date(),
+        },
       })
 
       // Query for specific board
       const result = await makeRequest('GET', `/api/v1/archives?board_id=${testBoard.id}`)
 
       assert.strictEqual(result.status, 200)
-      assert.ok(result.data.data.every(t => t.board_id === testBoard.id.toString()))
+      assert.ok(result.data.data.every((t) => t.board_id === testBoard.id.toString()))
     })
 
     it('should include pagination metadata', async () => {
@@ -220,7 +220,7 @@ describe('Archives API', () => {
       const result = await makeRequest('GET', '/api/v1/archives')
 
       assert.strictEqual(result.status, 200)
-      const activeTask = result.data.data.find(t => t.name === 'Active Task')
+      const activeTask = result.data.data.find((t) => t.name === 'Active Task')
       assert.strictEqual(activeTask, undefined)
     })
   })
@@ -235,8 +235,8 @@ describe('Archives API', () => {
           status: 'done',
           completed: true,
           archived: true,
-          archivedAt: new Date()
-        }
+          archivedAt: new Date(),
+        },
       })
 
       const result = await makeRequest('PATCH', `/api/v1/archives/${task.id}/unarchive`)
@@ -247,7 +247,7 @@ describe('Archives API', () => {
 
       // Verify in database
       const unarchivedTask = await prisma.task.findUnique({
-        where: { id: task.id }
+        where: { id: task.id },
       })
       assert.strictEqual(unarchivedTask.archived, false)
     })
@@ -261,17 +261,17 @@ describe('Archives API', () => {
           status: 'done',
           completed: true,
           archived: true,
-          archivedAt: new Date()
-        }
+          archivedAt: new Date(),
+        },
       })
 
       await makeRequest('PATCH', `/api/v1/archives/${task.id}/unarchive`)
 
       const activities = await prisma.taskActivity.findMany({
-        where: { taskId: task.id }
+        where: { taskId: task.id },
       })
 
-      const unarchiveActivity = activities.find(a => a.action === 'unarchived')
+      const unarchiveActivity = activities.find((a) => a.action === 'unarchived')
       assert.ok(unarchiveActivity)
       assert.strictEqual(unarchiveActivity.oldValue, 'true')
       assert.strictEqual(unarchiveActivity.newValue, 'false')
@@ -289,8 +289,8 @@ describe('Archives API', () => {
           name: 'Active Task',
           boardId: testBoard.id,
           userId: testUser.id,
-          status: 'in_progress'
-        }
+          status: 'in_progress',
+        },
       })
 
       const result = await makeRequest('PATCH', `/api/v1/archives/${task.id}/unarchive`)
@@ -310,8 +310,8 @@ describe('Archives API', () => {
           status: 'done',
           completed: true,
           archived: true,
-          archivedAt: new Date()
-        }
+          archivedAt: new Date(),
+        },
       })
 
       const result = await makeRequest('DELETE', `/api/v1/archives/${task.id}`)
@@ -320,7 +320,7 @@ describe('Archives API', () => {
 
       // Verify deletion
       const deletedTask = await prisma.task.findUnique({
-        where: { id: task.id }
+        where: { id: task.id },
       })
       assert.strictEqual(deletedTask, null)
     })
@@ -337,8 +337,8 @@ describe('Archives API', () => {
           name: 'Active Task',
           boardId: testBoard.id,
           userId: testUser.id,
-          status: 'in_progress'
-        }
+          status: 'in_progress',
+        },
       })
 
       const result = await makeRequest('DELETE', `/api/v1/archives/${task.id}`)
@@ -357,8 +357,8 @@ describe('Archives API', () => {
           userId: testUser.id,
           status: 'done',
           completed: true,
-          completedAt: new Date()
-        }
+          completedAt: new Date(),
+        },
       })
 
       const result = await makeRequest('PATCH', `/api/v1/archives/${task.id}/schedule`)
@@ -375,8 +375,8 @@ describe('Archives API', () => {
           name: 'Incomplete Task',
           boardId: testBoard.id,
           userId: testUser.id,
-          status: 'in_progress'
-        }
+          status: 'in_progress',
+        },
       })
 
       const result = await makeRequest('PATCH', `/api/v1/archives/${task.id}/schedule`)
@@ -394,8 +394,8 @@ describe('Archives API', () => {
           status: 'done',
           completed: true,
           archived: true,
-          archivedAt: new Date()
-        }
+          archivedAt: new Date(),
+        },
       })
 
       const result = await makeRequest('PATCH', `/api/v1/archives/${task.id}/schedule`)
@@ -412,17 +412,17 @@ describe('Archives API', () => {
           userId: testUser.id,
           status: 'done',
           completed: true,
-          completedAt: new Date()
-        }
+          completedAt: new Date(),
+        },
       })
 
       await makeRequest('PATCH', `/api/v1/archives/${task.id}/schedule`)
 
       const activities = await prisma.taskActivity.findMany({
-        where: { taskId: task.id }
+        where: { taskId: task.id },
       })
 
-      const archiveActivity = activities.find(a => a.action === 'archived')
+      const archiveActivity = activities.find((a) => a.action === 'archived')
       assert.ok(archiveActivity)
       assert.strictEqual(archiveActivity.source, 'scheduler')
     })
@@ -442,7 +442,7 @@ describe('Archives and Tasks Integration', () => {
     const result = await makeRequest('GET', '/api/v1/tasks')
 
     assert.strictEqual(result.status, 200)
-    const archivedTask = result.data.data.find(t => t.name === 'Archived Task')
+    const archivedTask = result.data.data.find((t) => t.name === 'Archived Task')
     assert.strictEqual(archivedTask, undefined)
   })
 
@@ -455,14 +455,14 @@ describe('Archives and Tasks Integration', () => {
         status: 'done',
         completed: true,
         archived: true,
-        archivedAt: new Date()
-      }
+        archivedAt: new Date(),
+      },
     })
 
-    const result = await makeRequest('GET', `/api/v1/tasks?archived=true`)
+    const result = await makeRequest('GET', '/api/v1/tasks?archived=true')
 
     assert.strictEqual(result.status, 200)
-    const taskWithFields = result.data.data.find(t => t.name === 'Task with Archive Fields')
+    const taskWithFields = result.data.data.find((t) => t.name === 'Task with Archive Fields')
     assert.ok(taskWithFields)
     assert.strictEqual(taskWithFields.archived, true)
     assert.ok(taskWithFields.archived_at)
@@ -472,14 +472,14 @@ describe('Archives and Tasks Integration', () => {
     const result = await makeRequest('GET', '/api/v1/tasks?archived=true')
 
     assert.strictEqual(result.status, 200)
-    assert.ok(result.data.data.every(t => t.archived === true))
+    assert.ok(result.data.data.every((t) => t.archived === true))
   })
 
   it('should return only active tasks when archived=false', async () => {
     const result = await makeRequest('GET', '/api/v1/tasks?archived=false')
 
     assert.strictEqual(result.status, 200)
-    assert.ok(result.data.data.every(t => t.archived === false))
+    assert.ok(result.data.data.every((t) => t.archived === false))
   })
 })
 

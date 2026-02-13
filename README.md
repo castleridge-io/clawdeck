@@ -51,6 +51,7 @@ PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Self-Hosting
 
 ### Prerequisites
+
 - Node.js 20+
 - Docker & Docker Compose (optional, for local development)
 - PostgreSQL 14+
@@ -110,11 +111,13 @@ ClawDeck exposes a REST API for agent integrations.
 ### Authentication
 
 Include your token in every request:
+
 ```
 Authorization: Bearer YOUR_TOKEN
 ```
 
 Include agent identity headers:
+
 ```
 X-Agent-Name: Maxie
 X-Agent-Emoji: 🦊
@@ -209,6 +212,7 @@ DELETE /api/v1/projects/:id
 ```
 
 ### Task Statuses
+
 - `inbox` — New, not prioritized
 - `up_next` — Ready to be assigned
 - `in_progress` — Being worked on
@@ -216,6 +220,7 @@ DELETE /api/v1/projects/:id
 - `done` — Complete
 
 ### Priorities
+
 `none`, `low`, `medium`, `high`
 
 ---

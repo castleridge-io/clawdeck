@@ -5,7 +5,7 @@ import * as yaml from 'yaml'
  * @param {string} yamlString - YAML string to parse
  * @returns {Object} Workflow data object
  */
-export function parseWorkflowYaml(yamlString) {
+export function parseWorkflowYaml (yamlString) {
   if (!yamlString || typeof yamlString !== 'string') {
     throw new Error('YAML string is required')
   }
@@ -30,7 +30,7 @@ export function parseWorkflowYaml(yamlString) {
   const workflowData = {
     name: parsed.name,
     description: parsed.description || null,
-    steps: []
+    steps: [],
   }
 
   // Parse steps
@@ -57,7 +57,7 @@ export function parseWorkflowYaml(yamlString) {
         expects: step.expects,
         type: step.type || 'single',
         loopConfig: step.loop_config || step.loopConfig || null,
-        position: step.position ?? index
+        position: step.position ?? index,
       }
     })
   }

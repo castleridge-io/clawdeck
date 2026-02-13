@@ -76,6 +76,7 @@ GitHub Actions will automatically deploy. Check progress in Actions tab.
 Visit https://clawdeck.so
 
 Check services:
+
 ```bash
 ssh root@YOUR_VPS_IP
 systemctl status puma solid_queue nginx
@@ -84,6 +85,7 @@ systemctl status puma solid_queue nginx
 ## Future Deployments
 
 Just push to main:
+
 ```bash
 git push origin main
 ```
@@ -93,17 +95,20 @@ Deploys automatically in 30-60 seconds!
 ## Troubleshooting
 
 **Services won't start?**
+
 ```bash
 journalctl -u puma -n 50
 journalctl -u solid_queue -n 50
 ```
 
 **Need to restart?**
+
 ```bash
 systemctl restart puma solid_queue
 ```
 
 **Check logs:**
+
 ```bash
 tail -f /var/log/clawdeck/puma.log
 ```

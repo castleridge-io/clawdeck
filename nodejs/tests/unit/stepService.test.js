@@ -6,10 +6,10 @@ import { createRunService } from '../../src/services/run.service.js'
 import { createStepService } from '../../src/services/step.service.js'
 
 // Helper to create step data with required fields
-function createStepData(overrides) {
+function createStepData (overrides) {
   return {
     expects: 'output',
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -27,16 +27,16 @@ async function setupTestEnvironment () {
       passwordDigest: 'hash',
       agentAutoMode: true,
       agentName: 'TestAgent',
-      agentEmoji: '🤖'
-    }
+      agentEmoji: '🤖',
+    },
   })
 
   testBoard = await prisma.board.create({
     data: {
       name: 'Test Board',
       userId: testUser.id,
-      position: 0
-    }
+      position: 0,
+    },
   })
 
   workflowService = createWorkflowService()
@@ -68,21 +68,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'test-step-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const data = {
@@ -91,7 +91,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input template {var}',
-        expects: 'output'
+        expects: 'output',
       }
 
       const step = await stepService.createStep(data)
@@ -108,21 +108,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'loop-step-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Loop',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const data = {
@@ -135,8 +135,8 @@ describe('Step Service', () => {
         type: 'loop',
         loopConfig: {
           arrayField: 'items',
-          maxIterations: 10
-        }
+          maxIterations: 10,
+        },
       }
 
       const step = await stepService.createStep(data)
@@ -149,21 +149,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'approval-step-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Approval',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const data = {
@@ -173,7 +173,7 @@ describe('Step Service', () => {
         stepIndex: 0,
         inputTemplate: 'Review {work}',
         expects: 'approval',
-        type: 'approval'
+        type: 'approval',
       }
 
       const step = await stepService.createStep(data)
@@ -188,7 +188,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       }
 
       await assert.rejects(
@@ -206,21 +206,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'get-step-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Get Step',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const created = await stepService.createStep({
@@ -229,7 +229,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       })
 
       const step = await stepService.getStep(created.id)
@@ -251,21 +251,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'list-steps-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task List Steps',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       // Create steps in reverse order
@@ -275,7 +275,7 @@ describe('Step Service', () => {
         agentId: 'agent-2',
         stepIndex: 1,
         inputTemplate: 'Input 2',
-        expects: 'output2'
+        expects: 'output2',
       })
 
       await stepService.createStep({
@@ -284,7 +284,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input 1',
-        expects: 'output1'
+        expects: 'output1',
       })
 
       const steps = await stepService.listStepsByRunId(run.id)
@@ -298,21 +298,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'no-steps-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task No Steps',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const steps = await stepService.listStepsByRunId(run.id)
@@ -326,21 +326,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'update-step-running-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Update Running',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -349,7 +349,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       })
 
       const updated = await stepService.updateStepStatus(step.id, 'running')
@@ -361,21 +361,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'update-step-completed-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Update Completed',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -384,7 +384,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       })
 
       const output = { result: 'success', data: 'test data' }
@@ -398,21 +398,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'awaiting-approval-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Awaiting Approval',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -422,7 +422,7 @@ describe('Step Service', () => {
         stepIndex: 0,
         inputTemplate: 'Input',
         expects: 'approval',
-        type: 'approval'
+        type: 'approval',
       })
 
       const updated = await stepService.updateStepStatus(step.id, 'awaiting_approval')
@@ -434,21 +434,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'invalid-step-status-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Invalid Step Status',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -457,7 +457,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       })
 
       await assert.rejects(
@@ -485,21 +485,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'increment-retry-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Increment Retry',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -509,7 +509,7 @@ describe('Step Service', () => {
         stepIndex: 0,
         inputTemplate: 'Input',
         expects: 'output',
-        maxRetries: 3
+        maxRetries: 3,
       })
 
       const updated = await stepService.incrementStepRetry(step.id)
@@ -521,21 +521,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'max-retries-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Max Retries',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -545,7 +545,7 @@ describe('Step Service', () => {
         stepIndex: 0,
         inputTemplate: 'Input',
         expects: 'output',
-        maxRetries: 2
+        maxRetries: 2,
       })
 
       // Increment to max
@@ -568,21 +568,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'next-pending-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Next Pending',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       await stepService.createStep({
@@ -591,7 +591,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input 1',
-        expects: 'output1'
+        expects: 'output1',
       })
 
       const step2 = await stepService.createStep({
@@ -600,7 +600,7 @@ describe('Step Service', () => {
         agentId: 'agent-2',
         stepIndex: 1,
         inputTemplate: 'Input 2',
-        expects: 'output2'
+        expects: 'output2',
       })
 
       const nextStep = await stepService.getNextPendingStep(run.id)
@@ -613,21 +613,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'all-completed-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task All Completed',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -636,7 +636,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       })
 
       await stepService.updateStepStatus(step.id, 'completed')
@@ -650,21 +650,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'no-pending-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task No Pending',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const nextStep = await stepService.getNextPendingStep(run.id)
@@ -678,21 +678,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'claim-atomic-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Claim Atomic',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -701,7 +701,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       })
 
       const claimed = await stepService.claimStep(step.id, 'agent-1')
@@ -714,21 +714,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'already-claimed-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Already Claimed',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -737,7 +737,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       })
 
       // First claim succeeds
@@ -758,21 +758,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'concurrent-claim-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Concurrent Claim',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -781,19 +781,19 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       })
 
       // Simulate concurrent claims using Promise.all
       const results = await Promise.all([
         stepService.claimStep(step.id, 'agent-1'),
         stepService.claimStep(step.id, 'agent-2'),
-        stepService.claimStep(step.id, 'agent-3')
+        stepService.claimStep(step.id, 'agent-3'),
       ])
 
       // Only one should succeed
-      const successfulClaims = results.filter(r => r !== null)
-      const failedClaims = results.filter(r => r === null)
+      const successfulClaims = results.filter((r) => r !== null)
+      const failedClaims = results.filter((r) => r === null)
 
       assert.strictEqual(successfulClaims.length, 1, 'Exactly one claim should succeed')
       assert.strictEqual(failedClaims.length, 2, 'Two claims should fail')
@@ -808,21 +808,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'completed-step-claim-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Completed Step',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -831,7 +831,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       })
 
       // Complete the step
@@ -846,21 +846,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'failed-step-claim-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Failed Step',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -869,7 +869,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       })
 
       // Fail the step
@@ -886,21 +886,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'tx-complete-all-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task TX Complete All',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -909,7 +909,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       })
 
       // Claim first
@@ -930,21 +930,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'tx-complete-partial-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task TX Complete Partial',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step1 = await stepService.createStep({
@@ -953,7 +953,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input 1',
-        expects: 'output1'
+        expects: 'output1',
       })
 
       await stepService.createStep({
@@ -962,7 +962,7 @@ describe('Step Service', () => {
         agentId: 'agent-2',
         stepIndex: 1,
         inputTemplate: 'Input 2',
-        expects: 'output2'
+        expects: 'output2',
       })
 
       // Claim and complete first step
@@ -981,21 +981,21 @@ describe('Step Service', () => {
       const workflow = await workflowService.createWorkflow({
         name: 'tx-string-output-workflow',
         description: 'Test',
-        steps: []
+        steps: [],
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task TX String Output',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await runService.createRun({
         workflowId: workflow.id.toString(),
         taskId: task.id.toString(),
-        task: 'Test task'
+        task: 'Test task',
       })
 
       const step = await stepService.createStep({
@@ -1004,7 +1004,7 @@ describe('Step Service', () => {
         agentId: 'agent-1',
         stepIndex: 0,
         inputTemplate: 'Input',
-        expects: 'output'
+        expects: 'output',
       })
 
       await stepService.claimStep(step.id, 'agent-1')

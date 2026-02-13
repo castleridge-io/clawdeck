@@ -12,15 +12,15 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL || 'postgresql://monte:RMxBU^HPXjYpvUL4bekCbEUCEW$8jy@localhost:5432/clawdeck_test'
-    }
-  }
+      url: process.env.DATABASE_URL,
+    },
+  },
 })
 
 const API_BASE = 'http://localhost:3001/api/v1'
 
 // Helper function to make authenticated API requests
-async function apiRequest(endpoint, options = {}) {
+async function apiRequest (endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`
 
   // Create a JWT token for testing
@@ -30,7 +30,7 @@ async function apiRequest(endpoint, options = {}) {
       id: '1',
       email: 'test@clawdeck.dev',
       agentName: 'TestAgent',
-      agentAutoMode: true
+      agentAutoMode: true,
     },
     process.env.JWT_SECRET || 'test-secret-for-testing-only',
     { expiresIn: '1h' }
@@ -39,24 +39,24 @@ async function apiRequest(endpoint, options = {}) {
   const defaultOptions = {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       'X-Agent-Name': 'TestAgent',
-      'X-Agent-Emoji': '🤖'
-    }
+      'X-Agent-Emoji': '🤖',
+    },
   }
 
   const response = await fetch(url, { ...defaultOptions, ...options })
   return {
     status: response.status,
     data: await response.json().catch(() => ({})),
-    statusText: response.statusText
+    statusText: response.statusText,
   }
 }
 
 describe('E2E Migration Test - OpenClaw Workflow', () => {
   let testBoardId = null
-  let testTaskIds = []
-  let testUserId = '1'
+  const testTaskIds = []
+  const testUserId = '1'
 
   before(async () => {
     console.log('\n=== Starting E2E Migration Test ===\n')
@@ -64,8 +64,8 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
     // Clean up any existing test data
     await prisma.task.deleteMany({
       where: {
-        name: { contains: '[E2E TEST]' }
-      }
+        name: { contains: '[E2E TEST]' },
+      },
     })
 
     console.log('✅ Pre-test cleanup completed')
@@ -77,14 +77,14 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
     // Clean up test data
     await prisma.task.deleteMany({
       where: {
-        name: { contains: '[E2E TEST]' }
-      }
+        name: { contains: '[E2E TEST]' },
+      },
     })
 
     await prisma.board.deleteMany({
       where: {
-        name: { contains: '[E2E TEST]' }
-      }
+        name: { contains: '[E2E TEST]' },
+      },
     })
 
     await prisma.$disconnect()
@@ -111,8 +111,8 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
       body: JSON.stringify({
         name: '[E2E TEST] OpenClaw Migration Board',
         description: 'Test board for E2E migration testing',
-        emoji: '🧪'
-      })
+        emoji: '🧪',
+      }),
     })
 
     assert.strictEqual(response.status, 201, 'Should create board successfully')
@@ -124,7 +124,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
 
     // Verify in database
     const dbBoard = await prisma.board.findUnique({
-      where: { id: BigInt(testBoardId) }
+      where: { id: BigInt(testBoardId) },
     })
     assert.ok(dbBoard, 'Board should exist in database')
     assert.strictEqual(dbBoard.name, '[E2E TEST] OpenClaw Migration Board')
@@ -139,7 +139,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
         board_id: testBoardId,
         status: 'inbox',
         priority: 'high',
-        tags: ['setup', 'migration']
+        tags: ['setup', 'migration'],
       },
       {
         name: '[E2E TEST] Task 2: Implement Task Manager',
@@ -147,7 +147,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
         board_id: testBoardId,
         status: 'inbox',
         priority: 'high',
-        tags: ['implementation', 'task-manager']
+        tags: ['implementation', 'task-manager'],
       },
       {
         name: '[E2E TEST] Task 3: Migrate Agents',
@@ -155,7 +155,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
         board_id: testBoardId,
         status: 'inbox',
         priority: 'medium',
-        tags: ['migration', 'agents']
+        tags: ['migration', 'agents'],
       },
       {
         name: '[E2E TEST] Task 4: Test Integration',
@@ -163,7 +163,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
         board_id: testBoardId,
         status: 'up_next',
         priority: 'medium',
-        tags: ['testing']
+        tags: ['testing'],
       },
       {
         name: '[E2E TEST] Task 5: Verify Data',
@@ -171,14 +171,14 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
         board_id: testBoardId,
         status: 'up_next',
         priority: 'low',
-        tags: ['verification']
-      }
+        tags: ['verification'],
+      },
     ]
 
     for (const task of tasks) {
       const response = await apiRequest('/tasks', {
         method: 'POST',
-        body: JSON.stringify(task)
+        body: JSON.stringify(task),
       })
 
       assert.strictEqual(response.status, 201, `Should create task: ${task.name}`)
@@ -190,8 +190,8 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
     // Verify in database
     const dbTasks = await prisma.task.findMany({
       where: {
-        name: { contains: '[E2E TEST]' }
-      }
+        name: { contains: '[E2E TEST]' },
+      },
     })
     assert.strictEqual(dbTasks.length, 5, 'Should have 5 tasks in database')
     console.log('✅ All tasks verified in database')
@@ -208,7 +208,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
     assert.ok(response.data.data, 'Should return data array')
     assert.ok(Array.isArray(response.data.data), 'Should return an array')
 
-    const e2eTasks = response.data.data.filter(t => t.name.includes('[E2E TEST]'))
+    const e2eTasks = response.data.data.filter((t) => t.name.includes('[E2E TEST]'))
     assert.strictEqual(e2eTasks.length, 5, 'Should have 5 E2E test tasks')
 
     console.log(`✅ Retrieved ${e2eTasks.length} tasks via API`)
@@ -254,7 +254,10 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
 
     console.log('✅ Verified tasks via direct PostgreSQL query')
     console.log(`   Found ${result.length} tasks in database`)
-    console.log('   Tasks:', result.map(t => ({ id: t.id.toString(), name: t.name, status: t.status })))
+    console.log(
+      '   Tasks:',
+      result.map((t) => ({ id: t.id.toString(), name: t.name, status: t.status }))
+    )
   })
 
   // ============================================================================
@@ -264,7 +267,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
   it('should assign task to agent (UPDATE: Assign)', async () => {
     const taskId = testTaskIds[0]
     const response = await apiRequest(`/tasks/${taskId}/assign`, {
-      method: 'PATCH'
+      method: 'PATCH',
     })
 
     assert.strictEqual(response.status, 200, 'Should assign task successfully')
@@ -274,7 +277,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: BigInt(taskId) }
+      where: { id: BigInt(taskId) },
     })
     assert.strictEqual(dbTask.assignedToAgent, true)
     assert.ok(dbTask.assignedAt, 'Should have assignment timestamp')
@@ -284,7 +287,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
   it('should claim a task (UPDATE: Claim)', async () => {
     const taskId = testTaskIds[0]
     const response = await apiRequest(`/tasks/${taskId}/claim`, {
-      method: 'PATCH'
+      method: 'PATCH',
     })
 
     assert.strictEqual(response.status, 200, 'Should claim task successfully')
@@ -294,7 +297,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: BigInt(taskId) }
+      where: { id: BigInt(taskId) },
     })
     assert.strictEqual(dbTask.status, 'in_progress')
     assert.ok(dbTask.agentClaimedAt, 'Should have claim timestamp')
@@ -307,8 +310,8 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
       method: 'PATCH',
       body: JSON.stringify({
         status: 'up_next',
-        priority: 'high'
-      })
+        priority: 'high',
+      }),
     })
 
     assert.strictEqual(response.status, 200, 'Should update task successfully')
@@ -319,7 +322,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: BigInt(taskId) }
+      where: { id: BigInt(taskId) },
     })
     assert.strictEqual(dbTask.status, 'up_next')
     assert.strictEqual(dbTask.priority, 'high')
@@ -331,8 +334,8 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
     const response = await apiRequest(`/tasks/${taskId}`, {
       method: 'PATCH',
       body: JSON.stringify({
-        status: 'done'
-      })
+        status: 'done',
+      }),
     })
 
     assert.strictEqual(response.status, 200, 'Should complete task successfully')
@@ -343,7 +346,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: BigInt(taskId) }
+      where: { id: BigInt(taskId) },
     })
     assert.strictEqual(dbTask.status, 'done')
     assert.strictEqual(dbTask.completed, true)
@@ -358,7 +361,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
 
     // Then unclaim it
     const response = await apiRequest(`/tasks/${taskId}/unclaim`, {
-      method: 'PATCH'
+      method: 'PATCH',
     })
 
     assert.strictEqual(response.status, 200, 'Should unclaim task successfully')
@@ -367,7 +370,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: BigInt(taskId) }
+      where: { id: BigInt(taskId) },
     })
     assert.ok(!dbTask.agentClaimedAt, 'Should not have claim timestamp')
     console.log('✅ Task unclaim verified in database')
@@ -376,7 +379,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
   it('should unassign a task (UPDATE: Unassign)', async () => {
     const taskId = testTaskIds[1]
     const response = await apiRequest(`/tasks/${taskId}/unassign`, {
-      method: 'PATCH'
+      method: 'PATCH',
     })
 
     assert.strictEqual(response.status, 200, 'Should unassign task successfully')
@@ -386,7 +389,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: BigInt(taskId) }
+      where: { id: BigInt(taskId) },
     })
     assert.strictEqual(dbTask.assignedToAgent, false)
     console.log('✅ Task unassignment verified in database')
@@ -400,7 +403,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
     const taskId = testTaskIds[4]
 
     const response = await apiRequest(`/tasks/${taskId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     })
 
     assert.strictEqual(response.status, 204, 'Should delete task successfully')
@@ -409,7 +412,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
 
     // Verify deletion in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: BigInt(taskId) }
+      where: { id: BigInt(taskId) },
     })
     assert.ok(!dbTask, 'Task should not exist in database after deletion')
     console.log('✅ Task deletion verified in database')
@@ -419,7 +422,7 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
     // Delete remaining test tasks
     for (const taskId of testTaskIds.slice(0, 4)) {
       const response = await apiRequest(`/tasks/${taskId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
       assert.strictEqual(response.status, 204, `Should delete task ${taskId}`)
     }
@@ -429,8 +432,8 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
     // Verify in database
     const dbTasks = await prisma.task.findMany({
       where: {
-        name: { contains: '[E2E TEST]' }
-      }
+        name: { contains: '[E2E TEST]' },
+      },
     })
     assert.strictEqual(dbTasks.length, 0, 'Should have no tasks in database')
     console.log('✅ All tasks deletion verified in database')
@@ -455,12 +458,12 @@ describe('E2E Migration Test - OpenClaw Workflow', () => {
     console.log('  ✅ DELETE: Single task, Multiple tasks')
     console.log('\nAll operations verified in PostgreSQL database')
     console.log('\nTest Statistics:')
-    console.log(`  - Boards created: 1`)
-    console.log(`  - Tasks created: 5`)
-    console.log(`  - Tasks assigned: 1`)
-    console.log(`  - Tasks claimed: 2`)
-    console.log(`  - Tasks completed: 1`)
-    console.log(`  - Tasks deleted: 5`)
+    console.log('  - Boards created: 1')
+    console.log('  - Tasks created: 5')
+    console.log('  - Tasks assigned: 1')
+    console.log('  - Tasks claimed: 2')
+    console.log('  - Tasks completed: 1')
+    console.log('  - Tasks deleted: 5')
     console.log('\n✅ E2E test completed successfully!\n')
     assert.ok(true, 'E2E test completed successfully')
   })

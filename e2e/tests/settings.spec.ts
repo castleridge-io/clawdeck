@@ -10,16 +10,16 @@ test.describe('Settings', () => {
 
   test('displays settings page', async ({ page }) => {
     // Check for settings-related content
-    await expect(page.getByRole('heading', { name: /settings/i }).or(
-      page.getByText(/settings/i).first()
-    )).toBeVisible({ timeout: 5000 })
+    await expect(
+      page.getByRole('heading', { name: /settings/i }).or(page.getByText(/settings/i).first())
+    ).toBeVisible({ timeout: 5000 })
   })
 
   test('shows user profile section', async ({ page }) => {
     // Should show user email or admin somewhere
-    await expect(page.getByText(/admin/i).or(
-      page.getByText(/email/i)
-    )).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/admin/i).or(page.getByText(/email/i))).toBeVisible({
+      timeout: 5000,
+    })
   })
 
   test('shows API token section', async ({ page }) => {
@@ -33,7 +33,7 @@ test.describe('Settings', () => {
 
     if (await regenerateButton.isVisible()) {
       // Handle confirmation if present
-      page.on('dialog', dialog => dialog.accept())
+      page.on('dialog', (dialog) => dialog.accept())
       await regenerateButton.click()
 
       // Should show new token or success message
@@ -50,8 +50,8 @@ test.describe('Settings', () => {
     const openclawSection = page.getByText(/openclaw|claw.*connection|agent.*connection/i)
 
     // For now, just verify settings page loaded
-    await expect(page.getByRole('heading', { name: /settings/i }).or(
-      page.locator('body')
-    )).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: /settings/i }).or(page.locator('body'))
+    ).toBeVisible()
   })
 })

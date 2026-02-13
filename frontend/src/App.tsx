@@ -15,31 +15,31 @@ import AdminPage from './pages/AdminPage'
 import AdminDataPage from './pages/AdminDataPage'
 import './App.css'
 
-function App() {
+function App () {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path='/login' element={<LoginPage />} />
           <Route
-            path="/"
+            path='/'
             element={
               <ProtectedRoute>
                 <DashboardLayout />
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="boards" element={<BoardsPage />} />
-            <Route path="tasks" element={<TasksPage />} />
-            <Route path="agents" element={<AgentsPage />} />
-            <Route path="workflows" element={<WorkflowsPage />} />
-            <Route path="runs" element={<RunsPage />} />
-            <Route path="archive" element={<ArchivePage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="admin" element={<AdminPage />} />
-            <Route path="admin/data" element={<AdminDataPage />} />
+            <Route index element={<Navigate to='/dashboard' replace />} />
+            <Route path='dashboard' element={<DashboardPage />} />
+            <Route path='boards' element={<BoardsPage />} />
+            <Route path='tasks' element={<TasksPage />} />
+            <Route path='agents' element={<AgentsPage />} />
+            <Route path='workflows' element={<WorkflowsPage />} />
+            <Route path='runs' element={<RunsPage />} />
+            <Route path='archive' element={<ArchivePage />} />
+            <Route path='settings' element={<SettingsPage />} />
+            <Route path='admin' element={<AdminPage />} />
+            <Route path='admin/data' element={<AdminDataPage />} />
           </Route>
         </Routes>
       </AuthProvider>

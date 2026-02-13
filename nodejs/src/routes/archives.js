@@ -4,7 +4,7 @@ import { wsManager } from '../websocket/manager.js'
 import { archiveScheduler } from '../services/archiveScheduler.js'
 
 // Helper function to create task JSON response
-function taskToJson(task) {
+function taskToJson (task) {
   return {
     id: task.id.toString(),
     name: task.name,
@@ -25,12 +25,12 @@ function taskToJson(task) {
     assigned_at: task.assignedAt?.toISOString() ?? null,
     agent_claimed_at: task.agentClaimedAt?.toISOString() ?? null,
     created_at: task.createdAt.toISOString(),
-    updated_at: task.updatedAt.toISOString()
+    updated_at: task.updatedAt.toISOString(),
   }
 }
 
 // Helper function to record task activity
-async function recordActivity(task, user, action, activityData = {}) {
+async function recordActivity (task, user, action, activityData = {}) {
   await prisma.taskActivity.create({
     data: {
       taskId: BigInt(task.id),
@@ -43,12 +43,12 @@ async function recordActivity(task, user, action, activityData = {}) {
       oldValue: activityData.oldValue,
       newValue: activityData.newValue,
       note: activityData.note,
-      source: activityData.source || 'api'
-    }
+      source: activityData.source || 'api',
+    },
   })
 }
 
-export async function archivesRoutes(fastify, opts) {
+export async function archivesRoutes (fastify, opts) {
   // Apply authentication to all routes
   fastify.addHook('onRequest', authenticateRequest)
 
@@ -61,7 +61,7 @@ export async function archivesRoutes(fastify, opts) {
 
     const where = {
       userId: BigInt(request.user.id),
-      archived: true
+      archived: true,
     }
 
     if (board_id) {
@@ -73,12 +73,9 @@ export async function archivesRoutes(fastify, opts) {
         where,
         skip,
         take,
-        orderBy: [
-          { archivedAt: 'desc' },
-          { completedAt: 'desc' }
-        ]
+        orderBy: [{ archivedAt: 'desc' }, { completedAt: 'desc' }],
       }),
-      prisma.task.count({ where })
+      prisma.task.count({ where }),
     ])
 
     return {
@@ -88,8 +85,8 @@ export async function archivesRoutes(fastify, opts) {
         total,
         page: parseInt(page),
         limit: take,
-        pages: Math.ceil(total / take)
-      }
+        pages: Math.ceil(total / take),
+      },
     }
   })
 
@@ -98,8 +95,8 @@ export async function archivesRoutes(fastify, opts) {
     const task = await prisma.task.findFirst({
       where: {
         id: BigInt(request.params.id),
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     if (!task) {
@@ -114,8 +111,8 @@ export async function archivesRoutes(fastify, opts) {
       where: { id: task.id },
       data: {
         archived: false,
-        archivedAt: null
-      }
+        archivedAt: null,
+      },
     })
 
     // Record activity
@@ -125,7 +122,7 @@ export async function archivesRoutes(fastify, opts) {
       fieldName: 'archived',
       oldValue: 'true',
       newValue: 'false',
-      source: 'api'
+      source: 'api',
     })
 
     // Broadcast task unarchived
@@ -139,8 +136,8 @@ export async function archivesRoutes(fastify, opts) {
     const task = await prisma.task.findFirst({
       where: {
         id: BigInt(request.params.id),
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     if (!task) {
@@ -154,13 +151,13 @@ export async function archivesRoutes(fastify, opts) {
     const taskData = taskToJson(task)
 
     await prisma.task.delete({
-      where: { id: task.id }
+      where: { id: task.id },
     })
 
     // Broadcast task deletion
     wsManager.broadcastTaskEvent(request.user.id, 'task_deleted', {
       id: taskData.id,
-      board_id: taskData.board_id
+      board_id: taskData.board_id,
     })
 
     return reply.code(204).send()
@@ -172,7 +169,7 @@ export async function archivesRoutes(fastify, opts) {
       const task = await archiveScheduler.scheduleImmediateArchive(request.params.id)
       return {
         success: true,
-        data: task
+        data: task,
       }
     } catch (error) {
       if (error.message === 'Task not found') {

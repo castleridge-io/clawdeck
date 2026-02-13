@@ -5,7 +5,7 @@ import { Input } from './Input'
 
 describe('Input', () => {
   it('renders input element', () => {
-    render(<Input placeholder="Enter text" />)
+    render(<Input placeholder='Enter text' />)
     expect(screen.getByTestId('input')).toBeInTheDocument()
     expect(screen.getByTestId('input')).toHaveAttribute('placeholder', 'Enter text')
   })
@@ -37,18 +37,18 @@ describe('Input', () => {
   })
 
   it('applies custom className', () => {
-    render(<Input className="custom-class" />)
+    render(<Input className='custom-class' />)
     expect(screen.getByTestId('input')).toHaveClass('custom-class')
   })
 
   it('supports different input types', () => {
-    const { rerender } = render(<Input type="text" />)
+    const { rerender } = render(<Input type='text' />)
     expect(screen.getByTestId('input')).toHaveAttribute('type', 'text')
 
-    rerender(<Input type="password" />)
+    rerender(<Input type='password' />)
     expect(screen.getByTestId('input')).toHaveAttribute('type', 'password')
 
-    rerender(<Input type="email" />)
+    rerender(<Input type='email' />)
     expect(screen.getByTestId('input')).toHaveAttribute('type', 'email')
   })
 

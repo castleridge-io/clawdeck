@@ -7,7 +7,7 @@ async function boardToJson (board) {
   if (board.agentId) {
     const agent = await prisma.agent.findUnique({
       where: { id: board.agentId },
-      select: { uuid: true }
+      select: { uuid: true },
     })
     agentUuid = agent?.uuid ?? null
   }
@@ -21,7 +21,7 @@ async function boardToJson (board) {
     user_id: board.userId.toString(),
     agent_id: agentUuid,
     created_at: board.createdAt.toISOString(),
-    updated_at: board.updatedAt.toISOString()
+    updated_at: board.updatedAt.toISOString(),
   }
 }
 
@@ -33,14 +33,14 @@ export async function boardsRoutes (fastify, opts) {
   fastify.get('/', async (request) => {
     const boards = await prisma.board.findMany({
       where: { userId: BigInt(request.user.id) },
-      orderBy: { position: 'asc' }
+      orderBy: { position: 'asc' },
     })
 
     const boardsData = await Promise.all(boards.map(boardToJson))
 
     return {
       success: true,
-      data: boardsData
+      data: boardsData,
     }
   })
 
@@ -49,13 +49,13 @@ export async function boardsRoutes (fastify, opts) {
     const board = await prisma.board.findFirst({
       where: {
         id: BigInt(request.params.id),
-        userId: BigInt(request.user.id)
+        userId: BigInt(request.user.id),
       },
       include: {
         tasks: {
-          orderBy: { position: 'asc' }
-        }
-      }
+          orderBy: { position: 'asc' },
+        },
+      },
     })
 
     if (!board) {
@@ -66,7 +66,7 @@ export async function boardsRoutes (fastify, opts) {
       success: true,
       data: {
         ...(await boardToJson(board)),
-        tasks: board.tasks.map(task => ({
+        tasks: board.tasks.map((task) => ({
           id: task.id.toString(),
           name: task.name,
           description: task.description,
@@ -77,9 +77,9 @@ export async function boardsRoutes (fastify, opts) {
           assigned_to_agent: task.assignedToAgent,
           tags: task.tags || [],
           created_at: task.createdAt.toISOString(),
-          updated_at: task.updatedAt.toISOString()
-        }))
-      }
+          updated_at: task.updatedAt.toISOString(),
+        })),
+      },
     }
   })
 
@@ -94,7 +94,7 @@ export async function boardsRoutes (fastify, opts) {
     // Get position (put at end)
     const lastBoard = await prisma.board.findFirst({
       where: { userId: BigInt(request.user.id) },
-      orderBy: { position: 'desc' }
+      orderBy: { position: 'desc' },
     })
 
     const board = await prisma.board.create({
@@ -103,13 +103,13 @@ export async function boardsRoutes (fastify, opts) {
         icon,
         color,
         userId: BigInt(request.user.id),
-        position: position ?? ((lastBoard?.position ?? -1) + 1)
-      }
+        position: position ?? (lastBoard?.position ?? -1) + 1,
+      },
     })
 
     return reply.code(201).send({
       success: true,
-      data: await boardToJson(board)
+      data: await boardToJson(board),
     })
   })
 
@@ -120,8 +120,8 @@ export async function boardsRoutes (fastify, opts) {
     const board = await prisma.board.findFirst({
       where: {
         id: BigInt(request.params.id),
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     if (!board) {
@@ -144,8 +144,8 @@ export async function boardsRoutes (fastify, opts) {
         const agent = await prisma.agent.findFirst({
           where: {
             uuid: agent_id,
-            isActive: true
-          }
+            isActive: true,
+          },
         })
         if (!agent) {
           return reply.code(400).send({ error: 'Agent not found' })
@@ -156,12 +156,12 @@ export async function boardsRoutes (fastify, opts) {
 
     const updatedBoard = await prisma.board.update({
       where: { id: board.id },
-      data: updateData
+      data: updateData,
     })
 
     return {
       success: true,
-      data: await boardToJson(updatedBoard)
+      data: await boardToJson(updatedBoard),
     }
   })
 
@@ -170,8 +170,8 @@ export async function boardsRoutes (fastify, opts) {
     const board = await prisma.board.findFirst({
       where: {
         id: BigInt(request.params.id),
-        userId: BigInt(request.user.id)
-      }
+        userId: BigInt(request.user.id),
+      },
     })
 
     if (!board) {
@@ -179,7 +179,7 @@ export async function boardsRoutes (fastify, opts) {
     }
 
     await prisma.board.delete({
-      where: { id: board.id }
+      where: { id: board.id },
     })
 
     return reply.code(204).send()

@@ -15,8 +15,8 @@ async function setupTestEnvironment () {
       emailAddress: `agents-test-${Date.now()}@example.com`,
       passwordDigest: 'hash',
       agentAutoMode: true,
-      agentName: 'TestAgent'
-    }
+      agentName: 'TestAgent',
+    },
   })
 
   // Create admin user
@@ -26,8 +26,8 @@ async function setupTestEnvironment () {
       passwordDigest: 'hash',
       admin: true,
       agentAutoMode: true,
-      agentName: 'AdminAgent'
-    }
+      agentName: 'AdminAgent',
+    },
   })
 
   // Create test API token for regular user
@@ -36,8 +36,8 @@ async function setupTestEnvironment () {
     data: {
       token: testToken,
       name: 'Agents Test Token',
-      userId: testUser.id
-    }
+      userId: testUser.id,
+    },
   })
 
   // Create API token for admin user
@@ -46,8 +46,8 @@ async function setupTestEnvironment () {
     data: {
       token: adminToken,
       name: 'Agents Admin Token',
-      userId: adminUser.id
-    }
+      userId: adminUser.id,
+    },
   })
 }
 
@@ -65,7 +65,7 @@ async function makeRequest (method, path, body = null, token = null) {
 
   const options = {
     method,
-    headers: {}
+    headers: {},
   }
 
   // Only add auth header if token is explicitly provided (including empty string for no-auth test)
@@ -92,7 +92,7 @@ async function makeRequest (method, path, body = null, token = null) {
     const text = await response.text()
     return {
       status: response.status,
-      data: text ? JSON.parse(text) : null
+      data: text ? JSON.parse(text) : null,
     }
   } catch (error) {
     return { status: 0, error: error.message }
@@ -131,8 +131,8 @@ describe('Agents API', () => {
           slug: 'jarvis-leader',
           emoji: '👔',
           color: 'purple',
-          isActive: true
-        }
+          isActive: true,
+        },
       })
       await prisma.agent.create({
         data: {
@@ -140,8 +140,8 @@ describe('Agents API', () => {
           slug: 'dave-engineer',
           emoji: '👨‍💻',
           color: 'blue',
-          isActive: true
-        }
+          isActive: true,
+        },
       })
 
       const result = await makeRequest('GET', '/api/v1/agents')
@@ -168,8 +168,8 @@ describe('Agents API', () => {
           slug: 'active-agent',
           emoji: '✅',
           color: 'green',
-          isActive: true
-        }
+          isActive: true,
+        },
       })
       await prisma.agent.create({
         data: {
@@ -177,8 +177,8 @@ describe('Agents API', () => {
           slug: 'inactive-agent',
           emoji: '❌',
           color: 'red',
-          isActive: false
-        }
+          isActive: false,
+        },
       })
 
       const result = await makeRequest('GET', '/api/v1/agents')
@@ -202,8 +202,8 @@ describe('Agents API', () => {
           name: 'Test Agent',
           slug: 'test-agent',
           emoji: '🤖',
-          color: 'gray'
-        }
+          color: 'gray',
+        },
       })
 
       const result = await makeRequest('GET', `/api/v1/agents/${agent.uuid}`)
@@ -228,8 +228,8 @@ describe('Agents API', () => {
           slug: 'inactive-agent',
           emoji: '❌',
           color: 'red',
-          isActive: false
-        }
+          isActive: false,
+        },
       })
 
       const result = await makeRequest('GET', `/api/v1/agents/${agent.uuid}`)
@@ -240,12 +240,17 @@ describe('Agents API', () => {
 
   describe('POST /api/v1/agents', () => {
     it('should create a new agent (admin only)', async () => {
-      const result = await makeRequest('POST', '/api/v1/agents', {
-        name: 'New Agent',
-        slug: 'new-agent',
-        emoji: '🚀',
-        color: 'orange'
-      }, adminToken)
+      const result = await makeRequest(
+        'POST',
+        '/api/v1/agents',
+        {
+          name: 'New Agent',
+          slug: 'new-agent',
+          emoji: '🚀',
+          color: 'orange',
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 201)
       assert.strictEqual(result.data.success, true)
@@ -257,27 +262,42 @@ describe('Agents API', () => {
     })
 
     it('should require admin role', async () => {
-      const result = await makeRequest('POST', '/api/v1/agents', {
-        name: 'Unauthorized Agent',
-        slug: 'unauthorized-agent'
-      }, testToken) // Regular user token
+      const result = await makeRequest(
+        'POST',
+        '/api/v1/agents',
+        {
+          name: 'Unauthorized Agent',
+          slug: 'unauthorized-agent',
+        },
+        testToken
+      ) // Regular user token
 
       assert.strictEqual(result.status, 403)
     })
 
     it('should require name', async () => {
-      const result = await makeRequest('POST', '/api/v1/agents', {
-        slug: 'no-name-agent'
-      }, adminToken)
+      const result = await makeRequest(
+        'POST',
+        '/api/v1/agents',
+        {
+          slug: 'no-name-agent',
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 400)
       assert.ok(result.data.error.includes('name'))
     })
 
     it('should require slug', async () => {
-      const result = await makeRequest('POST', '/api/v1/agents', {
-        name: 'No Slug Agent'
-      }, adminToken)
+      const result = await makeRequest(
+        'POST',
+        '/api/v1/agents',
+        {
+          name: 'No Slug Agent',
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 400)
       assert.ok(result.data.error.includes('slug'))
@@ -289,14 +309,19 @@ describe('Agents API', () => {
           name: 'Duplicate Name',
           slug: 'duplicate-name',
           emoji: '🔄',
-          color: 'gray'
-        }
+          color: 'gray',
+        },
       })
 
-      const result = await makeRequest('POST', '/api/v1/agents', {
-        name: 'Duplicate Name',
-        slug: 'different-slug'
-      }, adminToken)
+      const result = await makeRequest(
+        'POST',
+        '/api/v1/agents',
+        {
+          name: 'Duplicate Name',
+          slug: 'different-slug',
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 409) // Conflict
     })
@@ -307,24 +332,34 @@ describe('Agents API', () => {
           name: 'Original Name',
           slug: 'duplicate-slug',
           emoji: '🔄',
-          color: 'gray'
-        }
+          color: 'gray',
+        },
       })
 
-      const result = await makeRequest('POST', '/api/v1/agents', {
-        name: 'Different Name',
-        slug: 'duplicate-slug'
-      }, adminToken)
+      const result = await makeRequest(
+        'POST',
+        '/api/v1/agents',
+        {
+          name: 'Different Name',
+          slug: 'duplicate-slug',
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 409) // Conflict
     })
 
     it('should create agent with linked board', async () => {
       // Create board linked to agent (board.agentId -> agent.id)
-      const agentResult = await makeRequest('POST', '/api/v1/agents', {
-        name: 'Board Agent',
-        slug: 'board-agent'
-      }, adminToken)
+      const agentResult = await makeRequest(
+        'POST',
+        '/api/v1/agents',
+        {
+          name: 'Board Agent',
+          slug: 'board-agent',
+        },
+        adminToken
+      )
 
       assert.strictEqual(agentResult.status, 201)
 
@@ -334,18 +369,23 @@ describe('Agents API', () => {
           name: 'Agent Board',
           userId: testUser.id,
           agentId: BigInt(agentResult.data.data.id),
-          position: 0
-        }
+          position: 0,
+        },
       })
 
       assert.ok(board.agentId)
     })
 
     it('should use default values for optional fields', async () => {
-      const result = await makeRequest('POST', '/api/v1/agents', {
-        name: 'Minimal Agent',
-        slug: 'minimal-agent'
-      }, adminToken)
+      const result = await makeRequest(
+        'POST',
+        '/api/v1/agents',
+        {
+          name: 'Minimal Agent',
+          slug: 'minimal-agent',
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 201)
       assert.strictEqual(result.data.data.emoji, '🤖') // Default emoji
@@ -357,13 +397,18 @@ describe('Agents API', () => {
   describe('POST /api/v1/agents/register', () => {
     it('should register existing agent with provided UUID (admin only)', async () => {
       const providedUuid = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
-      const result = await makeRequest('POST', '/api/v1/agents/register', {
-        uuid: providedUuid,
-        name: 'External Agent',
-        slug: 'external-agent',
-        emoji: '🌐',
-        color: 'blue'
-      }, adminToken)
+      const result = await makeRequest(
+        'POST',
+        '/api/v1/agents/register',
+        {
+          uuid: providedUuid,
+          name: 'External Agent',
+          slug: 'external-agent',
+          emoji: '🌐',
+          color: 'blue',
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 201)
       assert.strictEqual(result.data.success, true)
@@ -373,20 +418,30 @@ describe('Agents API', () => {
     })
 
     it('should require admin role', async () => {
-      const result = await makeRequest('POST', '/api/v1/agents/register', {
-        uuid: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
-        name: 'Unauthorized Register',
-        slug: 'unauthorized-register'
-      }, testToken)
+      const result = await makeRequest(
+        'POST',
+        '/api/v1/agents/register',
+        {
+          uuid: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
+          name: 'Unauthorized Register',
+          slug: 'unauthorized-register',
+        },
+        testToken
+      )
 
       assert.strictEqual(result.status, 403)
     })
 
     it('should require uuid', async () => {
-      const result = await makeRequest('POST', '/api/v1/agents/register', {
-        name: 'No UUID Agent',
-        slug: 'no-uuid-agent'
-      }, adminToken)
+      const result = await makeRequest(
+        'POST',
+        '/api/v1/agents/register',
+        {
+          name: 'No UUID Agent',
+          slug: 'no-uuid-agent',
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 400)
       assert.ok(result.data.error.includes('uuid'))
@@ -400,15 +455,20 @@ describe('Agents API', () => {
           name: 'First Agent',
           slug: 'first-agent',
           emoji: '1️⃣',
-          color: 'gray'
-        }
+          color: 'gray',
+        },
       })
 
-      const result = await makeRequest('POST', '/api/v1/agents/register', {
-        uuid,
-        name: 'Second Agent',
-        slug: 'second-agent'
-      }, adminToken)
+      const result = await makeRequest(
+        'POST',
+        '/api/v1/agents/register',
+        {
+          uuid,
+          name: 'Second Agent',
+          slug: 'second-agent',
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 409)
       assert.ok(result.data.error.includes('UUID'))
@@ -422,15 +482,20 @@ describe('Agents API', () => {
           name: 'Agent to Update',
           slug: 'agent-to-update',
           emoji: '📝',
-          color: 'gray'
-        }
+          color: 'gray',
+        },
       })
 
-      const result = await makeRequest('PATCH', `/api/v1/agents/${agent.uuid}`, {
-        name: 'Updated Agent',
-        emoji: '✅',
-        color: 'green'
-      }, adminToken)
+      const result = await makeRequest(
+        'PATCH',
+        `/api/v1/agents/${agent.uuid}`,
+        {
+          name: 'Updated Agent',
+          emoji: '✅',
+          color: 'green',
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.success, true)
@@ -447,21 +512,31 @@ describe('Agents API', () => {
           name: 'Protected Agent',
           slug: 'protected-agent',
           emoji: '🔒',
-          color: 'gray'
-        }
+          color: 'gray',
+        },
       })
 
-      const result = await makeRequest('PATCH', `/api/v1/agents/${agent.uuid}`, {
-        name: 'Hacked Agent'
-      }, testToken) // Regular user token
+      const result = await makeRequest(
+        'PATCH',
+        `/api/v1/agents/${agent.uuid}`,
+        {
+          name: 'Hacked Agent',
+        },
+        testToken
+      ) // Regular user token
 
       assert.strictEqual(result.status, 403)
     })
 
     it('should return 404 for non-existent UUID', async () => {
-      const result = await makeRequest('PATCH', '/api/v1/agents/00000000-0000-0000-0000-000000000000', {
-        name: 'Ghost Agent'
-      }, adminToken)
+      const result = await makeRequest(
+        'PATCH',
+        '/api/v1/agents/00000000-0000-0000-0000-000000000000',
+        {
+          name: 'Ghost Agent',
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 404)
     })
@@ -473,13 +548,18 @@ describe('Agents API', () => {
           slug: 'position-agent',
           emoji: '📍',
           color: 'gray',
-          position: 0
-        }
+          position: 0,
+        },
       })
 
-      const result = await makeRequest('PATCH', `/api/v1/agents/${agent.uuid}`, {
-        position: 5
-      }, adminToken)
+      const result = await makeRequest(
+        'PATCH',
+        `/api/v1/agents/${agent.uuid}`,
+        {
+          position: 5,
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 200)
       assert.strictEqual(result.data.data.position, 5)
@@ -491,8 +571,8 @@ describe('Agents API', () => {
           name: 'Existing Name',
           slug: 'existing-name',
           emoji: '🔹',
-          color: 'blue'
-        }
+          color: 'blue',
+        },
       })
 
       const agent = await prisma.agent.create({
@@ -500,13 +580,18 @@ describe('Agents API', () => {
           name: 'Original Name',
           slug: 'original-name',
           emoji: '🔸',
-          color: 'orange'
-        }
+          color: 'orange',
+        },
       })
 
-      const result = await makeRequest('PATCH', `/api/v1/agents/${agent.uuid}`, {
-        name: 'Existing Name'
-      }, adminToken)
+      const result = await makeRequest(
+        'PATCH',
+        `/api/v1/agents/${agent.uuid}`,
+        {
+          name: 'Existing Name',
+        },
+        adminToken
+      )
 
       assert.strictEqual(result.status, 409) // Conflict
     })
@@ -519,8 +604,8 @@ describe('Agents API', () => {
           name: 'Agent to Delete',
           slug: 'agent-to-delete',
           emoji: '🗑️',
-          color: 'gray'
-        }
+          color: 'gray',
+        },
       })
 
       const result = await makeRequest('DELETE', `/api/v1/agents/${agent.uuid}`, null, adminToken)
@@ -529,7 +614,7 @@ describe('Agents API', () => {
 
       // Verify soft delete (isActive = false)
       const deleted = await prisma.agent.findUnique({
-        where: { id: agent.id }
+        where: { id: agent.id },
       })
       assert.ok(deleted, 'Agent should still exist')
       assert.strictEqual(deleted.isActive, false)
@@ -541,8 +626,8 @@ describe('Agents API', () => {
           name: 'Protected Agent',
           slug: 'protected-delete-agent',
           emoji: '🔒',
-          color: 'gray'
-        }
+          color: 'gray',
+        },
       })
 
       const result = await makeRequest('DELETE', `/api/v1/agents/${agent.uuid}`, null, testToken)
@@ -551,13 +636,18 @@ describe('Agents API', () => {
 
       // Agent should still be active
       const stillActive = await prisma.agent.findUnique({
-        where: { id: agent.id }
+        where: { id: agent.id },
       })
       assert.strictEqual(stillActive.isActive, true)
     })
 
     it('should return 404 for non-existent UUID', async () => {
-      const result = await makeRequest('DELETE', '/api/v1/agents/00000000-0000-0000-0000-000000000000', null, adminToken)
+      const result = await makeRequest(
+        'DELETE',
+        '/api/v1/agents/00000000-0000-0000-0000-000000000000',
+        null,
+        adminToken
+      )
 
       assert.strictEqual(result.status, 404)
     })
@@ -569,8 +659,8 @@ describe('Agents API', () => {
           slug: 'already-deleted',
           emoji: '👻',
           color: 'gray',
-          isActive: false
-        }
+          isActive: false,
+        },
       })
 
       const result = await makeRequest('DELETE', `/api/v1/agents/${agent.uuid}`, null, adminToken)
@@ -586,8 +676,8 @@ describe('Agents API', () => {
           name: 'Board Agent',
           slug: 'board-agent',
           emoji: '📋',
-          color: 'blue'
-        }
+          color: 'blue',
+        },
       })
 
       const board = await prisma.board.create({
@@ -595,8 +685,8 @@ describe('Agents API', () => {
           name: 'Agent Board',
           userId: testUser.id,
           agentId: agent.id,
-          position: 0
-        }
+          position: 0,
+        },
       })
 
       const result = await makeRequest('GET', `/api/v1/boards/${board.id}`)

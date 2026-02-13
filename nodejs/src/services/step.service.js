@@ -5,17 +5,17 @@ const VALID_TYPES = ['single', 'loop', 'approval']
 
 // Valid status transitions: key = current status, value = allowed next statuses
 const VALID_TRANSITIONS = {
-  'waiting': ['running', 'awaiting_approval'],
-  'running': ['completed', 'failed', 'awaiting_approval', 'waiting'], // waiting for retry
-  'awaiting_approval': ['running', 'completed', 'failed'],
-  'completed': [], // Terminal state
-  'failed': [] // Terminal state (retry logic handles this separately)
+  waiting: ['running', 'awaiting_approval'],
+  running: ['completed', 'failed', 'awaiting_approval', 'waiting'], // waiting for retry
+  awaiting_approval: ['running', 'completed', 'failed'],
+  completed: [], // Terminal state
+  failed: [], // Terminal state (retry logic handles this separately)
 }
 
 /**
  * Validate status transition
  */
-function isValidTransition(currentStatus, newStatus) {
+function isValidTransition (currentStatus, newStatus) {
   const allowedTransitions = VALID_TRANSITIONS[currentStatus]
   return allowedTransitions && allowedTransitions.includes(newStatus)
 }
@@ -23,12 +23,12 @@ function isValidTransition(currentStatus, newStatus) {
 /**
  * Create step service
  */
-export function createStepService() {
+export function createStepService () {
   return {
     /**
      * Create a new step
      */
-    async createStep(data) {
+    async createStep (data) {
       const {
         runId,
         stepId,
@@ -38,12 +38,12 @@ export function createStepService() {
         expects,
         type = 'single',
         loopConfig,
-        maxRetries = 3
+        maxRetries = 3,
       } = data
 
       // Verify run exists
       const run = await prisma.run.findUnique({
-        where: { id: runId }
+        where: { id: runId },
       })
 
       if (!run) {
@@ -68,40 +68,40 @@ export function createStepService() {
           expects,
           type,
           loopConfig: loopConfig ? JSON.stringify(loopConfig) : null,
-          maxRetries
-        }
+          maxRetries,
+        },
       })
     },
 
     /**
      * Get step by ID
      */
-    async getStep(id) {
+    async getStep (id) {
       return await prisma.step.findUnique({
-        where: { id }
+        where: { id },
       })
     },
 
     /**
      * List steps by run ID
      */
-    async listStepsByRunId(runId) {
+    async listStepsByRunId (runId) {
       return await prisma.step.findMany({
         where: { runId },
-        orderBy: { stepIndex: 'asc' }
+        orderBy: { stepIndex: 'asc' },
       })
     },
 
     /**
      * Update step status
      */
-    async updateStepStatus(id, status, output = null) {
+    async updateStepStatus (id, status, output = null) {
       if (!VALID_STATUSES.includes(status)) {
         throw new Error(`Invalid status: ${status}. Must be one of: ${VALID_STATUSES.join(', ')}`)
       }
 
       const step = await prisma.step.findUnique({
-        where: { id }
+        where: { id },
       })
 
       if (!step) {
@@ -121,16 +121,16 @@ export function createStepService() {
 
       return await prisma.step.update({
         where: { id },
-        data: updateData
+        data: updateData,
       })
     },
 
     /**
      * Update step fields (for current_story_id and other optional fields)
      */
-    async updateStep(id, data) {
+    async updateStep (id, data) {
       const step = await prisma.step.findUnique({
-        where: { id }
+        where: { id },
       })
 
       if (!step) {
@@ -141,7 +141,9 @@ export function createStepService() {
 
       if (data.status !== undefined) {
         if (!VALID_STATUSES.includes(data.status)) {
-          throw new Error(`Invalid status: ${data.status}. Must be one of: ${VALID_STATUSES.join(', ')}`)
+          throw new Error(
+            `Invalid status: ${data.status}. Must be one of: ${VALID_STATUSES.join(', ')}`
+          )
         }
         // Validate status transition (skip if same status)
         if (step.status !== data.status && !isValidTransition(step.status, data.status)) {
@@ -151,7 +153,12 @@ export function createStepService() {
       }
 
       if (data.output !== undefined) {
-        updateData.output = data.output === null ? null : (typeof data.output === 'string' ? data.output : JSON.stringify(data.output))
+        updateData.output =
+          data.output === null
+            ? null
+            : typeof data.output === 'string'
+              ? data.output
+              : JSON.stringify(data.output)
       }
 
       if (data.currentStoryId !== undefined) {
@@ -160,16 +167,16 @@ export function createStepService() {
 
       return await prisma.step.update({
         where: { id },
-        data: updateData
+        data: updateData,
       })
     },
 
     /**
      * Increment step retry count
      */
-    async incrementStepRetry(id) {
+    async incrementStepRetry (id) {
       const step = await prisma.step.findUnique({
-        where: { id }
+        where: { id },
       })
 
       if (!step) {
@@ -183,21 +190,21 @@ export function createStepService() {
       return await prisma.step.update({
         where: { id },
         data: {
-          retryCount: step.retryCount + 1
-        }
+          retryCount: step.retryCount + 1,
+        },
       })
     },
 
     /**
      * Get next pending step for a run
      */
-    async getNextPendingStep(runId) {
+    async getNextPendingStep (runId) {
       return await prisma.step.findFirst({
         where: {
           runId,
-          status: 'waiting'
+          status: 'waiting',
         },
-        orderBy: { stepIndex: 'asc' }
+        orderBy: { stepIndex: 'asc' },
       })
     },
 
@@ -205,16 +212,16 @@ export function createStepService() {
      * Atomically claim a step (prevents race conditions)
      * Returns the updated step if claim succeeded, null if already claimed
      */
-    async claimStep(id, agentId) {
+    async claimStep (id, agentId) {
       // Use updateMany with WHERE clause for atomic claim
       const result = await prisma.step.updateMany({
         where: {
           id,
-          status: 'waiting'
+          status: 'waiting',
         },
         data: {
-          status: 'running'
-        }
+          status: 'running',
+        },
       })
 
       if (result.count === 0) {
@@ -224,7 +231,7 @@ export function createStepService() {
 
       // Fetch and return the updated step
       return await prisma.step.findUnique({
-        where: { id }
+        where: { id },
       })
     },
 
@@ -232,7 +239,7 @@ export function createStepService() {
      * Complete a step and update run status atomically (transactional)
      * Returns { step, runCompleted }
      */
-    async completeStepWithRunUpdate(stepId, output = null) {
+    async completeStepWithRunUpdate (stepId, output = null) {
       return await prisma.$transaction(async (tx) => {
         // Update step status
         const updateData = { status: 'completed' }
@@ -242,29 +249,29 @@ export function createStepService() {
 
         const step = await tx.step.update({
           where: { id: stepId },
-          data: updateData
+          data: updateData,
         })
 
         // Check if all steps are completed
         const allSteps = await tx.step.findMany({
-          where: { runId: step.runId }
+          where: { runId: step.runId },
         })
 
-        const allCompleted = allSteps.every(s => s.status === 'completed')
+        const allCompleted = allSteps.every((s) => s.status === 'completed')
 
         if (allCompleted) {
           // Update run status to completed
           await tx.run.update({
             where: { id: step.runId },
-            data: { status: 'completed' }
+            data: { status: 'completed' },
           })
         }
 
         return {
           step,
-          runCompleted: allCompleted
+          runCompleted: allCompleted,
         }
       })
-    }
+    },
   }
 }

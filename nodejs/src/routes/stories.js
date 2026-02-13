@@ -5,7 +5,7 @@ import { createStepService } from '../services/step.service.js'
 import { prisma } from '../db/prisma.js'
 
 // Helper to safely parse JSON (prevents crashes from invalid JSON in DB)
-function safeJsonParse(str) {
+function safeJsonParse (str) {
   if (!str) return null
   try {
     return JSON.parse(str)
@@ -15,7 +15,7 @@ function safeJsonParse(str) {
 }
 
 // Helper function to convert story to JSON response
-function storyToJson(story) {
+function storyToJson (story) {
   return {
     id: story.id,
     run_id: story.runId,
@@ -29,11 +29,11 @@ function storyToJson(story) {
     retry_count: story.retryCount,
     max_retries: story.maxRetries,
     created_at: story.createdAt.toISOString(),
-    updated_at: story.updatedAt.toISOString()
+    updated_at: story.updatedAt.toISOString(),
   }
 }
 
-export async function storiesRoutes(fastify, opts) {
+export async function storiesRoutes (fastify, opts) {
   const storyService = createStoryService()
   const runService = createRunService()
   const stepService = createStepService()
@@ -54,7 +54,7 @@ export async function storiesRoutes(fastify, opts) {
 
     return {
       success: true,
-      data: stories.map(storyToJson)
+      data: stories.map(storyToJson),
     }
   })
 
@@ -70,7 +70,7 @@ export async function storiesRoutes(fastify, opts) {
 
     return {
       success: true,
-      data: storyToJson(story)
+      data: storyToJson(story),
     }
   })
 
@@ -92,7 +92,7 @@ export async function storiesRoutes(fastify, opts) {
     let acceptanceCriteria = null
     if (acceptance_criteria !== undefined && acceptance_criteria !== null) {
       if (Array.isArray(acceptance_criteria)) {
-        acceptanceCriteria = acceptance_criteria.map(c => `- ${c}`).join('\n')
+        acceptanceCriteria = acceptance_criteria.map((c) => `- ${c}`).join('\n')
       } else if (typeof acceptance_criteria === 'object') {
         // Convert object to markdown list format
         acceptanceCriteria = Object.entries(acceptance_criteria)
@@ -110,12 +110,12 @@ export async function storiesRoutes(fastify, opts) {
         storyId: story_id,
         title,
         description,
-        acceptanceCriteria
+        acceptanceCriteria,
       })
 
       return reply.code(201).send({
         success: true,
-        data: storyToJson(story)
+        data: storyToJson(story),
       })
     } catch (error) {
       if (error.message.includes('not found')) {
@@ -138,7 +138,7 @@ export async function storiesRoutes(fastify, opts) {
     if (story.status !== 'pending') {
       return reply.code(400).send({
         error: `Story cannot be started. Current status: ${story.status}`,
-        current_status: story.status
+        current_status: story.status,
       })
     }
 
@@ -147,7 +147,7 @@ export async function storiesRoutes(fastify, opts) {
 
       return {
         success: true,
-        data: storyToJson(updatedStory)
+        data: storyToJson(updatedStory),
       }
     } catch (error) {
       if (error.message.includes('not found')) {
@@ -174,7 +174,7 @@ export async function storiesRoutes(fastify, opts) {
     if (story.status !== 'running') {
       return reply.code(400).send({
         error: `Story cannot be completed. Current status: ${story.status}`,
-        current_status: story.status
+        current_status: story.status,
       })
     }
 
@@ -183,7 +183,7 @@ export async function storiesRoutes(fastify, opts) {
 
       return {
         success: true,
-        data: storyToJson(updatedStory)
+        data: storyToJson(updatedStory),
       }
     } catch (error) {
       if (error.message.includes('not found')) {
@@ -214,7 +214,7 @@ export async function storiesRoutes(fastify, opts) {
     if (story.status !== 'running') {
       return reply.code(400).send({
         error: `Story cannot be failed. Current status: ${story.status}`,
-        current_status: story.status
+        current_status: story.status,
       })
     }
 
@@ -225,21 +225,21 @@ export async function storiesRoutes(fastify, opts) {
         const updatedStory = await storyService.updateStoryStatus(storyId, 'pending', {
           error: errorMessage,
           output,
-          retry: story.retryCount + 1
+          retry: story.retryCount + 1,
         })
 
         return {
           success: true,
           data: storyToJson(updatedStory),
           message: `Story failed, will retry (${story.retryCount + 1}/${story.maxRetries})`,
-          will_retry: true
+          will_retry: true,
         }
       } else {
         // Max retries exceeded, mark as failed
         const updatedStory = await storyService.updateStoryStatus(storyId, 'failed', {
           error: errorMessage,
           output,
-          retries_exhausted: true
+          retries_exhausted: true,
         })
 
         // Find and fail the parent loop step that's processing this story
@@ -247,15 +247,15 @@ export async function storiesRoutes(fastify, opts) {
           where: {
             runId,
             currentStoryId: storyId,
-            status: 'running'
-          }
+            status: 'running',
+          },
         })
 
         if (parentStep) {
           await stepService.updateStepStatus(parentStep.id, 'failed', {
             error: `Story '${story.title}' failed after max retries: ${errorMessage}`,
             storyId,
-            retries_exhausted: true
+            retries_exhausted: true,
           })
         }
 
@@ -263,7 +263,7 @@ export async function storiesRoutes(fastify, opts) {
           success: true,
           data: storyToJson(updatedStory),
           message: 'Story failed, max retries exceeded',
-          will_retry: false
+          will_retry: false,
         }
       }
     } catch (error) {
@@ -290,11 +290,15 @@ export async function storiesRoutes(fastify, opts) {
     }
 
     try {
-      const updatedStory = await storyService.updateStoryStatus(storyId, status || story.status, output)
+      const updatedStory = await storyService.updateStoryStatus(
+        storyId,
+        status || story.status,
+        output
+      )
 
       return {
         success: true,
-        data: storyToJson(updatedStory)
+        data: storyToJson(updatedStory),
       }
     } catch (error) {
       if (error.message.includes('not found')) {

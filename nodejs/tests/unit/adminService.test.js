@@ -18,8 +18,8 @@ async function setupTestEnvironment () {
       passwordDigest: 'hash',
       agentAutoMode: true,
       agentName: 'TestAgent1',
-      agentEmoji: '🤖'
-    }
+      agentEmoji: '🤖',
+    },
   })
 
   testUser2 = await prisma.user.create({
@@ -28,8 +28,8 @@ async function setupTestEnvironment () {
       passwordDigest: 'hash',
       agentAutoMode: false,
       agentName: null,
-      agentEmoji: null
-    }
+      agentEmoji: null,
+    },
   })
 
   // Create test boards
@@ -39,8 +39,8 @@ async function setupTestEnvironment () {
       icon: '📋',
       color: 'blue',
       userId: testUser1.id,
-      position: 0
-    }
+      position: 0,
+    },
   })
 
   testBoard2 = await prisma.board.create({
@@ -49,8 +49,8 @@ async function setupTestEnvironment () {
       icon: '📝',
       color: 'green',
       userId: testUser2.id,
-      position: 0
-    }
+      position: 0,
+    },
   })
 
   // Create test tasks
@@ -59,8 +59,8 @@ async function setupTestEnvironment () {
       name: 'Task for User 1',
       status: 'inbox',
       boardId: testBoard1.id,
-      userId: testUser1.id
-    }
+      userId: testUser1.id,
+    },
   })
 
   testTask2 = await prisma.task.create({
@@ -68,8 +68,8 @@ async function setupTestEnvironment () {
       name: 'Task for User 2',
       status: 'in_progress',
       boardId: testBoard2.id,
-      userId: testUser2.id
-    }
+      userId: testUser2.id,
+    },
   })
 }
 
@@ -102,8 +102,8 @@ describe('Admin Service', () => {
       assert.ok(result.data.length >= 2)
 
       // Find our test boards
-      const board1 = result.data.find(b => b.name === 'User 1 Board')
-      const board2 = result.data.find(b => b.name === 'User 2 Board')
+      const board1 = result.data.find((b) => b.name === 'User 1 Board')
+      const board2 = result.data.find((b) => b.name === 'User 2 Board')
 
       assert.ok(board1, 'Board 1 should be found')
       assert.ok(board2, 'Board 2 should be found')
@@ -122,7 +122,7 @@ describe('Admin Service', () => {
     it('should include task count for each board', async () => {
       const result = await adminService.listAllBoards(1, 50)
 
-      const board1 = result.data.find(b => b.name === 'User 1 Board')
+      const board1 = result.data.find((b) => b.name === 'User 1 Board')
 
       assert.ok(board1)
       assert.ok(typeof board1.task_count === 'number')
@@ -169,8 +169,8 @@ describe('Admin Service', () => {
       assert.ok(result.meta)
 
       // Find our test tasks
-      const task1 = result.data.find(t => t.name === 'Task for User 1')
-      const task2 = result.data.find(t => t.name === 'Task for User 2')
+      const task1 = result.data.find((t) => t.name === 'Task for User 1')
+      const task2 = result.data.find((t) => t.name === 'Task for User 2')
 
       assert.ok(task1, 'Task 1 should be found')
       assert.ok(task2, 'Task 2 should be found')

@@ -19,7 +19,7 @@ class WebSocketClient {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private isIntentionalClose = false
 
-  connect(token?: string): void {
+  connect (token?: string): void {
     const wsToken = token || getToken()
 
     if (!wsToken) {
@@ -68,7 +68,7 @@ class WebSocketClient {
     }
   }
 
-  private scheduleReconnect(): void {
+  private scheduleReconnect (): void {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
     }
@@ -85,7 +85,7 @@ class WebSocketClient {
     }, delay)
   }
 
-  disconnect(): void {
+  disconnect (): void {
     this.isIntentionalClose = true
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
@@ -97,14 +97,14 @@ class WebSocketClient {
     }
   }
 
-  on(event: EventType, callback: EventCallback): void {
+  on (event: EventType, callback: EventCallback): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set())
     }
     this.listeners.get(event)!.add(callback)
   }
 
-  off(event: EventType, callback: EventCallback): void {
+  off (event: EventType, callback: EventCallback): void {
     const eventListeners = this.listeners.get(event)
     if (eventListeners) {
       eventListeners.delete(callback)
@@ -114,7 +114,7 @@ class WebSocketClient {
     }
   }
 
-  private emit(event: EventType, data: unknown): void {
+  private emit (event: EventType, data: unknown): void {
     const eventListeners = this.listeners.get(event)
     if (eventListeners) {
       for (const callback of eventListeners) {
@@ -127,7 +127,7 @@ class WebSocketClient {
     }
   }
 
-  isConnected(): boolean {
+  isConnected (): boolean {
     return this.ws !== null && this.ws.readyState === WebSocket.OPEN
   }
 }

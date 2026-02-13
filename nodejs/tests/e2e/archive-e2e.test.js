@@ -17,9 +17,9 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL || 'postgresql://clawdeck_test:test_password@localhost:15433/clawdeck_test'
-    }
-  }
+      url: process.env.DATABASE_URL,
+    },
+  },
 })
 
 // Use environment variable or default for API base URL
@@ -30,7 +30,7 @@ let testUser
 let testToken
 
 // Helper function to make authenticated API requests
-async function apiRequest(endpoint, options = {}) {
+async function apiRequest (endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`
 
   // Extract method and body from options
@@ -40,9 +40,9 @@ async function apiRequest(endpoint, options = {}) {
   const defaultOptions = {
     method,
     headers: {
-      'Authorization': `Bearer ${testToken}`,
-      'X-Agent-Name': 'ArchiveTestAgent'
-    }
+      Authorization: `Bearer ${testToken}`,
+      'X-Agent-Name': 'ArchiveTestAgent',
+    },
   }
 
   // Only set Content-Type if we have a body
@@ -59,14 +59,14 @@ async function apiRequest(endpoint, options = {}) {
   return {
     status: response.status,
     data: await response.json().catch(() => ({})),
-    statusText: response.statusText
+    statusText: response.statusText,
   }
 }
 
 describe('E2E Archive Feature Test', () => {
   let testBoardId = null
-  let testTaskIds = []
-  let archivedTaskIds = []
+  const testTaskIds = []
+  const archivedTaskIds = []
 
   before(async () => {
     console.log('\n=== Starting E2E Archive Feature Test ===\n')
@@ -78,8 +78,8 @@ describe('E2E Archive Feature Test', () => {
         passwordDigest: 'hash',
         agentAutoMode: true,
         agentName: 'ArchiveTestAgent',
-        agentEmoji: 'Archive'
-      }
+        agentEmoji: 'Archive',
+      },
     })
 
     testToken = `cd_test_${Date.now()}_${Math.random().toString(36).substring(7)}`
@@ -87,21 +87,21 @@ describe('E2E Archive Feature Test', () => {
       data: {
         token: testToken,
         name: 'Archive Test Token',
-        userId: testUser.id
-      }
+        userId: testUser.id,
+      },
     })
 
     // Clean up any existing test data
     await prisma.task.deleteMany({
       where: {
-        name: { contains: '[E2E ARCHIVE]' }
-      }
+        name: { contains: '[E2E ARCHIVE]' },
+      },
     })
 
     await prisma.board.deleteMany({
       where: {
-        name: { contains: '[E2E ARCHIVE]' }
-      }
+        name: { contains: '[E2E ARCHIVE]' },
+      },
     })
 
     console.log('✅ Pre-test cleanup completed')
@@ -113,26 +113,26 @@ describe('E2E Archive Feature Test', () => {
     // Clean up test data
     await prisma.task.deleteMany({
       where: {
-        name: { contains: '[E2E ARCHIVE]' }
-      }
+        name: { contains: '[E2E ARCHIVE]' },
+      },
     })
 
     await prisma.board.deleteMany({
       where: {
-        name: { contains: '[E2E ARCHIVE]' }
-      }
+        name: { contains: '[E2E ARCHIVE]' },
+      },
     })
 
     await prisma.apiToken.deleteMany({
       where: {
-        name: 'Archive Test Token'
-      }
+        name: 'Archive Test Token',
+      },
     })
 
     await prisma.user.deleteMany({
       where: {
-        emailAddress: { contains: 'test-archive-' }
-      }
+        emailAddress: { contains: 'test-archive-' },
+      },
     })
 
     await prisma.$disconnect()
@@ -159,8 +159,8 @@ describe('E2E Archive Feature Test', () => {
       body: JSON.stringify({
         name: '[E2E ARCHIVE] Test Board',
         description: 'Test board for archive E2E testing',
-        emoji: 'Archive'
-      })
+        emoji: 'Archive',
+      }),
     })
 
     assert.strictEqual(response.status, 201, 'Should create board successfully')
@@ -178,28 +178,28 @@ describe('E2E Archive Feature Test', () => {
         description: 'Task that should remain active',
         board_id: testBoardId,
         status: 'inbox',
-        priority: 'high'
+        priority: 'high',
       },
       {
         name: '[E2E ARCHIVE] Active Task 2',
         description: 'Another active task',
         board_id: testBoardId,
         status: 'in_progress',
-        priority: 'medium'
+        priority: 'medium',
       },
       {
         name: '[E2E ARCHIVE] Completed Recent Task',
         description: 'Recently completed - should NOT be auto-archived',
         board_id: testBoardId,
         status: 'done',
-        priority: 'low'
-      }
+        priority: 'low',
+      },
     ]
 
     for (const task of tasks) {
       const response = await apiRequest('/tasks', {
         method: 'POST',
-        body: JSON.stringify(task)
+        body: JSON.stringify(task),
       })
 
       assert.strictEqual(response.status, 201, `Should create task: ${task.name}`)
@@ -218,12 +218,12 @@ describe('E2E Archive Feature Test', () => {
     const taskId = testTaskIds[2]
     await apiRequest(`/tasks/${taskId}`, {
       method: 'PATCH',
-      body: JSON.stringify({ status: 'done' })
+      body: JSON.stringify({ status: 'done' }),
     })
 
     // Schedule immediate archive
     const response = await apiRequest(`/archives/${taskId}/schedule`, {
-      method: 'PATCH'
+      method: 'PATCH',
     })
 
     assert.strictEqual(response.status, 200, 'Should schedule archive successfully')
@@ -235,7 +235,7 @@ describe('E2E Archive Feature Test', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: BigInt(taskId) }
+      where: { id: BigInt(taskId) },
     })
     assert.strictEqual(dbTask.archived, true)
     assert.ok(dbTask.archivedAt)
@@ -247,10 +247,10 @@ describe('E2E Archive Feature Test', () => {
     const taskId = archivedTaskIds[0]
 
     const activities = await prisma.taskActivity.findMany({
-      where: { taskId: BigInt(taskId) }
+      where: { taskId: BigInt(taskId) },
     })
 
-    const archiveActivity = activities.find(a => a.action === 'archived')
+    const archiveActivity = activities.find((a) => a.action === 'archived')
     assert.ok(archiveActivity, 'Should have archive activity record')
     assert.strictEqual(archiveActivity.fieldName, 'archived')
     assert.strictEqual(archiveActivity.oldValue, 'false')
@@ -270,7 +270,7 @@ describe('E2E Archive Feature Test', () => {
     assert.ok(response.data.data, 'Should return data array')
     assert.ok(Array.isArray(response.data.data), 'Should return an array')
 
-    const e2eArchives = response.data.data.filter(t => t.name.includes('[E2E ARCHIVE]'))
+    const e2eArchives = response.data.data.filter((t) => t.name.includes('[E2E ARCHIVE]'))
     assert.ok(e2eArchives.length > 0, 'Should have at least one E2E archived task')
 
     // Verify archive fields are present
@@ -285,7 +285,7 @@ describe('E2E Archive Feature Test', () => {
     const response = await apiRequest(`/archives?board_id=${testBoardId}`)
 
     assert.strictEqual(response.status, 200)
-    assert.ok(response.data.data.every(t => t.board_id === testBoardId))
+    assert.ok(response.data.data.every((t) => t.board_id === testBoardId))
 
     console.log('✅ Archive filtering by board verified')
   })
@@ -311,7 +311,7 @@ describe('E2E Archive Feature Test', () => {
 
     assert.strictEqual(response.status, 200)
 
-    const archivedTasks = response.data.data.filter(t => t.archived === true)
+    const archivedTasks = response.data.data.filter((t) => t.archived === true)
     assert.strictEqual(archivedTasks.length, 0, 'Should not include archived tasks')
 
     console.log('✅ Archived tasks excluded from default tasks endpoint')
@@ -321,7 +321,7 @@ describe('E2E Archive Feature Test', () => {
     const response = await apiRequest('/tasks?archived=true')
 
     assert.strictEqual(response.status, 200)
-    assert.ok(response.data.data.every(t => t.archived === true))
+    assert.ok(response.data.data.every((t) => t.archived === true))
 
     console.log('✅ archived=true filter verified')
   })
@@ -330,7 +330,7 @@ describe('E2E Archive Feature Test', () => {
     const response = await apiRequest('/tasks?archived=false')
 
     assert.strictEqual(response.status, 200)
-    assert.ok(response.data.data.every(t => t.archived === false))
+    assert.ok(response.data.data.every((t) => t.archived === false))
 
     console.log('✅ archived=false filter verified')
   })
@@ -343,7 +343,7 @@ describe('E2E Archive Feature Test', () => {
     const taskId = archivedTaskIds[0]
 
     const response = await apiRequest(`/archives/${taskId}/unarchive`, {
-      method: 'PATCH'
+      method: 'PATCH',
     })
 
     assert.strictEqual(response.status, 200, 'Should unarchive successfully')
@@ -352,7 +352,7 @@ describe('E2E Archive Feature Test', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: BigInt(taskId) }
+      where: { id: BigInt(taskId) },
     })
     assert.strictEqual(dbTask.archived, false)
     assert.strictEqual(dbTask.archivedAt, null)
@@ -364,10 +364,10 @@ describe('E2E Archive Feature Test', () => {
     const taskId = archivedTaskIds[0]
 
     const activities = await prisma.taskActivity.findMany({
-      where: { taskId: BigInt(taskId) }
+      where: { taskId: BigInt(taskId) },
     })
 
-    const unarchiveActivities = activities.filter(a => a.action === 'unarchived')
+    const unarchiveActivities = activities.filter((a) => a.action === 'unarchived')
     assert.ok(unarchiveActivities.length > 0, 'Should have unarchive activity record')
 
     const latestUnarchive = unarchiveActivities[unarchiveActivities.length - 1]
@@ -380,7 +380,7 @@ describe('E2E Archive Feature Test', () => {
   it('should return 400 for unarchiving non-archived task', async () => {
     // Use a task that wasn't archived
     const response = await apiRequest(`/archives/${testTaskIds[0]}/unarchive`, {
-      method: 'PATCH'
+      method: 'PATCH',
     })
 
     assert.strictEqual(response.status, 400)
@@ -400,8 +400,8 @@ describe('E2E Archive Feature Test', () => {
         description: 'This task will be permanently deleted',
         board_id: testBoardId,
         status: 'done',
-        priority: 'low'
-      })
+        priority: 'low',
+      }),
     })
 
     assert.strictEqual(response.status, 201)
@@ -410,7 +410,7 @@ describe('E2E Archive Feature Test', () => {
 
     // Archive it immediately
     await apiRequest(`/archives/${taskId}/schedule`, {
-      method: 'PATCH'
+      method: 'PATCH',
     })
 
     archivedTaskIds.push(taskId)
@@ -422,14 +422,14 @@ describe('E2E Archive Feature Test', () => {
     const taskId = archivedTaskIds[archivedTaskIds.length - 1]
 
     const response = await apiRequest(`/archives/${taskId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     })
 
     assert.strictEqual(response.status, 204, 'Should delete successfully')
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: BigInt(taskId) }
+      where: { id: BigInt(taskId) },
     })
     assert.strictEqual(dbTask, null, 'Task should be deleted from database')
 
@@ -438,7 +438,7 @@ describe('E2E Archive Feature Test', () => {
 
   it('should return 400 for deleting non-archived task', async () => {
     const response = await apiRequest(`/archives/${testTaskIds[0]}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     })
 
     assert.strictEqual(response.status, 400)
@@ -452,7 +452,7 @@ describe('E2E Archive Feature Test', () => {
 
   it('should return 404 for unarchiving non-existent task', async () => {
     const response = await apiRequest('/archives/999999999/unarchive', {
-      method: 'PATCH'
+      method: 'PATCH',
     })
 
     assert.strictEqual(response.status, 404)
@@ -462,7 +462,7 @@ describe('E2E Archive Feature Test', () => {
 
   it('should return 404 for deleting non-existent task', async () => {
     const response = await apiRequest('/archives/999999999', {
-      method: 'DELETE'
+      method: 'DELETE',
     })
 
     assert.strictEqual(response.status, 404)
@@ -472,7 +472,7 @@ describe('E2E Archive Feature Test', () => {
 
   it('should return 400 for scheduling incomplete task', async () => {
     const response = await apiRequest(`/archives/${testTaskIds[0]}/schedule`, {
-      method: 'PATCH'
+      method: 'PATCH',
     })
 
     assert.strictEqual(response.status, 400)
@@ -493,8 +493,8 @@ describe('E2E Archive Feature Test', () => {
         description: 'Task for direct DB verification',
         board_id: testBoardId,
         status: 'done',
-        priority: 'medium'
-      })
+        priority: 'medium',
+      }),
     })
 
     const taskId = response.data.data.id
@@ -548,11 +548,11 @@ describe('E2E Archive Feature Test', () => {
     console.log('  ✅ ERRORS: Proper error handling')
     console.log('  ✅ DATABASE: Direct PostgreSQL verification')
     console.log('\nTest Statistics:')
-    console.log(`  - Boards created: 1`)
+    console.log('  - Boards created: 1')
     console.log(`  - Tasks created: ${testTaskIds.length}`)
     console.log(`  - Tasks archived: ${archivedTaskIds.length}`)
-    console.log(`  - Tasks unarchived: 1`)
-    console.log(`  - Tasks permanently deleted: 1`)
+    console.log('  - Tasks unarchived: 1')
+    console.log('  - Tasks permanently deleted: 1')
     console.log('\nArchive Feature Components Verified:')
     console.log('  ✅ Archive scheduler service')
     console.log('  ✅ Archive API endpoints')

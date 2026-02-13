@@ -1,70 +1,96 @@
 import { useState } from 'react'
 import './Header.css'
 
-export default function Header({ stats, selectedBoard, onBoardChange, boards, agents, onNewTask, currentView = 'board', onViewChange }) {
+export default function Header ({
+  stats,
+  selectedBoard,
+  onBoardChange,
+  boards,
+  agents,
+  onNewTask,
+  currentView = 'board',
+  onViewChange,
+}) {
   const [showBoardSelector, setShowBoardSelector] = useState(false)
 
   const agent = selectedBoard
-    ? agents.find(a => selectedBoard.name.includes(a.name)) || { emoji: '📋', name: 'Unknown', color: 'gray' }
+    ? agents.find((a) => selectedBoard.name.includes(a.name)) || {
+      emoji: '📋',
+      name: 'Unknown',
+      color: 'gray',
+    }
     : null
 
   return (
-    <header className="header">
-      <div className="header-container">
-        <div className="header-brand">
-          <span className="header-emoji">🚀</span>
+    <header className='header'>
+      <div className='header-container'>
+        <div className='header-brand'>
+          <span className='header-emoji'>🚀</span>
           <div>
             <h1>ClawDeck</h1>
-            <p className="header-subtitle">OpenClaw Task Management</p>
+            <p className='header-subtitle'>OpenClaw Task Management</p>
           </div>
         </div>
 
-        <div className="header-stats">
-          <div className="stat">
-            <span className="stat-value">{stats.totalBoards}</span>
-            <span className="stat-label">Boards</span>
+        <div className='header-stats'>
+          <div className='stat'>
+            <span className='stat-value'>{stats.totalBoards}</span>
+            <span className='stat-label'>Boards</span>
           </div>
-          <div className="stat">
-            <span className="stat-value">{stats.totalTasks}</span>
-            <span className="stat-label">Tasks</span>
+          <div className='stat'>
+            <span className='stat-value'>{stats.totalTasks}</span>
+            <span className='stat-label'>Tasks</span>
           </div>
-          <div className="stat">
-            <span className="stat-value">{stats.inProgress}</span>
-            <span className="stat-label">Active</span>
+          <div className='stat'>
+            <span className='stat-value'>{stats.inProgress}</span>
+            <span className='stat-label'>Active</span>
           </div>
-          <div className="stat">
-            <span className="stat-value">{stats.done}</span>
-            <span className="stat-label">Done</span>
+          <div className='stat'>
+            <span className='stat-value'>{stats.done}</span>
+            <span className='stat-label'>Done</span>
           </div>
         </div>
 
-        <div className="header-actions">
+        <div className='header-actions'>
           <button
             className={`archive-nav-button ${currentView === 'archive' ? 'active' : ''}`}
             onClick={() => onViewChange && onViewChange('archive')}
-            title="View archived tasks"
+            title='View archived tasks'
           >
             📦 Archive
           </button>
 
           {selectedBoard && currentView === 'board' && (
             <>
-              <div className="board-selector">
+              <div className='board-selector'>
                 <button
-                  className="board-selector-button"
+                  className='board-selector-button'
                   onClick={() => setShowBoardSelector(!showBoardSelector)}
                 >
-                  {agent && <span className="board-selector-emoji">{agent.emoji}</span>}
+                  {agent && <span className='board-selector-emoji'>{agent.emoji}</span>}
                   <span>{selectedBoard.name}</span>
-                  <svg className="board-selector-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className='board-selector-arrow'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                    stroke='currentColor'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M19 9l-7 7-7-7'
+                    />
                   </svg>
                 </button>
 
                 {showBoardSelector && (
-                  <div className="board-dropdown">
-                    {boards.map(board => {
-                      const boardAgent = agents.find(a => board.name.includes(a.name)) || { emoji: '📋', color: 'gray' }
+                  <div className='board-dropdown'>
+                    {boards.map((board) => {
+                      const boardAgent = agents.find((a) => board.name.includes(a.name)) || {
+                        emoji: '📋',
+                        color: 'gray',
+                      }
                       return (
                         <button
                           key={board.id}
@@ -74,7 +100,7 @@ export default function Header({ stats, selectedBoard, onBoardChange, boards, ag
                           }}
                           className={`board-dropdown-item ${selectedBoard.id === board.id ? 'active' : ''}`}
                         >
-                          <span className="board-dropdown-emoji">{boardAgent.emoji}</span>
+                          <span className='board-dropdown-emoji'>{boardAgent.emoji}</span>
                           <span>{board.name}</span>
                         </button>
                       )
@@ -83,9 +109,14 @@ export default function Header({ stats, selectedBoard, onBoardChange, boards, ag
                 )}
               </div>
 
-              <button className="new-task-button" onClick={onNewTask}>
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <button className='new-task-button' onClick={onNewTask}>
+                <svg fill='none' viewBox='0 0 24 24' stroke='currentColor' className='w-5 h-5'>
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M12 4v16m8-8H4'
+                  />
                 </svg>
                 New Task
               </button>
@@ -94,7 +125,7 @@ export default function Header({ stats, selectedBoard, onBoardChange, boards, ag
 
           {currentView === 'archive' && (
             <button
-              className="back-to-board-button"
+              className='back-to-board-button'
               onClick={() => onViewChange && onViewChange('board')}
             >
               ← Back to Board

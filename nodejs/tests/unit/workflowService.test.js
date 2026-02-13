@@ -13,8 +13,8 @@ async function setupTestEnvironment () {
       passwordDigest: 'hash',
       agentAutoMode: true,
       agentName: 'TestAgent',
-      agentEmoji: '🤖'
-    }
+      agentEmoji: '🤖',
+    },
   })
 }
 
@@ -49,9 +49,9 @@ describe('Workflow Service', () => {
             stepId: 'step1',
             agentId: 'agent1',
             inputTemplate: 'Input template {var}',
-            expects: 'output'
-          }
-        ]
+            expects: 'output',
+          },
+        ],
       }
 
       const workflow = await workflowService.createWorkflow(data)
@@ -65,7 +65,7 @@ describe('Workflow Service', () => {
 
     it('should throw error when name is missing', async () => {
       const data = {
-        description: 'No name workflow'
+        description: 'No name workflow',
       }
 
       await assert.rejects(
@@ -80,7 +80,7 @@ describe('Workflow Service', () => {
     it('should throw error when steps is not an array', async () => {
       const data = {
         name: 'invalid-workflow',
-        steps: 'not-an-array'
+        steps: 'not-an-array',
       }
 
       await assert.rejects(
@@ -99,8 +99,8 @@ describe('Workflow Service', () => {
           {
             stepId: 'step1',
             // missing agentId
-          }
-        ]
+          },
+        ],
       }
 
       await assert.rejects(
@@ -124,10 +124,10 @@ describe('Workflow Service', () => {
             type: 'loop',
             loopConfig: {
               arrayField: 'items',
-              maxIterations: 10
-            }
-          }
-        ]
+              maxIterations: 10,
+            },
+          },
+        ],
       }
 
       const workflow = await workflowService.createWorkflow(data)
@@ -145,9 +145,9 @@ describe('Workflow Service', () => {
             agentId: 'approval-agent',
             inputTemplate: 'Review {work}',
             expects: 'approval',
-            type: 'approval'
-          }
-        ]
+            type: 'approval',
+          },
+        ],
       }
 
       const workflow = await workflowService.createWorkflow(data)
@@ -161,7 +161,7 @@ describe('Workflow Service', () => {
       const created = await workflowService.createWorkflow({
         name: 'get-test',
         description: 'Test get workflow',
-        steps: []
+        steps: [],
       })
 
       const workflow = await workflowService.getWorkflow(created.id)
@@ -193,20 +193,20 @@ describe('Workflow Service', () => {
       await workflowService.createWorkflow({
         name: 'workflow-1',
         description: 'First workflow',
-        steps: []
+        steps: [],
       })
 
       await workflowService.createWorkflow({
         name: 'workflow-2',
         description: 'Second workflow',
-        steps: []
+        steps: [],
       })
 
       const workflows = await workflowService.listWorkflows()
 
       assert.strictEqual(workflows.length, 2)
-      assert.ok(workflows.some(w => w.name === 'workflow-1'))
-      assert.ok(workflows.some(w => w.name === 'workflow-2'))
+      assert.ok(workflows.some((w) => w.name === 'workflow-1'))
+      assert.ok(workflows.some((w) => w.name === 'workflow-2'))
     })
 
     it('should support filtering by name', async () => {
@@ -215,13 +215,13 @@ describe('Workflow Service', () => {
       await workflowService.createWorkflow({
         name: 'feature-dev',
         description: 'Feature workflow',
-        steps: []
+        steps: [],
       })
 
       await workflowService.createWorkflow({
         name: 'bug-fix',
         description: 'Bug fix workflow',
-        steps: []
+        steps: [],
       })
 
       const workflows = await workflowService.listWorkflows({ name: 'feature-dev' })
@@ -236,7 +236,7 @@ describe('Workflow Service', () => {
       const created = await workflowService.createWorkflow({
         name: 'delete-test',
         description: 'Test delete',
-        steps: []
+        steps: [],
       })
 
       await workflowService.deleteWorkflow(created.id)
@@ -260,7 +260,7 @@ describe('Workflow Service', () => {
       const created = await workflowService.createWorkflow({
         name: 'active-workflow',
         description: 'Workflow with runs',
-        steps: []
+        steps: [],
       })
 
       // Create a run for this workflow
@@ -268,8 +268,8 @@ describe('Workflow Service', () => {
         data: {
           name: 'Test Task',
           boardId: BigInt(1),
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       await prisma.run.create({
@@ -279,8 +279,8 @@ describe('Workflow Service', () => {
           taskId: task.id.toString(),
           task: 'Test task',
           status: 'running',
-          context: '{}'
-        }
+          context: '{}',
+        },
       })
 
       await assert.rejects(
@@ -300,7 +300,7 @@ describe('Workflow Service', () => {
       const created = await workflowService.createWorkflow({
         name: 'byname-test',
         description: 'Test by name',
-        steps: []
+        steps: [],
       })
 
       const workflow = await workflowService.getWorkflowByName('byname-test')

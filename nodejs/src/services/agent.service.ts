@@ -7,27 +7,27 @@ import type {
   UpdateAgentData,
   ListAgentsOptions,
   GetAgentOptions,
-  ServiceError
+  ServiceError,
 } from '../types/agent.types.js'
 import { createServiceError } from '../types/agent.types.js'
 
 /**
  * Create agent service
  */
-export function createAgentService(options: AgentServiceOptions = {}) {
+export function createAgentService (options: AgentServiceOptions = {}) {
   const { openclawRegisterUrl, openclawApiKey } = options
 
   /**
    * Register agent with OpenClaw (if configured)
    */
-  async function registerWithOpenClaw(agent: AgentWithBoards): Promise<unknown | null> {
+  async function registerWithOpenClaw (agent: AgentWithBoards): Promise<unknown | null> {
     if (!openclawRegisterUrl) {
       return null
     }
 
     try {
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       }
       if (openclawApiKey) {
         headers['Authorization'] = `Bearer ${openclawApiKey}`
@@ -42,8 +42,8 @@ export function createAgentService(options: AgentServiceOptions = {}) {
           slug: agent.slug,
           emoji: agent.emoji,
           color: agent.color,
-          description: agent.description
-        })
+          description: agent.description,
+        }),
       })
 
       if (!response.ok) {
@@ -62,7 +62,7 @@ export function createAgentService(options: AgentServiceOptions = {}) {
   /**
    * Unregister agent with OpenClaw (if configured)
    */
-  async function unregisterWithOpenClaw(uuid: string): Promise<boolean | null> {
+  async function unregisterWithOpenClaw (uuid: string): Promise<boolean | null> {
     if (!openclawRegisterUrl) {
       return null
     }
@@ -75,7 +75,7 @@ export function createAgentService(options: AgentServiceOptions = {}) {
 
       const response = await fetch(`${openclawRegisterUrl}/${uuid}`, {
         method: 'DELETE',
-        headers
+        headers,
       })
 
       if (!response.ok && response.status !== 404) {
@@ -95,9 +95,9 @@ export function createAgentService(options: AgentServiceOptions = {}) {
     /**
      * List all active agents
      */
-    async listAgents(opts: ListAgentsOptions = {}): Promise<AgentWithBoards[]> {
+    async listAgents (opts: ListAgentsOptions = {}): Promise<AgentWithBoards[]> {
       const { includeInactive = false } = opts
-      return await prisma.agent.findMany({
+      return (await prisma.agent.findMany({
         where: includeInactive ? {} : { isActive: true },
         orderBy: { position: 'asc' },
         include: {
@@ -106,22 +106,25 @@ export function createAgentService(options: AgentServiceOptions = {}) {
               id: true,
               name: true,
               icon: true,
-              color: true
-            }
-          }
-        }
-      }) as AgentWithBoards[]
+              color: true,
+            },
+          },
+        },
+      })) as AgentWithBoards[]
     },
 
     /**
      * Get agent by UUID
      */
-    async getAgentByUuid(uuid: string, opts: GetAgentOptions = {}): Promise<AgentWithBoards | null> {
+    async getAgentByUuid (
+      uuid: string,
+      opts: GetAgentOptions = {}
+    ): Promise<AgentWithBoards | null> {
       const { includeInactive = false } = opts
-      return await prisma.agent.findFirst({
+      return (await prisma.agent.findFirst({
         where: {
           uuid,
-          ...(includeInactive ? {} : { isActive: true })
+          ...(includeInactive ? {} : { isActive: true }),
         },
         include: {
           boards: {
@@ -129,22 +132,25 @@ export function createAgentService(options: AgentServiceOptions = {}) {
               id: true,
               name: true,
               icon: true,
-              color: true
-            }
-          }
-        }
-      }) as AgentWithBoards | null
+              color: true,
+            },
+          },
+        },
+      })) as AgentWithBoards | null
     },
 
     /**
      * Get agent by slug
      */
-    async getAgentBySlug(slug: string, opts: GetAgentOptions = {}): Promise<AgentWithBoards | null> {
+    async getAgentBySlug (
+      slug: string,
+      opts: GetAgentOptions = {}
+    ): Promise<AgentWithBoards | null> {
       const { includeInactive = false } = opts
-      return await prisma.agent.findFirst({
+      return (await prisma.agent.findFirst({
         where: {
           slug,
-          ...(includeInactive ? {} : { isActive: true })
+          ...(includeInactive ? {} : { isActive: true }),
         },
         include: {
           boards: {
@@ -152,29 +158,22 @@ export function createAgentService(options: AgentServiceOptions = {}) {
               id: true,
               name: true,
               icon: true,
-              color: true
-            }
-          }
-        }
-      }) as AgentWithBoards | null
+              color: true,
+            },
+          },
+        },
+      })) as AgentWithBoards | null
     },
 
     /**
      * Create a new agent
      */
-    async createAgent(data: CreateAgentData): Promise<AgentWithBoards> {
-      const {
-        name,
-        slug,
-        emoji = '🤖',
-        color = 'gray',
-        description,
-        position = 0
-      } = data
+    async createAgent (data: CreateAgentData): Promise<AgentWithBoards> {
+      const { name, slug, emoji = '🤖', color = 'gray', description, position = 0 } = data
 
       // Check for duplicate name
       const existingByName = await prisma.agent.findUnique({
-        where: { name }
+        where: { name },
       })
       if (existingByName) {
         throw createServiceError('Agent with this name already exists', 'DUPLICATE_NAME', 409)
@@ -182,7 +181,7 @@ export function createAgentService(options: AgentServiceOptions = {}) {
 
       // Check for duplicate slug
       const existingBySlug = await prisma.agent.findUnique({
-        where: { slug }
+        where: { slug },
       })
       if (existingBySlug) {
         throw createServiceError('Agent with this slug already exists', 'DUPLICATE_SLUG', 409)
@@ -195,7 +194,7 @@ export function createAgentService(options: AgentServiceOptions = {}) {
           emoji,
           color,
           description,
-          position
+          position,
         },
         include: {
           boards: {
@@ -203,10 +202,10 @@ export function createAgentService(options: AgentServiceOptions = {}) {
               id: true,
               name: true,
               icon: true,
-              color: true
-            }
-          }
-        }
+              color: true,
+            },
+          },
+        },
       })
 
       // Register with OpenClaw (async, don't wait)
@@ -218,19 +217,12 @@ export function createAgentService(options: AgentServiceOptions = {}) {
     /**
      * Register an existing agent from OpenClaw with a pre-existing UUID
      */
-    async registerAgent(data: RegisterAgentData): Promise<AgentWithBoards> {
-      const {
-        uuid,
-        name,
-        slug,
-        emoji = '🤖',
-        color = 'gray',
-        description
-      } = data
+    async registerAgent (data: RegisterAgentData): Promise<AgentWithBoards> {
+      const { uuid, name, slug, emoji = '🤖', color = 'gray', description } = data
 
       // Check for duplicate UUID
       const existingByUuid = await prisma.agent.findUnique({
-        where: { uuid }
+        where: { uuid },
       })
       if (existingByUuid) {
         throw createServiceError('Agent with this UUID already exists', 'DUPLICATE_UUID', 409)
@@ -238,7 +230,7 @@ export function createAgentService(options: AgentServiceOptions = {}) {
 
       // Check for duplicate name
       const existingByName = await prisma.agent.findUnique({
-        where: { name }
+        where: { name },
       })
       if (existingByName) {
         throw createServiceError('Agent with this name already exists', 'DUPLICATE_NAME', 409)
@@ -246,7 +238,7 @@ export function createAgentService(options: AgentServiceOptions = {}) {
 
       // Check for duplicate slug
       const existingBySlug = await prisma.agent.findUnique({
-        where: { slug }
+        where: { slug },
       })
       if (existingBySlug) {
         throw createServiceError('Agent with this slug already exists', 'DUPLICATE_SLUG', 409)
@@ -259,7 +251,7 @@ export function createAgentService(options: AgentServiceOptions = {}) {
           slug,
           emoji,
           color,
-          description
+          description,
         },
         include: {
           boards: {
@@ -267,10 +259,10 @@ export function createAgentService(options: AgentServiceOptions = {}) {
               id: true,
               name: true,
               icon: true,
-              color: true
-            }
-          }
-        }
+              color: true,
+            },
+          },
+        },
       })
 
       return agent as AgentWithBoards
@@ -279,10 +271,10 @@ export function createAgentService(options: AgentServiceOptions = {}) {
     /**
      * Update an agent
      */
-    async updateAgent(uuid: string, data: UpdateAgentData): Promise<AgentWithBoards> {
+    async updateAgent (uuid: string, data: UpdateAgentData): Promise<AgentWithBoards> {
       // Find the agent first
       const agent = await prisma.agent.findFirst({
-        where: { uuid, isActive: true }
+        where: { uuid, isActive: true },
       })
 
       if (!agent) {
@@ -301,7 +293,7 @@ export function createAgentService(options: AgentServiceOptions = {}) {
       // Handle name update (check for duplicates)
       if (data.name !== undefined && data.name !== agent.name) {
         const existingByName = await prisma.agent.findUnique({
-          where: { name: data.name }
+          where: { name: data.name },
         })
         if (existingByName && existingByName.id !== agent.id) {
           throw createServiceError('Agent with this name already exists', 'DUPLICATE_NAME', 409)
@@ -312,7 +304,7 @@ export function createAgentService(options: AgentServiceOptions = {}) {
       // Handle slug update (check for duplicates)
       if (data.slug !== undefined && data.slug !== agent.slug) {
         const existingBySlug = await prisma.agent.findUnique({
-          where: { slug: data.slug }
+          where: { slug: data.slug },
         })
         if (existingBySlug && existingBySlug.id !== agent.id) {
           throw createServiceError('Agent with this slug already exists', 'DUPLICATE_SLUG', 409)
@@ -335,10 +327,10 @@ export function createAgentService(options: AgentServiceOptions = {}) {
               id: true,
               name: true,
               icon: true,
-              color: true
-            }
-          }
-        }
+              color: true,
+            },
+          },
+        },
       })
 
       return updated as AgentWithBoards
@@ -347,10 +339,10 @@ export function createAgentService(options: AgentServiceOptions = {}) {
     /**
      * Soft delete an agent (sets isActive = false)
      */
-    async deleteAgent(uuid: string): Promise<boolean> {
+    async deleteAgent (uuid: string): Promise<boolean> {
       // Find the agent first
       const agent = await prisma.agent.findFirst({
-        where: { uuid, isActive: true }
+        where: { uuid, isActive: true },
       })
 
       if (!agent) {
@@ -360,7 +352,7 @@ export function createAgentService(options: AgentServiceOptions = {}) {
       // Soft delete
       await prisma.agent.update({
         where: { id: agent.id },
-        data: { isActive: false }
+        data: { isActive: false },
       })
 
       // Unregister with OpenClaw (async, don't wait)
@@ -372,9 +364,9 @@ export function createAgentService(options: AgentServiceOptions = {}) {
     /**
      * Hard delete an agent (permanent)
      */
-    async hardDeleteAgent(uuid: string): Promise<boolean> {
+    async hardDeleteAgent (uuid: string): Promise<boolean> {
       const agent = await prisma.agent.findUnique({
-        where: { uuid }
+        where: { uuid },
       })
 
       if (!agent) {
@@ -382,7 +374,7 @@ export function createAgentService(options: AgentServiceOptions = {}) {
       }
 
       await prisma.agent.delete({
-        where: { id: agent.id }
+        where: { id: agent.id },
       })
 
       // Unregister with OpenClaw (async, don't wait)
@@ -394,9 +386,9 @@ export function createAgentService(options: AgentServiceOptions = {}) {
     /**
      * Restore a soft-deleted agent
      */
-    async restoreAgent(uuid: string): Promise<AgentWithBoards> {
+    async restoreAgent (uuid: string): Promise<AgentWithBoards> {
       const agent = await prisma.agent.findFirst({
-        where: { uuid, isActive: false }
+        where: { uuid, isActive: false },
       })
 
       if (!agent) {
@@ -412,14 +404,14 @@ export function createAgentService(options: AgentServiceOptions = {}) {
               id: true,
               name: true,
               icon: true,
-              color: true
-            }
-          }
-        }
+              color: true,
+            },
+          },
+        },
       })
 
       return restored as AgentWithBoards
-    }
+    },
   }
 }
 

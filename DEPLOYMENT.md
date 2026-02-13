@@ -206,6 +206,7 @@ systemctl restart clawdeck
 ## Resource Usage
 
 Typical memory usage:
+
 - Node.js: ~100-150MB
 - PostgreSQL: ~50-100MB
 - **Total: ~200-250MB minimum**

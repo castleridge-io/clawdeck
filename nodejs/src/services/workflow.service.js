@@ -6,7 +6,7 @@ const VALID_STATUSES = ['waiting', 'running', 'completed', 'failed', 'awaiting_a
 /**
  * Validate workflow step configuration
  */
-function validateStep(step) {
+function validateStep (step) {
   if (!step.stepId) {
     throw new Error('stepId is required')
   }
@@ -20,26 +20,28 @@ function validateStep(step) {
     throw new Error('expects is required')
   }
   if (step.type && !VALID_STEP_TYPES.includes(step.type)) {
-    throw new Error(`Invalid step type: ${step.type}. Must be one of: ${VALID_STEP_TYPES.join(', ')}`)
+    throw new Error(
+      `Invalid step type: ${step.type}. Must be one of: ${VALID_STEP_TYPES.join(', ')}`
+    )
   }
 }
 
 /**
  * Format workflow for API response (includes steps from WorkflowStep table)
  */
-async function formatWorkflowResponse(workflow) {
+async function formatWorkflowResponse (workflow) {
   if (!workflow) return null
 
   const steps = await prisma.workflowStep.findMany({
     where: { workflowId: workflow.id },
-    orderBy: { position: 'asc' }
+    orderBy: { position: 'asc' },
   })
 
   return {
     id: workflow.id.toString(),
     name: workflow.name,
     description: workflow.description,
-    steps: steps.map(step => ({
+    steps: steps.map((step) => ({
       id: step.id.toString(),
       stepId: step.stepId,
       name: step.name,
@@ -48,22 +50,22 @@ async function formatWorkflowResponse(workflow) {
       expects: step.expects,
       type: step.type,
       loopConfig: step.loopConfig,
-      position: step.position
+      position: step.position,
     })),
     createdAt: workflow.createdAt,
-    updatedAt: workflow.updatedAt
+    updatedAt: workflow.updatedAt,
   }
 }
 
 /**
  * Create workflow service
  */
-export function createWorkflowService() {
+export function createWorkflowService () {
   return {
     /**
      * Create a new workflow
      */
-    async createWorkflow(data) {
+    async createWorkflow (data) {
       const { name, description, steps = [] } = data
 
       if (!name) {
@@ -83,8 +85,8 @@ export function createWorkflowService() {
         data: {
           name,
           description,
-          config: {} // Keep config for backwards compatibility
-        }
+          config: {}, // Keep config for backwards compatibility
+        },
       })
 
       // Create workflow steps
@@ -99,8 +101,8 @@ export function createWorkflowService() {
             expects: step.expects,
             type: step.type || 'single',
             loopConfig: step.loopConfig || null,
-            position: step.position ?? index
-          }))
+            position: step.position ?? index,
+          })),
         })
       }
 
@@ -110,9 +112,9 @@ export function createWorkflowService() {
     /**
      * Get workflow by ID
      */
-    async getWorkflow(id) {
+    async getWorkflow (id) {
       const workflow = await prisma.workflow.findUnique({
-        where: { id: BigInt(id) }
+        where: { id: BigInt(id) },
       })
       return await formatWorkflowResponse(workflow)
     },
@@ -120,9 +122,9 @@ export function createWorkflowService() {
     /**
      * Get workflow by name
      */
-    async getWorkflowByName(name) {
+    async getWorkflowByName (name) {
       const workflow = await prisma.workflow.findUnique({
-        where: { name }
+        where: { name },
       })
       return await formatWorkflowResponse(workflow)
     },
@@ -130,7 +132,7 @@ export function createWorkflowService() {
     /**
      * List all workflows
      */
-    async listWorkflows(filters = {}) {
+    async listWorkflows (filters = {}) {
       const where = {}
 
       if (filters.name) {
@@ -139,7 +141,7 @@ export function createWorkflowService() {
 
       const workflows = await prisma.workflow.findMany({
         where,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       })
 
       const results = []
@@ -152,7 +154,7 @@ export function createWorkflowService() {
     /**
      * Update workflow by ID
      */
-    async updateWorkflow(id, data) {
+    async updateWorkflow (id, data) {
       const { name, description, steps } = data
 
       const updateData = {}
@@ -163,7 +165,7 @@ export function createWorkflowService() {
       if (Object.keys(updateData).length > 0) {
         await prisma.workflow.update({
           where: { id: BigInt(id) },
-          data: updateData
+          data: updateData,
         })
       }
 
@@ -180,7 +182,7 @@ export function createWorkflowService() {
 
         // Delete existing steps
         await prisma.workflowStep.deleteMany({
-          where: { workflowId: BigInt(id) }
+          where: { workflowId: BigInt(id) },
         })
 
         // Create new steps
@@ -195,8 +197,8 @@ export function createWorkflowService() {
               expects: step.expects,
               type: step.type || 'single',
               loopConfig: step.loopConfig || null,
-              position: step.position ?? index
-            }))
+              position: step.position ?? index,
+            })),
           })
         }
       }
@@ -207,13 +209,13 @@ export function createWorkflowService() {
     /**
      * Delete workflow by ID
      */
-    async deleteWorkflow(id) {
+    async deleteWorkflow (id) {
       // Check if workflow has active runs
       const runCount = await prisma.run.count({
         where: {
           workflowId: BigInt(id),
-          status: 'running'
-        }
+          status: 'running',
+        },
       })
 
       if (runCount > 0) {
@@ -222,38 +224,38 @@ export function createWorkflowService() {
 
       // Delete steps first (cascade should handle this, but be explicit)
       await prisma.workflowStep.deleteMany({
-        where: { workflowId: BigInt(id) }
+        where: { workflowId: BigInt(id) },
       })
 
       await prisma.workflow.delete({
-        where: { id: BigInt(id) }
+        where: { id: BigInt(id) },
       })
     },
 
     /**
      * Get raw workflow with config (for workflow execution)
      */
-    async getWorkflowWithConfig(id) {
+    async getWorkflowWithConfig (id) {
       const workflow = await prisma.workflow.findUnique({
         where: { id: BigInt(id) },
         include: {
           steps: {
-            orderBy: { position: 'asc' }
-          }
-        }
+            orderBy: { position: 'asc' },
+          },
+        },
       })
 
       if (!workflow) return null
 
       // Build config from steps for backwards compatibility with runner
-      const stepsConfig = workflow.steps.map(step => ({
+      const stepsConfig = workflow.steps.map((step) => ({
         stepId: step.stepId,
         name: step.name,
         agentId: step.agentId,
         inputTemplate: step.inputTemplate,
         expects: step.expects,
         type: step.type,
-        loopConfig: step.loopConfig
+        loopConfig: step.loopConfig,
       }))
 
       return {
@@ -262,8 +264,8 @@ export function createWorkflowService() {
         description: workflow.description,
         config: { steps: stepsConfig },
         createdAt: workflow.createdAt,
-        updatedAt: workflow.updatedAt
+        updatedAt: workflow.updatedAt,
       }
-    }
+    },
   }
 }

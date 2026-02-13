@@ -52,11 +52,10 @@ test.describe('Authentication', () => {
       await logoutLink.click()
     } else {
       // Try user menu
-      const userMenu = page.locator('[data-testid="user-menu"]').or(
-        page.locator('.user-menu')
-      ).or(
-        page.locator('button').filter({ hasText: 'Admin' }).first()
-      )
+      const userMenu = page
+        .locator('[data-testid="user-menu"]')
+        .or(page.locator('.user-menu'))
+        .or(page.locator('button').filter({ hasText: 'Admin' }).first())
       if (await userMenu.isVisible()) {
         await userMenu.click()
         await page.getByRole('button', { name: /logout|sign out/i }).click()

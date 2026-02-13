@@ -3,7 +3,7 @@ import { login, createWorkflow, deleteWorkflow, getWorkflows } from '../helpers/
 
 test.describe('Workflows', () => {
   let token: string
-  let createdWorkflowIds: string[] = []
+  const createdWorkflowIds: string[] = []
 
   test.beforeAll(async ({ request }) => {
     token = await login(request)
@@ -55,7 +55,7 @@ test.describe('Workflows', () => {
 
     // Verify via API
     const workflows = await getWorkflows(request, token)
-    const created = workflows.find(w => w.name === workflowName)
+    const created = workflows.find((w) => w.name === workflowName)
     expect(created).toBeDefined()
     if (created) {
       createdWorkflowIds.push(created.id)
@@ -89,7 +89,7 @@ test.describe('Workflows', () => {
 
     // Verify via API
     const workflows = await getWorkflows(request, token)
-    const created = workflows.find(w => w.name === workflowName)
+    const created = workflows.find((w) => w.name === workflowName)
     expect(created).toBeDefined()
     if (created) {
       createdWorkflowIds.push(created.id)
@@ -138,7 +138,7 @@ test.describe('Workflows', () => {
     await expect(page.getByText(workflow.name)).toBeVisible({ timeout: 5000 })
 
     // Setup dialog handler
-    page.on('dialog', dialog => dialog.accept())
+    page.on('dialog', (dialog) => dialog.accept())
 
     // Click delete in the row
     const row = page.locator('tr', { hasText: workflow.name })
@@ -149,7 +149,7 @@ test.describe('Workflows', () => {
 
     // Verify via API
     const workflows = await getWorkflows(request, token)
-    expect(workflows.find(w => w.id === workflow.id)).toBeUndefined()
+    expect(workflows.find((w) => w.id === workflow.id)).toBeUndefined()
   })
 
   test('delete workflow returns 204 and works correctly', async ({ page, request }) => {
@@ -162,16 +162,19 @@ test.describe('Workflows', () => {
     await expect(page.getByText(workflow.name)).toBeVisible({ timeout: 5000 })
 
     // Delete via API directly to verify 204
-    const response = await request.delete(`${process.env.API_URL || 'http://localhost:4333'}/api/v1/workflows/${workflow.id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const response = await request.delete(
+      `${process.env.API_URL || 'http://localhost:4333'}/api/v1/workflows/${workflow.id}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    )
 
     // Should return 204 No Content
     expect(response.status()).toBe(204)
 
     // Verify workflow is gone
     const workflows = await getWorkflows(request, token)
-    expect(workflows.find(w => w.id === workflow.id)).toBeUndefined()
+    expect(workflows.find((w) => w.id === workflow.id)).toBeUndefined()
   })
 
   test('import workflow from YAML', async ({ page, request }) => {
@@ -204,7 +207,7 @@ steps:
 
     // Verify via API
     const workflows = await getWorkflows(request, token)
-    const created = workflows.find(w => w.name === workflowName)
+    const created = workflows.find((w) => w.name === workflowName)
     expect(created).toBeDefined()
     if (created) {
       createdWorkflowIds.push(created.id)

@@ -15,8 +15,8 @@ async function setupTestEnvironment () {
       passwordDigest: 'hash',
       agentAutoMode: true,
       agentName: 'TestAgent',
-      agentEmoji: '🤖'
-    }
+      agentEmoji: '🤖',
+    },
   })
 
   // Create test API token
@@ -25,8 +25,8 @@ async function setupTestEnvironment () {
     data: {
       token: testToken,
       name: 'Workflow Test Token',
-      userId: testUser.id
-    }
+      userId: testUser.id,
+    },
   })
 
   // Create test board
@@ -34,8 +34,8 @@ async function setupTestEnvironment () {
     data: {
       name: 'Test Board',
       userId: testUser.id,
-      position: 0
-    }
+      position: 0,
+    },
   })
 }
 
@@ -59,10 +59,10 @@ async function makeRequest (method, path, body = null, headers = {}) {
   const options = {
     method,
     headers: {
-      'Authorization': `Bearer ${testToken}`,
+      Authorization: `Bearer ${testToken}`,
       'X-Agent-Name': 'TestAgent',
-      ...headers
-    }
+      ...headers,
+    },
   }
 
   if (body !== null) {
@@ -78,7 +78,7 @@ async function makeRequest (method, path, body = null, headers = {}) {
     const text = await response.text()
     return {
       status: response.status,
-      data: text ? JSON.parse(text) : null
+      data: text ? JSON.parse(text) : null,
     }
   } catch (error) {
     return { status: 0, error: error.message }
@@ -104,15 +104,15 @@ describe('Workflows API', () => {
             stepId: 'plan',
             agentId: 'planner',
             inputTemplate: 'Create a plan for: {task}',
-            expects: 'plan'
+            expects: 'plan',
           },
           {
             stepId: 'implement',
             agentId: 'developer',
             inputTemplate: 'Implement: {task}',
-            expects: 'code'
-          }
-        ]
+            expects: 'code',
+          },
+        ],
       })
 
       assert.strictEqual(result.status, 201)
@@ -124,7 +124,7 @@ describe('Workflows API', () => {
 
     it('should require workflow name', async () => {
       const result = await makeRequest('POST', '/api/v1/workflows', {
-        description: 'Workflow without name'
+        description: 'Workflow without name',
       })
 
       assert.strictEqual(result.status, 400)
@@ -134,7 +134,7 @@ describe('Workflows API', () => {
     it('should validate steps is an array', async () => {
       const result = await makeRequest('POST', '/api/v1/workflows', {
         name: 'test-workflow',
-        steps: 'invalid'
+        steps: 'invalid',
       })
 
       assert.strictEqual(result.status, 400)
@@ -160,8 +160,8 @@ describe('Workflows API', () => {
         data: {
           name: 'bug-fix',
           description: 'Bug fix workflow',
-          config: { steps: [] }
-        }
+          config: { steps: [] },
+        },
       })
 
       const result = await makeRequest('GET', '/api/v1/workflows')
@@ -170,7 +170,7 @@ describe('Workflows API', () => {
       assert.strictEqual(result.data.success, true)
       assert.ok(Array.isArray(result.data.data))
       assert.ok(result.data.data.length >= 1)
-      assert.ok(result.data.data.some(w => w.name === 'bug-fix'))
+      assert.ok(result.data.data.some((w) => w.name === 'bug-fix'))
     })
   })
 
@@ -180,8 +180,8 @@ describe('Workflows API', () => {
         data: {
           name: 'code-review',
           description: 'Code review workflow',
-          config: { steps: [] }
-        }
+          config: { steps: [] },
+        },
       })
 
       const result = await makeRequest('GET', `/api/v1/workflows/${workflow.id}`)
@@ -206,8 +206,8 @@ describe('Workflows API', () => {
         data: {
           name: 'temp-workflow',
           description: 'Temporary workflow',
-          config: { steps: [] }
-        }
+          config: { steps: [] },
+        },
       })
 
       const result = await makeRequest('DELETE', `/api/v1/workflows/${workflow.id}`)
@@ -216,7 +216,7 @@ describe('Workflows API', () => {
 
       // Verify deletion
       const deleted = await prisma.workflow.findUnique({
-        where: { id: workflow.id }
+        where: { id: workflow.id },
       })
       assert.strictEqual(deleted, null)
     })
@@ -248,9 +248,9 @@ describe('Task Creation with Workflow', () => {
           stepId: 'plan',
           agentId: 'planner',
           inputTemplate: 'Plan: {task}',
-          expects: 'plan'
-        }
-      ]
+          expects: 'plan',
+        },
+      ],
     })
 
     assert.strictEqual(workflowResult.status, 201)
@@ -261,7 +261,7 @@ describe('Task Creation with Workflow', () => {
       name: 'Build new feature',
       description: 'Build a new feature',
       board_id: testBoard.id.toString(),
-      workflow_type: 'feature-dev'
+      workflow_type: 'feature-dev',
     })
 
     assert.strictEqual(taskResult.status, 201)
@@ -280,7 +280,7 @@ describe('Task Creation with Workflow', () => {
     const taskResult = await makeRequest('POST', '/api/v1/tasks', {
       name: 'Simple task',
       description: 'Task without workflow',
-      board_id: testBoard.id.toString()
+      board_id: testBoard.id.toString(),
     })
 
     assert.strictEqual(taskResult.status, 201)
@@ -294,7 +294,7 @@ describe('Task Creation with Workflow', () => {
       name: 'Invalid workflow task',
       description: 'Task with non-existent workflow',
       board_id: testBoard.id.toString(),
-      workflow_type: 'non-existent-workflow'
+      workflow_type: 'non-existent-workflow',
     })
 
     assert.strictEqual(taskResult.status, 400)
@@ -318,8 +318,8 @@ describe('Runs API', () => {
         data: {
           name: 'test-run-workflow',
           description: 'Test workflow',
-          config: { steps: [] }
-        }
+          config: { steps: [] },
+        },
       })
 
       // Create task
@@ -327,8 +327,8 @@ describe('Runs API', () => {
         data: {
           name: 'Test Task',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       // Create run
@@ -339,8 +339,8 @@ describe('Runs API', () => {
           taskId: task.id.toString(),
           task: 'Test task description',
           status: 'running',
-          context: '{}'
-        }
+          context: '{}',
+        },
       })
 
       const result = await makeRequest('GET', `/api/v1/runs/${run.id}`)
@@ -365,16 +365,16 @@ describe('Runs API', () => {
         data: {
           name: 'status-update-workflow',
           description: 'Test workflow',
-          config: { steps: [] }
-        }
+          config: { steps: [] },
+        },
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task for Status',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await prisma.run.create({
@@ -384,12 +384,12 @@ describe('Runs API', () => {
           taskId: task.id.toString(),
           task: 'Test task',
           status: 'running',
-          context: '{}'
-        }
+          context: '{}',
+        },
       })
 
       const result = await makeRequest('PATCH', `/api/v1/runs/${run.id}/status`, {
-        status: 'completed'
+        status: 'completed',
       })
 
       assert.strictEqual(result.status, 200)
@@ -401,16 +401,16 @@ describe('Runs API', () => {
         data: {
           name: 'invalid-status-workflow',
           description: 'Test',
-          config: { steps: [] }
-        }
+          config: { steps: [] },
+        },
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task Invalid',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       const run = await prisma.run.create({
@@ -420,12 +420,12 @@ describe('Runs API', () => {
           taskId: task.id.toString(),
           task: 'Test',
           status: 'running',
-          context: '{}'
-        }
+          context: '{}',
+        },
       })
 
       const result = await makeRequest('PATCH', `/api/v1/runs/${run.id}/status`, {
-        status: 'invalid_status'
+        status: 'invalid_status',
       })
 
       assert.strictEqual(result.status, 400)
@@ -438,16 +438,16 @@ describe('Runs API', () => {
         data: {
           name: 'list-runs-workflow',
           description: 'Test',
-          config: { steps: [] }
-        }
+          config: { steps: [] },
+        },
       })
 
       const task = await prisma.task.create({
         data: {
           name: 'Test Task List',
           boardId: testBoard.id,
-          userId: testUser.id
-        }
+          userId: testUser.id,
+        },
       })
 
       await prisma.run.create({
@@ -457,8 +457,8 @@ describe('Runs API', () => {
           taskId: task.id.toString(),
           task: 'Test task',
           status: 'running',
-          context: '{}'
-        }
+          context: '{}',
+        },
       })
 
       const result = await makeRequest('GET', '/api/v1/runs')

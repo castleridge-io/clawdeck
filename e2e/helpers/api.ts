@@ -17,7 +17,10 @@ export const DEFAULT_USER: TestUser = {
 /**
  * Login and get auth token
  */
-export async function login(request: APIRequestContext, user: TestUser = DEFAULT_USER): Promise<string> {
+export async function login (
+  request: APIRequestContext,
+  user: TestUser = DEFAULT_USER
+): Promise<string> {
   const response = await request.post(`${API_URL}/api/v1/auth/login`, {
     data: {
       emailAddress: user.email,
@@ -36,7 +39,7 @@ export async function login(request: APIRequestContext, user: TestUser = DEFAULT
 /**
  * Create a workflow via API
  */
-export async function createWorkflow(
+export async function createWorkflow (
   request: APIRequestContext,
   token: string,
   data: { name: string; description?: string; steps?: unknown[] }
@@ -57,7 +60,7 @@ export async function createWorkflow(
 /**
  * Delete a workflow via API
  */
-export async function deleteWorkflow(
+export async function deleteWorkflow (
   request: APIRequestContext,
   token: string,
   workflowId: string
@@ -74,7 +77,7 @@ export async function deleteWorkflow(
 /**
  * Get all workflows via API
  */
-export async function getWorkflows(
+export async function getWorkflows (
   request: APIRequestContext,
   token: string
 ): Promise<Array<{ id: string; name: string }>> {
@@ -93,7 +96,7 @@ export async function getWorkflows(
 /**
  * Create a board via API
  */
-export async function createBoard(
+export async function createBoard (
   request: APIRequestContext,
   token: string,
   data: { name: string; icon?: string; color?: string }
@@ -114,7 +117,7 @@ export async function createBoard(
 /**
  * Delete a board via API
  */
-export async function deleteBoard(
+export async function deleteBoard (
   request: APIRequestContext,
   token: string,
   boardId: string
@@ -131,7 +134,7 @@ export async function deleteBoard(
 /**
  * Create a task via API
  */
-export async function createTask(
+export async function createTask (
   request: APIRequestContext,
   token: string,
   boardId: string,
@@ -156,7 +159,7 @@ export async function createTask(
 /**
  * Delete a task via API
  */
-export async function deleteTask(
+export async function deleteTask (
   request: APIRequestContext,
   token: string,
   taskId: string

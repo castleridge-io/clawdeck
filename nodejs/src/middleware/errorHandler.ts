@@ -8,7 +8,7 @@ interface ErrorResponse {
 /**
  * Global error handler
  */
-export function errorHandler(
+export function errorHandler (
   error: FastifyError & { validation?: unknown },
   request: FastifyRequest,
   reply: FastifyReply
@@ -19,7 +19,7 @@ export function errorHandler(
   if (error.code?.startsWith('P')) {
     return reply.code(400).send({
       error: 'Database error',
-      details: error.message
+      details: error.message,
     } as ErrorResponse)
   }
 
@@ -27,12 +27,12 @@ export function errorHandler(
   if (error.validation) {
     return reply.code(400).send({
       error: 'Validation error',
-      details: error.validation
+      details: error.validation,
     } as ErrorResponse)
   }
 
   // Default error response
   return reply.code(error.statusCode || 500).send({
-    error: error.message || 'Internal server error'
+    error: error.message || 'Internal server error',
   } as ErrorResponse)
 }

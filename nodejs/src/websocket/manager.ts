@@ -14,7 +14,7 @@ interface WSMessage {
 class WebSocketManager {
   private clients: Map<string, Set<WebSocketConnection>> = new Map()
 
-  addClient(userId: bigint | string, connection: WebSocketConnection): void {
+  addClient (userId: bigint | string, connection: WebSocketConnection): void {
     const userIdStr = String(userId)
     if (!this.clients.has(userIdStr)) {
       this.clients.set(userIdStr, new Set())
@@ -24,7 +24,7 @@ class WebSocketManager {
     // Send welcome message
     this.sendToClient(connection, {
       type: 'connected',
-      message: 'WebSocket connection established'
+      message: 'WebSocket connection established',
     })
 
     // Handle disconnect
@@ -33,7 +33,7 @@ class WebSocketManager {
     })
   }
 
-  removeClient(userId: bigint | string, connection: WebSocketConnection): void {
+  removeClient (userId: bigint | string, connection: WebSocketConnection): void {
     const userIdStr = String(userId)
     const userClients = this.clients.get(userIdStr)
     if (userClients) {
@@ -44,7 +44,7 @@ class WebSocketManager {
     }
   }
 
-  sendToClient(connection: WebSocketConnection, data: WSMessage): void {
+  sendToClient (connection: WebSocketConnection, data: WSMessage): void {
     try {
       connection.socket.send(JSON.stringify(data))
     } catch (error) {
@@ -52,7 +52,7 @@ class WebSocketManager {
     }
   }
 
-  broadcastToUser(userId: bigint | string, data: WSMessage): void {
+  broadcastToUser (userId: bigint | string, data: WSMessage): void {
     const userIdStr = String(userId)
     const userClients = this.clients.get(userIdStr)
     if (userClients) {
@@ -62,21 +62,21 @@ class WebSocketManager {
     }
   }
 
-  broadcastTaskEvent(userId: bigint | string, event: string, taskData: unknown): void {
+  broadcastTaskEvent (userId: bigint | string, event: string, taskData: unknown): void {
     this.broadcastToUser(userId, {
       type: 'task_event',
       event,
-      data: taskData
+      data: taskData,
     })
   }
 
-  getConnectedClientsCount(userId: bigint | string): number {
+  getConnectedClientsCount (userId: bigint | string): number {
     const userIdStr = String(userId)
     const userClients = this.clients.get(userIdStr)
     return userClients ? userClients.size : 0
   }
 
-  getTotalConnectedClients(): number {
+  getTotalConnectedClients (): number {
     let total = 0
     for (const clients of this.clients.values()) {
       total += clients.size

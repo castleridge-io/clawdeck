@@ -12,9 +12,9 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL || 'postgresql://monte:RMxBU^HPXjYpvUL4bekCbEUCEW$8jy@localhost:5432/clawdeck_test'
-    }
-  }
+      url: process.env.DATABASE_URL,
+    },
+  },
 })
 
 const API_BASE = 'http://localhost:3001/api/v1'
@@ -22,19 +22,19 @@ const TEST_AGENT_ID = 'test-agent-e2e'
 const TEST_AGENT_NAME = 'Test Agent E2E'
 
 // Helper function to make API requests
-async function apiRequest(endpoint, options = {}) {
+async function apiRequest (endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`
   const defaultOptions = {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.JWT_SECRET || 'test-secret-for-testing-only'}`
-    }
+      Authorization: `Bearer ${process.env.JWT_SECRET || 'test-secret-for-testing-only'}`,
+    },
   }
 
   const response = await fetch(url, { ...defaultOptions, ...options })
   return {
     status: response.status,
-    data: await response.json().catch(() => ({}))
+    data: await response.json().catch(() => ({})),
   }
 }
 
@@ -48,10 +48,10 @@ describe('E2E Migration Test', () => {
 
     // Clean up any existing test data
     await prisma.task.deleteMany({
-      where: { agentId: TEST_AGENT_ID }
+      where: { agentId: TEST_AGENT_ID },
     })
     await prisma.agent.deleteMany({
-      where: { id: TEST_AGENT_ID }
+      where: { id: TEST_AGENT_ID },
     })
 
     console.log('✅ Pre-test cleanup completed')
@@ -62,13 +62,13 @@ describe('E2E Migration Test', () => {
 
     // Clean up test data
     await prisma.task.deleteMany({
-      where: { agentId: TEST_AGENT_ID }
+      where: { agentId: TEST_AGENT_ID },
     })
     await prisma.agent.deleteMany({
-      where: { id: TEST_AGENT_ID }
+      where: { id: TEST_AGENT_ID },
     })
     await prisma.board.deleteMany({
-      where: { id: testBoardId || 'unknown' }
+      where: { id: testBoardId || 'unknown' },
     })
 
     await prisma.$disconnect()
@@ -97,8 +97,8 @@ describe('E2E Migration Test', () => {
         name: TEST_AGENT_NAME,
         role: 'tester',
         capabilities: ['testing', 'e2e', 'cleanup'],
-        autoMode: false
-      })
+        autoMode: false,
+      }),
     })
 
     assert.strictEqual(response.status, 201, 'Should create agent successfully')
@@ -110,7 +110,7 @@ describe('E2E Migration Test', () => {
 
     // Verify in database
     const dbAgent = await prisma.agent.findUnique({
-      where: { id: testAgentId }
+      where: { id: testAgentId },
     })
     assert.ok(dbAgent, 'Agent should exist in database')
     assert.strictEqual(dbAgent.name, TEST_AGENT_NAME)
@@ -127,9 +127,9 @@ describe('E2E Migration Test', () => {
         columns: [
           { name: 'Backlog', order: 0 },
           { name: 'In Progress', order: 1 },
-          { name: 'Done', order: 2 }
-        ]
-      })
+          { name: 'Done', order: 2 },
+        ],
+      }),
     })
 
     assert.strictEqual(response.status, 201, 'Should create board successfully')
@@ -141,7 +141,7 @@ describe('E2E Migration Test', () => {
     // Verify in database
     const dbBoard = await prisma.board.findUnique({
       where: { id: testBoardId },
-      include: { columns: true }
+      include: { columns: true },
     })
     assert.ok(dbBoard, 'Board should exist in database')
     assert.strictEqual(dbBoard.columns.length, 3, 'Should have 3 columns')
@@ -156,7 +156,7 @@ describe('E2E Migration Test', () => {
         status: 'backlog',
         priority: 'high',
         agentId: testAgentId,
-        boardId: testBoardId
+        boardId: testBoardId,
       },
       {
         title: 'Test Task 2: Run Tests',
@@ -164,7 +164,7 @@ describe('E2E Migration Test', () => {
         status: 'backlog',
         priority: 'medium',
         agentId: testAgentId,
-        boardId: testBoardId
+        boardId: testBoardId,
       },
       {
         title: 'Test Task 3: Verify Results',
@@ -172,14 +172,14 @@ describe('E2E Migration Test', () => {
         status: 'backlog',
         priority: 'low',
         agentId: testAgentId,
-        boardId: testBoardId
-      }
+        boardId: testBoardId,
+      },
     ]
 
     for (const task of tasks) {
       const response = await apiRequest('/tasks', {
         method: 'POST',
-        body: JSON.stringify(task)
+        body: JSON.stringify(task),
       })
 
       assert.strictEqual(response.status, 201, `Should create task: ${task.title}`)
@@ -188,11 +188,11 @@ describe('E2E Migration Test', () => {
       }
     }
 
-    console.log(`✅ Created 3 tasks`)
+    console.log('✅ Created 3 tasks')
 
     // Verify in database
     const dbTasks = await prisma.task.findMany({
-      where: { agentId: testAgentId }
+      where: { agentId: testAgentId },
     })
     assert.strictEqual(dbTasks.length, 3, 'Should have 3 tasks in database')
     console.log('✅ Tasks verified in database')
@@ -254,7 +254,7 @@ describe('E2E Migration Test', () => {
 
   it('should claim a task (UPDATE: Claim)', async () => {
     const response = await apiRequest(`/tasks/${testTaskId}/claim`, {
-      method: 'PATCH'
+      method: 'PATCH',
     })
 
     assert.strictEqual(response.status, 200, 'Should claim task successfully')
@@ -264,7 +264,7 @@ describe('E2E Migration Test', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: testTaskId }
+      where: { id: testTaskId },
     })
     assert.strictEqual(dbTask.status, 'in_progress')
     assert.ok(dbTask.claimedAt, 'Should have claim timestamp')
@@ -274,12 +274,12 @@ describe('E2E Migration Test', () => {
   it('should update task progress (UPDATE: Progress)', async () => {
     const updateData = {
       progress: 50,
-      notes: 'Halfway through testing'
+      notes: 'Halfway through testing',
     }
 
     const response = await apiRequest(`/tasks/${testTaskId}`, {
       method: 'PATCH',
-      body: JSON.stringify(updateData)
+      body: JSON.stringify(updateData),
     })
 
     assert.strictEqual(response.status, 200, 'Should update task successfully')
@@ -289,7 +289,7 @@ describe('E2E Migration Test', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: testTaskId }
+      where: { id: testTaskId },
     })
     assert.strictEqual(dbTask.progress, 50)
     console.log('✅ Task progress verified in database')
@@ -300,8 +300,8 @@ describe('E2E Migration Test', () => {
       method: 'PATCH',
       body: JSON.stringify({
         result: 'All tests passed successfully',
-        output: { testsRun: 10, testsPassed: 10 }
-      })
+        output: { testsRun: 10, testsPassed: 10 },
+      }),
     })
 
     assert.strictEqual(response.status, 200, 'Should complete task successfully')
@@ -311,7 +311,7 @@ describe('E2E Migration Test', () => {
 
     // Verify in database
     const dbTask = await prisma.task.findUnique({
-      where: { id: testTaskId }
+      where: { id: testTaskId },
     })
     assert.strictEqual(dbTask.status, 'done')
     assert.ok(dbTask.completedAt, 'Should have completion timestamp')
@@ -323,8 +323,8 @@ describe('E2E Migration Test', () => {
       method: 'PATCH',
       body: JSON.stringify({
         status: 'active',
-        lastActivity: new Date().toISOString()
-      })
+        lastActivity: new Date().toISOString(),
+      }),
     })
 
     assert.strictEqual(response.status, 200, 'Should update agent successfully')
@@ -333,7 +333,7 @@ describe('E2E Migration Test', () => {
 
     // Verify in database
     const dbAgent = await prisma.agent.findUnique({
-      where: { id: testAgentId }
+      where: { id: testAgentId },
     })
     assert.strictEqual(dbAgent.status, 'active')
     console.log('✅ Agent status verified in database')
@@ -347,14 +347,14 @@ describe('E2E Migration Test', () => {
     // Get another task ID to delete
     const tasks = await prisma.task.findMany({
       where: { agentId: testAgentId, status: 'backlog' },
-      take: 1
+      take: 1,
     })
 
     if (tasks.length > 0) {
       const taskToDelete = tasks[0].id
 
       const response = await apiRequest(`/tasks/${taskToDelete}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       assert.strictEqual(response.status, 204, 'Should delete task successfully')
@@ -363,7 +363,7 @@ describe('E2E Migration Test', () => {
 
       // Verify deletion in database
       const dbTask = await prisma.task.findUnique({
-        where: { id: taskToDelete }
+        where: { id: taskToDelete },
       })
       assert.ok(!dbTask, 'Task should not exist in database after deletion')
       console.log('✅ Task deletion verified in database')
@@ -372,7 +372,7 @@ describe('E2E Migration Test', () => {
 
   it('should delete all tasks for agent cleanup', async () => {
     const response = await apiRequest(`/tasks?agentId=${testAgentId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     })
 
     assert.strictEqual(response.status, 200, 'Should delete all tasks successfully')
@@ -381,7 +381,7 @@ describe('E2E Migration Test', () => {
 
     // Verify in database
     const dbTasks = await prisma.task.findMany({
-      where: { agentId: testAgentId }
+      where: { agentId: testAgentId },
     })
     assert.strictEqual(dbTasks.length, 0, 'Should have no tasks in database')
     console.log('✅ All tasks deletion verified in database')
@@ -389,7 +389,7 @@ describe('E2E Migration Test', () => {
 
   it('should delete the test agent (DELETE Agent)', async () => {
     const response = await apiRequest(`/agents/${testAgentId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     })
 
     assert.strictEqual(response.status, 200, 'Should delete agent successfully')
@@ -398,7 +398,7 @@ describe('E2E Migration Test', () => {
 
     // Verify in database
     const dbAgent = await prisma.agent.findUnique({
-      where: { id: testAgentId }
+      where: { id: testAgentId },
     })
     assert.ok(!dbAgent, 'Agent should not exist in database after deletion')
     console.log('✅ Agent deletion verified in database')
