@@ -287,12 +287,28 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
           data: { status: 'running' },
         })
 
+        // Parse acceptance criteria - can be JSON array or dash-prefixed string
+        let acceptanceCriteria: string[] = []
+        if (story.acceptanceCriteria) {
+          try {
+            const parsed = JSON.parse(story.acceptanceCriteria)
+            acceptanceCriteria = Array.isArray(parsed) ? parsed : []
+          } catch {
+            // If not JSON, treat as dash-prefixed string format
+            acceptanceCriteria = story.acceptanceCriteria
+              .split('\n')
+              .map(line => line.trim())
+              .filter(line => line.startsWith('-'))
+              .map(line => line.substring(1).trim())
+          }
+        }
+
         // Build story context
         const storyContext = this.formatStoryForTemplate({
           storyId: story.storyId,
           title: story.title,
           description: story.description,
-          acceptanceCriteria: story.acceptanceCriteria ? JSON.parse(story.acceptanceCriteria) : [],
+          acceptanceCriteria,
         })
 
         // Merge story into context
