@@ -1,4 +1,9 @@
 {
-  "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
-  "*.{json,md,yml,yaml}": ["prettier --write"]
+  "*.{js,jsx,ts,tsx}": [
+    "eslint --fix",
+    "prettier --write"
+  ],
+  "*.{json,md,yml,yaml}": ["prettier --write"],
+  "nodejs/**/*.{ts,js}": "yarn workspace clawdeck test",
+  "frontend/**/*.{ts,tsx}": "yarn workspace clawdeck-frontend test:run"
 }
