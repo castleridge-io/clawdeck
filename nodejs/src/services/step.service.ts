@@ -9,7 +9,7 @@ const VALID_TYPES = ['single', 'loop', 'approval'] as const
 const VALID_TRANSITIONS: Record<string, string[]> = {
   waiting: ['running', 'awaiting_approval'],
   pending: ['running', 'awaiting_approval'],
-  running: ['completed', 'failed', 'awaiting_approval', 'waiting'],
+  running: ['completed', 'failed', 'awaiting_approval', 'waiting', 'pending'], // pending for retry
   awaiting_approval: ['running', 'completed', 'failed'],
   completed: [], // Terminal state
   failed: [], // Terminal state
@@ -30,6 +30,7 @@ export function createStepService() {
       type: 'single' | 'loop' | 'approval'
       loopConfig?: unknown
       maxRetries?: number
+      status?: 'pending' | 'waiting'
     }): Promise<Step> {
       const prisma = (await import('../db/prisma.js')).prisma
 
@@ -57,7 +58,8 @@ export function createStepService() {
           type: data.type,
           loopConfig: data.loopConfig ? JSON.stringify(data.loopConfig) : null,
           maxRetries: data.maxRetries ?? 3,
-          status: 'pending',
+          // First step (index 0) is pending, others are waiting
+          status: data.status ?? (data.stepIndex === 0 ? 'pending' : 'waiting'),
         },
       })
     },
@@ -130,6 +132,7 @@ export function createStepService() {
 
     /**
      * Complete a step and optionally update run status
+     * Also advances pipeline by setting next waiting step to pending
      */
     async completeStepWithRunUpdate(stepId: string, output: unknown): Promise<{ step: Step; runCompleted: boolean }> {
       const prisma = (await import('../db/prisma.js')).prisma
@@ -149,6 +152,22 @@ export function createStepService() {
           output: typeof output === 'string' ? output : JSON.stringify(output),
         },
       })
+
+      // Advance pipeline: set next waiting step to pending
+      const nextWaitingStep = await prisma.step.findFirst({
+        where: {
+          runId: step.runId,
+          status: 'waiting',
+        },
+        orderBy: { stepIndex: 'asc' },
+      })
+
+      if (nextWaitingStep) {
+        await prisma.step.update({
+          where: { id: nextWaitingStep.id },
+          data: { status: 'pending' },
+        })
+      }
 
       // Check if all steps are completed
       const pendingSteps = await prisma.step.count({

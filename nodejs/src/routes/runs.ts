@@ -55,34 +55,56 @@ interface RunWithRelations extends Run {
 
 // Helper function to convert run to JSON response
 function runToJson(run: RunWithRelations): RunJson {
+  // Safely parse context - handle both JSON and plain strings
+  let parsedContext: unknown = {}
+  if (run.context) {
+    try {
+      parsedContext = JSON.parse(run.context)
+    } catch {
+      // If not valid JSON, store as raw string
+      parsedContext = { raw: run.context }
+    }
+  }
+
   return {
     id: run.id,
     workflow_id: run.workflowId.toString(),
     task_id: run.taskId,
     task: run.task,
     status: run.status,
-    context: run.context ? JSON.parse(run.context) : {},
+    context: parsedContext,
     notify_url: run.notifyUrl,
     awaiting_approval: (run.awaitingApproval ?? 0) > 0,
     awaiting_approval_since: run.awaitingApprovalSince,
     created_at: run.createdAt.toISOString(),
     updated_at: run.updatedAt.toISOString(),
     steps:
-      run.steps?.map((step: Step) => ({
-        id: step.id,
-        step_id: step.stepId,
-        agent_id: step.agentId,
-        step_index: step.stepIndex,
-        input_template: step.inputTemplate,
-        expects: step.expects,
-        status: step.status,
-        output: step.output ? JSON.parse(step.output) : null,
-        retry_count: step.retryCount,
-        max_retries: step.maxRetries,
-        type: step.type,
-        loop_config: step.loopConfig ? JSON.parse(step.loopConfig) : null,
-        current_story_id: step.currentStoryId,
-      })) || [],
+      run.steps?.map((step: Step) => {
+        // Safely parse output - handle both JSON and plain strings
+        let parsedOutput: unknown = null
+        if (step.output) {
+          try {
+            parsedOutput = JSON.parse(step.output)
+          } catch {
+            parsedOutput = step.output
+          }
+        }
+        return {
+          id: step.id,
+          step_id: step.stepId,
+          agent_id: step.agentId,
+          step_index: step.stepIndex,
+          input_template: step.inputTemplate,
+          expects: step.expects,
+          status: step.status,
+          output: parsedOutput,
+          retry_count: step.retryCount,
+          max_retries: step.maxRetries,
+          type: step.type,
+          loop_config: step.loopConfig ? JSON.parse(step.loopConfig) : null,
+          current_story_id: step.currentStoryId,
+        }
+      }) || [],
     stories:
       run.stories?.map((story: Story) => ({
         id: story.id,

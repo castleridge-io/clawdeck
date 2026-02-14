@@ -402,4 +402,102 @@ export async function stepsRoutes(
       }
     }
   )
+
+  // POST /api/v1/runs/:runId/steps/:stepId/approve - Approve an awaiting_approval step
+  fastify.post(
+    '/:stepId/approve',
+    async (request, reply) => {
+      const params = request.params as { runId: string; stepId: string }
+      const { runId, stepId } = params
+      const body = request.body as { approval_note?: string }
+      const approvalNote = body.approval_note ?? 'Approved'
+
+      const step = await stepService.getStep(stepId)
+
+      if (!step || step.runId !== runId) {
+        return reply.code(404).send({ error: 'Step not found' })
+      }
+
+      if (step.status !== 'awaiting_approval') {
+        return reply.code(400).send({
+          error: `Step cannot be approved. Current status: ${step.status}`,
+          current_status: step.status,
+        })
+      }
+
+      try {
+        const updatedStep = await stepService.updateStepStatus(stepId, 'completed', {
+          approved: true,
+          approval_note: approvalNote,
+        })
+
+        // Advance pipeline after approval
+        const nextStep = await stepService.getNextPendingStep(runId)
+        if (!nextStep) {
+          // No more steps, check if all are completed
+          const allSteps = await stepService.listStepsByRunId(runId)
+          const allCompleted = allSteps.every(s => s.status === 'completed' || s.id === stepId)
+          if (allCompleted) {
+            await runService.updateRunStatus(runId, 'completed')
+          }
+        }
+
+        return {
+          success: true,
+          data: stepToJson(updatedStep),
+          message: 'Step approved',
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('not found')) {
+          return reply.code(404).send({ error: error.message })
+        }
+        throw error
+      }
+    }
+  )
+
+  // POST /api/v1/runs/:runId/steps/:stepId/reject - Reject an awaiting_approval step
+  fastify.post(
+    '/:stepId/reject',
+    async (request, reply) => {
+      const params = request.params as { runId: string; stepId: string }
+      const { runId, stepId } = params
+      const body = request.body as { rejection_reason?: string }
+      const rejectionReason = body.rejection_reason ?? 'Rejected'
+
+      const step = await stepService.getStep(stepId)
+
+      if (!step || step.runId !== runId) {
+        return reply.code(404).send({ error: 'Step not found' })
+      }
+
+      if (step.status !== 'awaiting_approval') {
+        return reply.code(400).send({
+          error: `Step cannot be rejected. Current status: ${step.status}`,
+          current_status: step.status,
+        })
+      }
+
+      try {
+        const updatedStep = await stepService.updateStepStatus(stepId, 'failed', {
+          rejected: true,
+          rejection_reason: rejectionReason,
+        })
+
+        // Update run status to failed
+        await runService.updateRunStatus(runId, 'failed')
+
+        return {
+          success: true,
+          data: stepToJson(updatedStep),
+          message: 'Step rejected',
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('not found')) {
+          return reply.code(404).send({ error: error.message })
+        }
+        throw error
+      }
+    }
+  )
 }
