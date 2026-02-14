@@ -12,6 +12,7 @@ import {
   OpenClawSettingsSchema,
   AdminBoardSchema,
   AdminTaskSchema,
+  OrganizationSchema,
   ApiResponse,
   AdminListResponse,
 } from './schemas'
@@ -27,6 +28,7 @@ import type {
   OpenClawSettings,
   AdminBoard,
   AdminTask,
+  Organization,
 } from './schemas'
 
 const API_BASE = '/api/v1'
@@ -106,12 +108,29 @@ async function fetchData<T>(
 // Boards API
 // ============================================
 
-export async function getBoards(): Promise<Board[]> {
-  return fetchData('/boards', z.array(BoardSchema))
+interface BoardsFilter {
+  organization_id?: string
+}
+
+export async function getBoards(filter?: BoardsFilter): Promise<Board[]> {
+  const params = new URLSearchParams()
+  if (filter?.organization_id) {
+    params.append('organization_id', filter.organization_id)
+  }
+  const queryString = params.toString()
+  return fetchData(`/boards${queryString ? `?${queryString}` : ''}`, z.array(BoardSchema))
 }
 
 export async function getBoard(boardId: string): Promise<Board> {
   return fetchData(`/boards/${boardId}`, BoardSchema)
+}
+
+// ============================================
+// Organizations API
+// ============================================
+
+export async function getOrganizations(): Promise<Organization[]> {
+  return fetchData('/organizations', z.array(OrganizationSchema))
 }
 
 // ============================================
@@ -473,7 +492,9 @@ const DashboardSchema = z.object({
 })
 
 export async function getDashboard(): Promise<DashboardData> {
-  return fetchWithAuth('/dashboard', DashboardSchema)
+  // Dashboard endpoint returns data directly without { success, data } wrapper
+  const response = await fetchWithAuth('/dashboard', DashboardSchema)
+  return response ?? { boards: [], agents: [], taskCounts: { total: 0, inbox: 0, up_next: 0, in_progress: 0, in_review: 0, done: 0 }, priorityCounts: { high: 0, medium: 0, low: 0, none: 0 }, tasksPerBoard: {}, assignedCount: 0 }
 }
 
 // Re-export types for backward compatibility

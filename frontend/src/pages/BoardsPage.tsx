@@ -9,7 +9,9 @@ import {
   useDeleteTask,
   useClaimTask,
   useCompleteTask,
+  useOrganizations,
 } from '../hooks'
+import { useAuth } from '../contexts/AuthContext'
 import { assignTask } from '../lib/api'
 import { wsClient } from '../lib/websocket'
 import type { Board, Agent, Task, Column } from '../types'
@@ -31,9 +33,13 @@ const COLUMNS: Column[] = [
 
 export default function BoardsPage() {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const isAdmin = user?.admin ?? false
+
   const [selectedBoard, setSelectedBoard] = useState<Board | null>(null)
   const [showTaskModal, setShowTaskModal] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [orgFilter, setOrgFilter] = useState<string>('')
   const [filters, setFilters] = useState<TaskFiltersType>({
     search: '',
     status: [],
@@ -42,8 +48,13 @@ export default function BoardsPage() {
     tags: [],
   })
 
-  // Fetch boards and agents
-  const { data: boardsData = [], isLoading: boardsLoading } = useBoards()
+  // Fetch organizations (for admin filter)
+  const { data: organizations = [] } = useOrganizations()
+
+  // Fetch boards with optional organization filter
+  const { data: boardsData = [], isLoading: boardsLoading } = useBoards(
+    orgFilter ? { organization_id: orgFilter } : undefined
+  )
   const { data: agentsData = [], isLoading: agentsLoading } = useAgents()
 
   // Format agents
@@ -60,15 +71,18 @@ export default function BoardsPage() {
     [agentsData]
   )
 
-  // Filter boards for agent boards
-  const boards = useMemo(
-    () =>
-      boardsData.filter(
-        (board) =>
-          board.agent_id || agents.some((agent) => board.name.includes(agent.name))
-      ),
-    [boardsData, agents]
-  )
+  // Filter boards: admins see all, regular users see agent boards only
+  const boards = useMemo(() => {
+    if (isAdmin) {
+      // Admins see all boards
+      return boardsData
+    }
+    // Regular users see agent boards only
+    return boardsData.filter(
+      (board) =>
+        board.agent_id || agents.some((agent) => board.name.includes(agent.name))
+    )
+  }, [boardsData, agents, isAdmin])
 
   // Fetch tasks for all boards using batch query
   const boardIds = boards.map((b) => b.id)
@@ -87,6 +101,18 @@ export default function BoardsPage() {
   useEffect(() => {
     if (boards.length > 0 && !selectedBoard) {
       setSelectedBoard(boards[0])
+    }
+  }, [boards, selectedBoard])
+
+  // Reset selected board when filter changes
+  useEffect(() => {
+    if (boards.length > 0) {
+      const stillExists = boards.some((b) => b.id === selectedBoard?.id)
+      if (!stillExists) {
+        setSelectedBoard(boards[0])
+      }
+    } else {
+      setSelectedBoard(null)
     }
   }, [boards, selectedBoard])
 
@@ -121,6 +147,14 @@ export default function BoardsPage() {
     const boardTasks = allTasks.filter((t) => t.board_id === selectedBoard.id)
     return filterTasks(boardTasks, filters)
   }, [selectedBoard, allTasks, filters])
+
+  // Format board name with organization for admin view
+  function formatBoardName(board: Board): string {
+    if (isAdmin && board.organization_name) {
+      return `${board.name} (${board.organization_name})`
+    }
+    return board.name
+  }
 
   async function handleCreateTask(taskData: Partial<Task>) {
     if (!selectedBoard) return
@@ -200,10 +234,28 @@ export default function BoardsPage() {
       <div className='flex items-center justify-between mb-6'>
         <div>
           <h1 className='text-2xl font-bold text-white'>Boards</h1>
-          <p className='text-slate-400'>Manage your task boards</p>
+          <p className='text-slate-400'>
+            {isAdmin ? 'Manage all task boards (Admin view)' : 'Manage your task boards'}
+          </p>
         </div>
 
         <div className='flex items-center gap-4'>
+          {/* Organization Filter (Admin only) */}
+          {isAdmin && organizations.length > 0 && (
+            <select
+              value={orgFilter}
+              onChange={(e) => setOrgFilter(e.target.value)}
+              className='px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+            >
+              <option value=''>All Organizations</option>
+              {organizations.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.name}
+                </option>
+              ))}
+            </select>
+          )}
+
           {/* Board Selector */}
           {boards.length > 0 ? (
             <select
@@ -216,7 +268,7 @@ export default function BoardsPage() {
             >
               {boards.map((board) => (
                 <option key={board.id} value={board.id}>
-                  {board.name}
+                  {formatBoardName(board)}
                 </option>
               ))}
             </select>

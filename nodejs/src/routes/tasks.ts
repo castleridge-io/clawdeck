@@ -137,19 +137,25 @@ export async function tasksRoutes(
   // Apply authentication to all routes
   fastify.addHook('onRequest', authenticateRequest)
 
-  // GET /api/v1/tasks - List tasks with filters
+  // GET /api/v1/tasks - List tasks with filters (or all tasks for admin)
   fastify.get<{ Querystring: TasksQuery }>(
     '/',
     async (request: FastifyRequest<{ Querystring: TasksQuery }>, reply: FastifyReply) => {
       const { assigned, status, board_id, board_ids, archived } = request.query
+      const isAdmin = request.user.admin
 
       const where: {
-        userId: bigint
+        userId?: bigint
         assignedToAgent?: boolean
         status?: TaskStatus
         boardId?: bigint | { in: bigint[] }
         archived?: boolean
-      } = { userId: BigInt(request.user.id) }
+      } = {}
+
+      // Only filter by userId for non-admin users
+      if (!isAdmin) {
+        where.userId = BigInt(request.user.id)
+      }
 
       if (assigned === 'true') {
         where.assignedToAgent = true
@@ -360,13 +366,19 @@ export async function tasksRoutes(
       request: FastifyRequest<{ Params: { id: string }; Body: UpdateTaskBody }>,
       reply: FastifyReply
     ) => {
+      const isAdmin = request.user.admin
       const { status, priority, name, description, activity_note } = request.body
 
+      // Admins can update any task, regular users only their own
+      const whereClause: { id: bigint; userId?: bigint } = {
+        id: BigInt(request.params.id),
+      }
+      if (!isAdmin) {
+        whereClause.userId = BigInt(request.user.id)
+      }
+
       const task = await prisma.task.findFirst({
-        where: {
-          id: BigInt(request.params.id),
-          userId: BigInt(request.user.id),
-        },
+        where: whereClause,
       })
 
       if (!task) {

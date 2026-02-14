@@ -3,8 +3,12 @@ export const queryKeys = {
   dashboard: ['dashboard'] as const,
 
   // Boards
-  boards: ['boards'] as const,
+  boards: (filters?: { organization_id?: string }) =>
+    filters ? ['boards', filters] as const : ['boards'] as const,
   board: (id: string) => ['boards', id] as const,
+
+  // Organizations
+  organizations: ['organizations'] as const,
 
   // Tasks
   tasks: (filters: { boardId?: string; boardIds?: string[] }) =>

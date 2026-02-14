@@ -27,11 +27,25 @@ export const BoardSchema = z.object({
   id: z.string(),
   name: z.string(),
   icon: z.string().optional(),
-  agent_id: z.string().optional(),
+  color: z.string().optional(),
+  position: z.number().optional(),
+  agent_id: z.string().nullable().optional(),
+  user_id: z.string().optional(),
+  organization_id: z.string().optional(),
+  organization_name: z.string().optional(),
+  owner_email: z.string().nullable().optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 })
 export type Board = z.infer<typeof BoardSchema>
+
+// Organization
+export const OrganizationSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+})
+export type Organization = z.infer<typeof OrganizationSchema>
 
 // Task
 export const TaskSchema = z.object({

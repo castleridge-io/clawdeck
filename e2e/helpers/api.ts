@@ -1,7 +1,7 @@
 import { APIRequestContext } from '@playwright/test'
 
-const API_URL = process.env.API_URL || 'http://localhost:3335'
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:8888'
+const API_URL = process.env.API_URL || 'http://localhost:4333'
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
 export interface TestUser {
   email: string
@@ -231,4 +231,228 @@ export async function deleteTask (
   if (!response.ok() && response.status() !== 204) {
     throw new Error(`Delete task failed: ${response.status()} ${await response.text()}`)
   }
+}
+
+// ========================================
+// Workflow Execution Helpers
+// ========================================
+
+/**
+ * Create a run (trigger workflow execution)
+ */
+export async function createRun (
+  request: APIRequestContext,
+  token: string,
+  data: { workflowId: string; task: string; taskId?: string }
+): Promise<{ id: string; workflowId: string; task: string; status: string }> {
+  const response = await request.post(`${API_URL}/api/v1/runs`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: {
+      workflow_id: data.workflowId,
+      task: data.task,
+      task_id: data.taskId,
+    },
+  })
+
+  if (!response.ok()) {
+    throw new Error(`Create run failed: ${response.status()} ${await response.text()}`)
+  }
+
+  const result = await response.json()
+  return result.data
+}
+
+/**
+ * Get run by ID
+ */
+export async function getRun (
+  request: APIRequestContext,
+  token: string,
+  runId: string
+): Promise<{ id: string; status: string; context?: string }> {
+  const response = await request.get(`${API_URL}/api/v1/runs/${runId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!response.ok()) {
+    throw new Error(`Get run failed: ${response.status()} ${await response.text()}`)
+  }
+
+  const result = await response.json()
+  return result.data
+}
+
+/**
+ * Get steps for a run
+ */
+export async function getSteps (
+  request: APIRequestContext,
+  token: string,
+  runId: string
+): Promise<Array<{ id: string; stepId: string; status: string; agentId: string }>> {
+  const response = await request.get(`${API_URL}/api/v1/runs/${runId}/steps`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!response.ok()) {
+    throw new Error(`Get steps failed: ${response.status()} ${await response.text()}`)
+  }
+
+  const result = await response.json()
+  return result.data
+}
+
+/**
+ * Claim a step by ID
+ */
+export async function claimStep (
+  request: APIRequestContext,
+  token: string,
+  runId: string,
+  stepId: string,
+  agentId: string
+): Promise<{ id: string; status: string }> {
+  const response = await request.post(
+    `${API_URL}/api/v1/runs/${runId}/steps/${stepId}/claim`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { agent_id: agentId },
+    }
+  )
+
+  if (!response.ok()) {
+    throw new Error(`Claim step failed: ${response.status()} ${await response.text()}`)
+  }
+
+  const result = await response.json()
+  return result.data
+}
+
+/**
+ * Complete a step
+ */
+export async function completeStep (
+  request: APIRequestContext,
+  token: string,
+  runId: string,
+  stepId: string,
+  output: string
+): Promise<{ id: string; status: string; run_completed?: boolean }> {
+  const response = await request.post(
+    `${API_URL}/api/v1/runs/${runId}/steps/${stepId}/complete`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { output },
+    }
+  )
+
+  if (!response.ok()) {
+    throw new Error(`Complete step failed: ${response.status()} ${await response.text()}`)
+  }
+
+  const result = await response.json()
+  // run_completed is at the top level, not in data
+  return {
+    ...result.data,
+    run_completed: result.run_completed,
+  }
+}
+
+/**
+ * Fail a step
+ */
+export async function failStep (
+  request: APIRequestContext,
+  token: string,
+  runId: string,
+  stepId: string,
+  error: string
+): Promise<{ id: string; status: string; will_retry?: boolean }> {
+  const response = await request.post(
+    `${API_URL}/api/v1/runs/${runId}/steps/${stepId}/fail`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { error },
+    }
+  )
+
+  if (!response.ok()) {
+    throw new Error(`Fail step failed: ${response.status()} ${await response.text()}`)
+  }
+
+  const result = await response.json()
+  // will_retry is at the top level
+  return {
+    ...result.data,
+    will_retry: result.will_retry,
+  }
+}
+
+/**
+ * Delete a run
+ */
+export async function deleteRun (
+  request: APIRequestContext,
+  token: string,
+  runId: string
+): Promise<void> {
+  const response = await request.delete(`${API_URL}/api/v1/runs/${runId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!response.ok() && response.status() !== 204) {
+    throw new Error(`Delete run failed: ${response.status()} ${await response.text()}`)
+  }
+}
+
+/**
+ * Approve a step
+ */
+export async function approveStep (
+  request: APIRequestContext,
+  token: string,
+  runId: string,
+  stepId: string,
+  approvalNote?: string
+): Promise<{ id: string; status: string }> {
+  const response = await request.post(
+    `${API_URL}/api/v1/runs/${runId}/steps/${stepId}/approve`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { approval_note: approvalNote },
+    }
+  )
+
+  if (!response.ok()) {
+    throw new Error(`Approve step failed: ${response.status()} ${await response.text()}`)
+  }
+
+  const result = await response.json()
+  return result.data
+}
+
+/**
+ * Reject a step
+ */
+export async function rejectStep (
+  request: APIRequestContext,
+  token: string,
+  runId: string,
+  stepId: string,
+  rejectionReason?: string
+): Promise<{ id: string; status: string }> {
+  const response = await request.post(
+    `${API_URL}/api/v1/runs/${runId}/steps/${stepId}/reject`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { rejection_reason: rejectionReason },
+    }
+  )
+
+  if (!response.ok()) {
+    throw new Error(`Reject step failed: ${response.status()} ${await response.text()}`)
+  }
+
+  const result = await response.json()
+  return result.data
 }

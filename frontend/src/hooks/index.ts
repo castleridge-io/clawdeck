@@ -1,4 +1,4 @@
-export { useBoards, useBoard } from './useBoards'
+export { useBoards, useBoard, useOrganizations } from './useBoards'
 export {
   useTasks,
   useNextTask,

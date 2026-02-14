@@ -38,9 +38,13 @@ export function useCreateTask() {
   return useMutation({
     mutationFn: (taskData: Partial<Task>) => createTask(taskData),
     onSuccess: (_, variables) => {
-      if (variables.board_id) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks({ boardId: variables.board_id }) })
-      }
+      // Invalidate both single board and boardIds array queries
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey
+          return Array.isArray(key) && key[0] === 'tasks'
+        },
+      })
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })
     },
   })
@@ -52,7 +56,12 @@ export function useUpdateTask() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Task> }) => updateTask(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey
+          return Array.isArray(key) && key[0] === 'tasks'
+        },
+      })
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })
     },
   })
@@ -64,7 +73,12 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: (taskId: string) => deleteTask(taskId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey
+          return Array.isArray(key) && key[0] === 'tasks'
+        },
+      })
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })
     },
   })
@@ -76,7 +90,12 @@ export function useClaimTask() {
   return useMutation({
     mutationFn: (taskId: string) => claimTask(taskId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey
+          return Array.isArray(key) && key[0] === 'tasks'
+        },
+      })
     },
   })
 }
@@ -87,7 +106,12 @@ export function useUnclaimTask() {
   return useMutation({
     mutationFn: (taskId: string) => unclaimTask(taskId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey
+          return Array.isArray(key) && key[0] === 'tasks'
+        },
+      })
     },
   })
 }
@@ -98,7 +122,7 @@ export function useCompleteTask() {
   return useMutation({
     mutationFn: (taskId: string) => completeTask(taskId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['tasks'], type: 'all' })
       queryClient.invalidateQueries({ queryKey: queryKeys.archivedTasks({}) })
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })
     },

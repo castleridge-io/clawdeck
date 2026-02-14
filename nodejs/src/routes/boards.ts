@@ -11,6 +11,9 @@ interface BoardJson {
   position: number
   user_id: string
   agent_id: string | null
+  organization_id: string
+  organization_name: string
+  owner_email: string | null
   created_at: string
   updated_at: string
 }
@@ -29,18 +32,25 @@ interface TaskJson {
   updated_at: string
 }
 
-// Helper function to create board JSON response
-async function boardToJson (board: Board): Promise<BoardJson> {
-  // Get agent UUID if board is linked to an agent
-  let agentUuid: string | null = null
-  if (board.agentId) {
-    const agent = await prisma.agent.findUnique({
-      where: { id: board.agentId },
-      select: { uuid: true },
-    })
-    agentUuid = agent?.uuid ?? null
-  }
+// Board with relations type
+interface BoardWithRelations {
+  id: bigint
+  name: string
+  icon: string
+  color: string
+  position: number
+  userId: bigint
+  agentId: bigint | null
+  organizationId: bigint
+  createdAt: Date
+  updatedAt: Date
+  organization: { id: bigint; name: string }
+  user: { id: bigint; emailAddress: string } | null
+  agent: { uuid: string } | null
+}
 
+// Helper function to create board JSON response
+function boardToJson (board: BoardWithRelations): BoardJson {
   return {
     id: board.id.toString(),
     name: board.name,
@@ -48,7 +58,10 @@ async function boardToJson (board: Board): Promise<BoardJson> {
     color: board.color,
     position: board.position,
     user_id: board.userId.toString(),
-    agent_id: agentUuid,
+    agent_id: board.agent?.uuid ?? null,
+    organization_id: board.organizationId.toString(),
+    organization_name: board.organization.name,
+    owner_email: board.user?.emailAddress ?? null,
     created_at: board.createdAt.toISOString(),
     updated_at: board.updatedAt.toISOString(),
   }
@@ -78,14 +91,49 @@ export async function boardsRoutes (
   // Apply authentication to all routes
   fastify.addHook('onRequest', authenticateRequest)
 
-  // GET /api/v1/boards - List user's boards
-  fastify.get('/', async (request, reply) => {
+  // Query interface for GET /boards
+  interface BoardsQuery {
+    organization_id?: string
+  }
+
+  // GET /api/v1/boards - List user's boards (or all boards for admin)
+  fastify.get<{ Querystring: BoardsQuery }>('/', async (request: FastifyRequest<{ Querystring: BoardsQuery }>, reply) => {
+    const isAdmin = request.user.admin
+    const { organization_id } = request.query
+
+    // Build where clause
+    const where: {
+      userId?: bigint
+      organizationId?: bigint
+    } = {}
+
+    // Non-admin users only see their own boards
+    if (!isAdmin) {
+      where.userId = BigInt(request.user.id)
+    }
+
+    // Filter by organization if provided
+    if (organization_id) {
+      where.organizationId = BigInt(organization_id)
+    }
+
     const boards = await prisma.board.findMany({
-      where: { userId: BigInt(request.user.id) },
+      where,
       orderBy: { position: 'asc' },
+      include: {
+        organization: {
+          select: { id: true, name: true },
+        },
+        user: {
+          select: { id: true, emailAddress: true },
+        },
+        agent: {
+          select: { uuid: true },
+        },
+      },
     })
 
-    const boardsData = await Promise.all(boards.map(boardToJson))
+    const boardsData = boards.map(boardToJson)
 
     return {
       success: true,
@@ -104,6 +152,15 @@ export async function boardsRoutes (
         tasks: {
           orderBy: { position: 'asc' },
         },
+        organization: {
+          select: { id: true, name: true },
+        },
+        user: {
+          select: { id: true, emailAddress: true },
+        },
+        agent: {
+          select: { uuid: true },
+        },
       },
     })
 
@@ -114,7 +171,7 @@ export async function boardsRoutes (
     return {
       success: true,
       data: {
-        ...(await boardToJson(board)),
+        ...boardToJson(board),
         tasks: board.tasks.map(taskToJson),
       },
     }
@@ -151,11 +208,22 @@ export async function boardsRoutes (
         organizationId: BigInt(request.user.currentOrganizationId ?? 0),
         position: position ?? (lastBoard?.position ?? -1) + 1,
       },
+      include: {
+        organization: {
+          select: { id: true, name: true },
+        },
+        user: {
+          select: { id: true, emailAddress: true },
+        },
+        agent: {
+          select: { uuid: true },
+        },
+      },
     })
 
     return reply.code(201).send({
       success: true,
-      data: await boardToJson(board),
+      data: boardToJson(board),
     })
   })
 
@@ -213,11 +281,22 @@ export async function boardsRoutes (
     const updatedBoard = await prisma.board.update({
       where: { id: board.id },
       data: updateData,
+      include: {
+        organization: {
+          select: { id: true, name: true },
+        },
+        user: {
+          select: { id: true, emailAddress: true },
+        },
+        agent: {
+          select: { uuid: true },
+        },
+      },
     })
 
     return {
       success: true,
-      data: await boardToJson(updatedBoard),
+      data: boardToJson(updatedBoard),
     }
   })
 

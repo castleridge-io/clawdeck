@@ -1,7 +1,7 @@
 import Fastify from 'fastify'
 import dotenv from 'dotenv'
-import { PrismaClient } from '@prisma/client'
 import app from './app.js'
+import { runMigrations } from './db/migrations.js'
 
 dotenv.config()
 
@@ -14,14 +14,8 @@ const fastify = Fastify({
 // Register the app
 fastify.register(app)
 
-// Prisma client for migrations
-const prisma = new PrismaClient()
-
 // Auto-migrate on startup (if enabled)
 const autoMigrate = process.env.AUTO_MIGRATE === 'true'
-
-// Auto-seed on startup (if enabled)
-const autoSeed = process.env.AUTO_SEED === 'true'
 
 // Start server
 const start = async (): Promise<void> => {
@@ -30,21 +24,16 @@ const start = async (): Promise<void> => {
     if (autoMigrate) {
       console.log('Running database migrations...')
       try {
-        await prisma.$connect()
-
-        // Generate Prisma client first
-        const { execSync } = require('child_process')
-        execSync('npx prisma generate', { stdio: 'inherit' })
-
-        // Deploy migrations
-        execSync('npx prisma migrate deploy', { stdio: 'inherit' })
+        const databaseUrl = process.env.DATABASE_URL
+        if (!databaseUrl) {
+          throw new Error('DATABASE_URL environment variable is required')
+        }
+        await runMigrations(databaseUrl)
         console.log('✅ Migrations completed')
       } catch (error) {
         const err = error as Error
         console.error('❌ Migration failed:', err.message)
         console.log('Continuing startup anyway...')
-      } finally {
-        await prisma.$disconnect()
       }
     }
 

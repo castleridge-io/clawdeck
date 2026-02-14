@@ -14,7 +14,13 @@ export interface Board {
   id: string
   name: string
   icon?: string
-  agent_id?: string
+  color?: string
+  position?: number
+  agent_id?: string | null
+  user_id?: string
+  organization_id?: string
+  organization_name?: string
+  owner_email?: string | null
   createdAt?: string
   updatedAt?: string
 }

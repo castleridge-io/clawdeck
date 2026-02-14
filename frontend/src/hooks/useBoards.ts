@@ -1,11 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
-import { getBoards, getBoard } from '../lib/api'
+import { getBoards, getBoard, getOrganizations } from '../lib/api'
 import { queryKeys } from '../lib/queryKeys'
 
-export function useBoards() {
+interface BoardsFilter {
+  organization_id?: string
+}
+
+export function useBoards(filter?: BoardsFilter) {
   return useQuery({
-    queryKey: queryKeys.boards,
-    queryFn: getBoards,
+    queryKey: queryKeys.boards(filter),
+    queryFn: () => getBoards(filter),
   })
 }
 
@@ -14,5 +18,12 @@ export function useBoard(id: string) {
     queryKey: queryKeys.board(id),
     queryFn: () => getBoard(id),
     enabled: !!id,
+  })
+}
+
+export function useOrganizations() {
+  return useQuery({
+    queryKey: queryKeys.organizations,
+    queryFn: getOrganizations,
   })
 }

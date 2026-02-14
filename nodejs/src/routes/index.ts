@@ -13,6 +13,7 @@ import { storiesRoutes } from './stories.js'
 import { agentsRoutes } from './agents.js'
 import { oauthRoutes } from './oauth.routes.js'
 import { dashboardRoutes } from './dashboard.js'
+import { organizationsRoutes } from './organizations.js'
 
 export async function registerRoutes (
   fastify: FastifyInstance,
@@ -24,6 +25,7 @@ export async function registerRoutes (
   await fastify.register(tasksRoutes, { prefix: '/tasks' })
   await fastify.register(settingsRoutes, { prefix: '/settings' })
   await fastify.register(adminRoutes, { prefix: '/admin' })
+  await fastify.register(organizationsRoutes, { prefix: '/organizations' })
   await fastify.register(avatarRoutes, { prefix: '/avatars' })
   await fastify.register(archivesRoutes, { prefix: '/archives' })
   await fastify.register(workflowsRoutes, { prefix: '/workflows' })

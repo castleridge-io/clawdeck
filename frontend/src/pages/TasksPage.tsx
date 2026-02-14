@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
-import { useBoards, useTasks, useUpdateTask, useDeleteTask } from '../hooks'
+import { useBoards, useTasks, useAgents, useUpdateTask, useDeleteTask } from '../hooks'
+import { useQueryClient } from '@tanstack/react-query'
 import type { TaskStatus } from '../types'
 import LoadingSpinner from '../components/LoadingSpinner'
 
@@ -15,9 +16,20 @@ const STATUS_OPTIONS: { value: TaskStatus | ''; label: string }[] = [
 export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | ''>('')
   const [boardFilter, setBoardFilter] = useState<string>('')
+  const queryClient = useQueryClient()
 
-  // Fetch boards
+  // Fetch boards and agents
   const { data: boards = [], isLoading: boardsLoading } = useBoards()
+  const { data: agentsData = [], isLoading: agentsLoading } = useAgents()
+
+  // Format agents for dropdown
+  const agents = useMemo(() => {
+    return agentsData.map((agent) => ({
+      id: agent.uuid,
+      name: agent.name,
+      emoji: agent.emoji,
+    }))
+  }, [agentsData])
 
   // Fetch tasks for all boards using batch query
   const boardIds = boards.map((b) => b.id)
@@ -49,8 +61,20 @@ export default function TasksPage() {
     }
   }
 
+  async function handleAssigneeChange(taskId: string, assigneeId: string) {
+    try {
+      await updateTaskMutation.mutateAsync({
+        id: taskId,
+        data: { assignee_id: assigneeId || null },
+      })
+    } catch (error) {
+      alert(`Failed to update assignee: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
   async function handleDelete(taskId: string) {
-    if (!confirm('Are you sure you want to delete this task?')) return
+    const confirmed = window.confirm('Are you sure you want to delete this task?')
+    if (!confirmed) return
 
     try {
       await deleteTaskMutation.mutateAsync(taskId)
@@ -59,8 +83,19 @@ export default function TasksPage() {
     }
   }
 
+  function handleRefresh() {
+    queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    queryClient.invalidateQueries({ queryKey: ['boards'] })
+  }
+
   function getBoardName(boardId: string) {
     return boards.find((b) => b.id === boardId)?.name || 'Unknown'
+  }
+
+  function getAgentInfo(agentId?: string) {
+    if (!agentId) return null
+    const agent = agents.find((a) => a.id === agentId)
+    return agent ? `${agent.emoji} ${agent.name}` : null
   }
 
   function formatDate(dateString?: string) {
@@ -68,7 +103,7 @@ export default function TasksPage() {
     return new Date(dateString).toLocaleDateString()
   }
 
-  const loading = boardsLoading || tasksLoading
+  const loading = boardsLoading || tasksLoading || agentsLoading
 
   if (loading) {
     return <LoadingSpinner />
@@ -80,6 +115,16 @@ export default function TasksPage() {
         <h1 className='text-2xl font-bold text-white'>Tasks</h1>
 
         <div className='flex gap-4'>
+          <button
+            onClick={handleRefresh}
+            className='px-4 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-white flex items-center gap-2'
+          >
+            <svg className='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+            </svg>
+            Refresh
+          </button>
+
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as TaskStatus | '')}
@@ -116,6 +161,7 @@ export default function TasksPage() {
               <tr>
                 <th className='text-left px-4 py-3 text-slate-300 font-medium'>Task</th>
                 <th className='text-left px-4 py-3 text-slate-300 font-medium'>Board</th>
+                <th className='text-left px-4 py-3 text-slate-300 font-medium'>Assignee</th>
                 <th className='text-left px-4 py-3 text-slate-300 font-medium'>Status</th>
                 <th className='text-left px-4 py-3 text-slate-300 font-medium'>Created</th>
                 <th className='text-right px-4 py-3 text-slate-300 font-medium'>Actions</th>
@@ -126,6 +172,20 @@ export default function TasksPage() {
                 <tr key={task.id} className='hover:bg-slate-700/50'>
                   <td className='px-4 py-3 text-white'>{task.name || 'Untitled'}</td>
                   <td className='px-4 py-3 text-slate-300'>{getBoardName(task.board_id)}</td>
+                  <td className='px-4 py-3'>
+                    <select
+                      value={task.assignee_id || ''}
+                      onChange={(e) => handleAssigneeChange(task.id, e.target.value)}
+                      className='bg-slate-600 border border-slate-500 rounded px-2 py-1 text-sm text-white min-w-[120px]'
+                    >
+                      <option value=''>Unassigned</option>
+                      {agents.map((agent) => (
+                        <option key={agent.id} value={agent.id}>
+                          {agent.emoji} {agent.name}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
                   <td className='px-4 py-3'>
                     <select
                       value={task.status}
