@@ -32,8 +32,9 @@ export async function adminRoutes(
     },
     async (request, reply) => {
       try {
-        const page = parseInt(request.query.page || '1')
-        const limit = parseInt(request.query.limit || '50')
+        const query = request.query as { page?: string; limit?: string }
+        const page = parseInt(query.page || '1')
+        const limit = parseInt(query.limit || '50')
 
         const result = await authService.getAllUsers(page, limit)
 
@@ -53,8 +54,9 @@ export async function adminRoutes(
       try {
         const { prisma } = await import('../db/prisma.js')
 
+        const params = request.params as { userId: string }
         const user = await prisma.user.findUnique({
-          where: { id: BigInt(request.params.userId) },
+          where: { id: BigInt(params.userId) },
         })
 
         if (!user) {
@@ -66,7 +68,7 @@ export async function adminRoutes(
         }
 
         await prisma.user.delete({
-          where: { id: BigInt(request.params.userId) },
+          where: { id: BigInt(params.userId) },
         })
 
         return reply.send({ message: 'User deleted successfully' })
@@ -91,8 +93,9 @@ export async function adminRoutes(
           return reply.code(400).send({ error: 'admin must be a boolean' })
         }
 
+        const params = request.params as { userId: string }
         const user = await prisma.user.findUnique({
-          where: { id: BigInt(request.params.userId) },
+          where: { id: BigInt(params.userId) },
         })
 
         if (!user) {
@@ -100,7 +103,7 @@ export async function adminRoutes(
         }
 
         const updatedUser = await prisma.user.update({
-          where: { id: BigInt(request.params.userId) },
+          where: { id: BigInt(params.userId) },
           data: { admin },
         })
 
@@ -123,8 +126,9 @@ export async function adminRoutes(
     },
     async (request, reply) => {
       try {
-        const page = parseInt(request.query.page || '1')
-        const limit = parseInt(request.query.limit || '50')
+        const query = request.query as { page?: string; limit?: string }
+        const page = parseInt(query.page || '1')
+        const limit = parseInt(query.limit || '50')
 
         const result = await adminService.listAllBoards(page, limit)
 
@@ -144,12 +148,13 @@ export async function adminRoutes(
     },
     async (request, reply) => {
       try {
+        const query = request.query as { user_id?: string; status?: string; page?: string; limit?: string }
         const filters = {
-          user_id: request.query.user_id,
-          status: request.query.status,
+          user_id: query.user_id,
+          status: query.status,
         }
-        const page = parseInt(request.query.page || '1')
-        const limit = parseInt(request.query.limit || '50')
+        const page = parseInt(query.page || '1')
+        const limit = parseInt(query.limit || '50')
 
         const result = await adminService.listAllTasks(filters, page, limit)
 

@@ -143,9 +143,9 @@ export async function settingsRoutes(
 
   // PATCH /api/v1/settings/openclaw - Update OpenClaw settings
   fastify.patch('/openclaw', { preHandler: authenticateAdmin }, async (request, reply) => {
-    const { url, apiKey } = request.body as OpenClawSettings
+    const { url, api_key } = request.body as OpenClawSettings
 
-    const settings = await settingsService.updateOpenClawSettings({ url, apiKey })
+    const settings = await settingsService.updateOpenClawSettings({ url, apiKey: api_key })
     return {
       success: true,
       data: settings,

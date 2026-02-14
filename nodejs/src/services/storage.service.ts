@@ -21,7 +21,6 @@ export class StorageService {
         secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || 'minioadmin',
       },
       forcePathStyle: true,
-      tls: { rejectUnauthorized: useSsl ? undefined : false },
     })
 
     this.bucket = process.env.S3_BUCKET || 'clawdeck'
@@ -99,6 +98,7 @@ export class StorageService {
       if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
         return pathParts.slice(bucketIndex + 1).join('/')
       }
+      return null
     } catch {
       return null
     }
@@ -128,6 +128,7 @@ export class StorageService {
   await prisma.activeStorageAttachment.create({
     data: {
       name: 'avatar',
+      recordType: 'User',
       recordId: BigInt(userId),
       blobId: blob.id,
     },

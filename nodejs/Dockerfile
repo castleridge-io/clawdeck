@@ -1,6 +1,6 @@
 # Node.js Dockerfile for ClawDeck API
 # Build context should be monorepo root
-FROM node:20-alpine
+FROM node:24-alpine
 
 # Install netcat for database health checking
 RUN apk add --no-cache netcat-openbsd

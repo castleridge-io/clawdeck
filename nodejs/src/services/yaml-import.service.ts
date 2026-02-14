@@ -43,9 +43,9 @@ export function parseWorkflowYaml (yamlString: string): WorkflowData {
       return {
         step_id: (step.step_id || step.agentId) as string,
         name: (step.name as string) || null,
-        agent_id: (step.agent_id as string) || null,
-        input_template: (step.input_template as string) || null,
-        expects: (step.expects as string) || null,
+        agent_id: (step.agent_id as string) ?? undefined,
+        input_template: (step.input_template as string) ?? undefined,
+        expects: (step.expects as string) ?? undefined,
         type: (step.type as string) || 'single',
         position: index,
       }

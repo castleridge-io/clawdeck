@@ -45,7 +45,7 @@ export function createAdminService() {
             emailAddress: board.user.emailAddress,
             agentName: board.user.agentName,
           },
-          task_count: board._count.tasks,
+          task_count: (board as { _count?: { tasks?: number } })._count?.tasks ?? 0,
           created_at: board.createdAt.toISOString(),
         })),
         meta: {
@@ -115,9 +115,9 @@ export function createAdminService() {
           status: task.status,
           priority: task.priority,
           owner: {
-            id: task.user.id.toString(),
-            emailAddress: task.user.emailAddress,
-            agentName: task.user.agentName,
+            id: task.user?.id?.toString() ?? 'unknown',
+            emailAddress: task.user?.emailAddress ?? 'unknown',
+            agentName: task.user?.agentName ?? null,
           },
           board: {
             id: task.board.id.toString(),

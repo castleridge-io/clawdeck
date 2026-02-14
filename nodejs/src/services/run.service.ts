@@ -62,7 +62,7 @@ export function createRunService () {
       })
 
       // Create steps from workflow config
-      const steps = workflow.config.steps ?? []
+      const steps = workflow.steps ?? []
       for (let i = 0; i < steps.length; i++) {
         const stepConfig = steps[i]
         await stepService.createStep({
@@ -72,7 +72,7 @@ export function createRunService () {
           stepIndex: i,
           inputTemplate: stepConfig.inputTemplate,
           expects: stepConfig.expects,
-          type: stepConfig.type ?? 'single',
+          type: (stepConfig.type ?? 'single') as 'single' | 'loop' | 'approval',
           loopConfig: stepConfig.loopConfig,
         })
       }

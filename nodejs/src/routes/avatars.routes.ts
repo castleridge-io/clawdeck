@@ -38,7 +38,7 @@ export async function avatarRoutes(
         }
 
         const { url, key } = await storageService.uploadAvatar(
-          request.user.id,
+          request.user.id.toString(),
           buffer,
           data.filename,
           contentType
@@ -59,7 +59,7 @@ export async function avatarRoutes(
     },
     async (request, reply) => {
       try {
-        await storageService.deleteAvatar(request.user.id)
+        await storageService.deleteAvatar(request.user.id.toString())
 
         return reply.send({ message: 'Avatar deleted successfully' })
       } catch (error) {

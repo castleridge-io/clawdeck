@@ -140,17 +140,20 @@ class ArchiveScheduler {
 
     // Broadcast WebSocket event
     const taskData = this.taskToJson(updatedTask)
-    wsManager.broadcastTaskEvent(task.board?.userId ?? null, 'task_archived', taskData)
+    const boardUserId = task.board?.userId
+    if (boardUserId != null) {
+      wsManager.broadcastTaskEvent(boardUserId, 'task_archived', taskData)
+    }
   }
 
   taskToJson (task: Task): TaskJson {
     return {
       id: task.id.toString(),
-      name: task.name,
-      description: task.description,
+      name: task.name ?? '',
+      description: task.description ?? null,
       status: task.status,
       priority: task.priority,
-      position: task.position,
+      position: task.position ?? null,
       board_id: task.boardId.toString(),
       user_id: task.userId?.toString(),
       completed: task.completed,

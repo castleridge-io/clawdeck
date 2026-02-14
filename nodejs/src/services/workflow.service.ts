@@ -165,7 +165,7 @@ export function createWorkflowService () {
             inputTemplate: step.inputTemplate,
             expects: step.expects,
             type: step.type ?? 'single',
-            loopConfig: step.loopConfig ?? null,
+            loopConfig: step.loopConfig ? JSON.parse(JSON.stringify(step.loopConfig)) : null,
             position: step.position ?? index,
           })),
         })
@@ -264,7 +264,7 @@ export function createWorkflowService () {
               inputTemplate: step.inputTemplate,
               expects: step.expects,
               type: step.type ?? 'single',
-              loopConfig: step.loopConfig ?? null,
+              loopConfig: step.loopConfig ? JSON.parse(JSON.stringify(step.loopConfig)) : null,
               position: step.position ?? index,
             })),
           })

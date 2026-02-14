@@ -1,0 +1,486 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1771050112280,
+  "projectRoot": "/home/montelai/tools/clawdeck",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "yarn",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "yarn build",
+    "testCommand": "yarn test",
+    "lintCommand": "yarn lint",
+    "devCommand": "yarn dev",
+    "scripts": {
+      "dev": "yarn workspace clawdeck dev",
+      "dev:frontend": "yarn workspace clawdeck-frontend dev",
+      "build": "yarn workspaces foreach -Wt run build",
+      "test": "yarn workspace clawdeck test",
+      "test:frontend": "yarn workspace clawdeck-frontend test",
+      "test:e2e": "yarn workspace clawdeck-e2e test",
+      "lint": "eslint .",
+      "lint:fix": "eslint . --fix",
+      "format": "prettier --write .",
+      "format:check": "prettier --check .",
+      "typecheck": "yarn workspaces foreach -Wt run typecheck",
+      "prepare": "husky"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": true,
+    "workspaces": [
+      "nodejs",
+      "frontend",
+      "e2e"
+    ],
+    "mainDirectories": [
+      "docs"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 6,
+      "lastAccessed": 1771050112250,
+      "keyFiles": [
+        "AGENT_INTEGRATION.md",
+        "API.md",
+        "DARK_THEME_PROMPT.md",
+        "QUICKSTART.md",
+        "TESTING.md"
+      ]
+    },
+    "e2e": {
+      "path": "e2e",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1771050112251,
+      "keyFiles": [
+        "Dockerfile",
+        "package.json",
+        "playwright.config.ts",
+        "run-tests.sh"
+      ]
+    },
+    "e2e-results": {
+      "path": "e2e-results",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1771050112271,
+      "keyFiles": []
+    },
+    "frontend": {
+      "path": "frontend",
+      "purpose": null,
+      "fileCount": 15,
+      "lastAccessed": 1771050112272,
+      "keyFiles": [
+        "Dockerfile",
+        "Dockerfile.dev",
+        "docker-entrypoint.dev.sh",
+        "index.html",
+        "nginx.conf"
+      ]
+    },
+    "nodejs": {
+      "path": "nodejs",
+      "purpose": null,
+      "fileCount": 12,
+      "lastAccessed": 1771050112273,
+      "keyFiles": [
+        "Dockerfile",
+        "README.md",
+        "create_user.js",
+        "docker-compose.test.yml",
+        "package.json"
+      ]
+    },
+    "skills": {
+      "path": "skills",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1771050112274,
+      "keyFiles": []
+    },
+    "test-results": {
+      "path": "test-results",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1771050112274,
+      "keyFiles": []
+    },
+    "e2e/helpers": {
+      "path": "e2e/helpers",
+      "purpose": "Helper functions",
+      "fileCount": 1,
+      "lastAccessed": 1771050112275,
+      "keyFiles": [
+        "api.ts"
+      ]
+    },
+    "e2e/tests": {
+      "path": "e2e/tests",
+      "purpose": "Test files",
+      "fileCount": 4,
+      "lastAccessed": 1771050112276,
+      "keyFiles": [
+        "auth.spec.ts",
+        "boards.spec.ts",
+        "settings.spec.ts"
+      ]
+    },
+    "frontend/dist": {
+      "path": "frontend/dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 1,
+      "lastAccessed": 1771050112277,
+      "keyFiles": [
+        "index.html"
+      ]
+    },
+    "frontend/node_modules": {
+      "path": "frontend/node_modules",
+      "purpose": "Dependencies",
+      "fileCount": 0,
+      "lastAccessed": 1771050112278,
+      "keyFiles": []
+    },
+    "nodejs/dist": {
+      "path": "nodejs/dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 8,
+      "lastAccessed": 1771050112279,
+      "keyFiles": [
+        "app.d.ts",
+        "app.d.ts.map",
+        "app.js"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "nodejs/prisma/schema.prisma",
+      "accessCount": 22,
+      "lastAccessed": 1771056120273,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/boards.ts",
+      "accessCount": 19,
+      "lastAccessed": 1771054665211,
+      "type": "file"
+    },
+    {
+      "path": "e2e/tests/boards.spec.ts",
+      "accessCount": 15,
+      "lastAccessed": 1771052851538,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/index.ts",
+      "accessCount": 15,
+      "lastAccessed": 1771063190776,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/db/seed.ts",
+      "accessCount": 13,
+      "lastAccessed": 1771054725412,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/step.service.ts",
+      "accessCount": 13,
+      "lastAccessed": 1771055214060,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src",
+      "accessCount": 12,
+      "lastAccessed": 1771062598763,
+      "type": "directory"
+    },
+    {
+      "path": "nodejs/src/routes/agents.ts",
+      "accessCount": 9,
+      "lastAccessed": 1771062575055,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/app.ts",
+      "accessCount": 8,
+      "lastAccessed": 1771063193602,
+      "type": "file"
+    },
+    {
+      "path": "e2e/helpers/api.ts",
+      "accessCount": 6,
+      "lastAccessed": 1771052323479,
+      "type": "file"
+    },
+    {
+      "path": "frontend/src",
+      "accessCount": 6,
+      "lastAccessed": 1771054425723,
+      "type": "directory"
+    },
+    {
+      "path": "nodejs/src/routes/admin.routes.ts",
+      "accessCount": 5,
+      "lastAccessed": 1771054624980,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/package.json",
+      "accessCount": 4,
+      "lastAccessed": 1771050230133,
+      "type": "file"
+    },
+    {
+      "path": "nodejs",
+      "accessCount": 4,
+      "lastAccessed": 1771050815718,
+      "type": "directory"
+    },
+    {
+      "path": "nodejs/src/services/storage.service.ts",
+      "accessCount": 4,
+      "lastAccessed": 1771054746379,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/prisma",
+      "accessCount": 4,
+      "lastAccessed": 1771055779074,
+      "type": "directory"
+    },
+    {
+      "path": "nodejs/src/routes/auth.routes.ts",
+      "accessCount": 4,
+      "lastAccessed": 1771062523800,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/Dockerfile",
+      "accessCount": 4,
+      "lastAccessed": 1771062780716,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/tests",
+      "accessCount": 3,
+      "lastAccessed": 1771050546571,
+      "type": "directory"
+    },
+    {
+      "path": ".env",
+      "accessCount": 3,
+      "lastAccessed": 1771053019303,
+      "type": "file"
+    },
+    {
+      "path": "frontend/src/pages/LoginPage.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1771053712754,
+      "type": "file"
+    },
+    {
+      "path": "frontend/src/pages/LoginPage.test.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1771053729177,
+      "type": "file"
+    },
+    {
+      "path": "frontend/src/lib/api.ts",
+      "accessCount": 3,
+      "lastAccessed": 1771054432966,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/agent.service.ts",
+      "accessCount": 3,
+      "lastAccessed": 1771055483716,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes",
+      "accessCount": 3,
+      "lastAccessed": 1771062511036,
+      "type": "directory"
+    },
+    {
+      "path": "docker-compose.yml",
+      "accessCount": 2,
+      "lastAccessed": 1771062058250,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 1,
+      "lastAccessed": 1771050173322,
+      "type": "file"
+    },
+    {
+      "path": "e2e/package.json",
+      "accessCount": 1,
+      "lastAccessed": 1771050176598,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/tests/integration/workflows.test.js",
+      "accessCount": 1,
+      "lastAccessed": 1771050191582,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/db/prisma.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771050198770,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/tests/unit/rateLimiter.test.js",
+      "accessCount": 1,
+      "lastAccessed": 1771050201759,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/tests/unit/agent-status.test.js",
+      "accessCount": 1,
+      "lastAccessed": 1771050201796,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/tests/setup.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771050210566,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/docker-compose.test.yml",
+      "accessCount": 1,
+      "lastAccessed": 1771050238941,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/.env.test",
+      "accessCount": 1,
+      "lastAccessed": 1771050277740,
+      "type": "file"
+    },
+    {
+      "path": "e2e/playwright.config.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771050711635,
+      "type": "file"
+    },
+    {
+      "path": "e2e/tests/auth.spec.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771050714162,
+      "type": "file"
+    },
+    {
+      "path": "e2e/tests/settings.spec.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771050714221,
+      "type": "file"
+    },
+    {
+      "path": "e2e/tests/workflows.spec.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771050714266,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/middleware/organization.middleware.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771050826573,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/db",
+      "accessCount": 1,
+      "lastAccessed": 1771050831759,
+      "type": "directory"
+    },
+    {
+      "path": "e2e/tests",
+      "accessCount": 1,
+      "lastAccessed": 1771051031909,
+      "type": "directory"
+    },
+    {
+      "path": "nodejs/scripts/docker-entrypoint.sh",
+      "accessCount": 1,
+      "lastAccessed": 1771051404787,
+      "type": "file"
+    },
+    {
+      "path": "docs/QUICKSTART.md",
+      "accessCount": 1,
+      "lastAccessed": 1771053012340,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/scripts/create-openclaw-user.js",
+      "accessCount": 1,
+      "lastAccessed": 1771053016096,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 1,
+      "lastAccessed": 1771053016605,
+      "type": "directory"
+    },
+    {
+      "path": "frontend",
+      "accessCount": 1,
+      "lastAccessed": 1771053692783,
+      "type": "directory"
+    },
+    {
+      "path": "frontend/.env.local",
+      "accessCount": 1,
+      "lastAccessed": 1771053694430,
+      "type": "file"
+    },
+    {
+      "path": "frontend/src/pages/AgentsPage.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1771054422985,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/story.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771054551896,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

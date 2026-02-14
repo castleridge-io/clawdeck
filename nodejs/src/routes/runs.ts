@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
-import { createRunService } from '../services/run.service.js'
+import { createRunService, type RunStatus } from '../services/run.service.js'
 import type { Run, Step, Story } from '@prisma/client'
 
 interface StepJson {
@@ -14,7 +14,7 @@ interface StepJson {
   output: unknown
   retry_count: number
   max_retries: number
-  type: string
+  type: string | null
   loop_config: unknown
   current_story_id: string | null
 }
@@ -24,8 +24,8 @@ interface StoryJson {
   story_index: number
   story_id: string
   title: string
-  description: string
-  acceptance_criteria: string
+  description: string | null
+  acceptance_criteria: string | null
   status: string
   output: unknown
   retry_count: number
@@ -48,8 +48,13 @@ interface RunJson {
   stories: StoryJson[]
 }
 
+interface RunWithRelations extends Run {
+  steps: Step[]
+  stories: Story[]
+}
+
 // Helper function to convert run to JSON response
-function runToJson(run: Run): RunJson {
+function runToJson(run: RunWithRelations): RunJson {
   return {
     id: run.id,
     workflow_id: run.workflowId.toString(),
@@ -58,7 +63,7 @@ function runToJson(run: Run): RunJson {
     status: run.status,
     context: run.context ? JSON.parse(run.context) : {},
     notify_url: run.notifyUrl,
-    awaiting_approval: run.awaitingApproval,
+    awaiting_approval: (run.awaitingApproval ?? 0) > 0,
     awaiting_approval_since: run.awaitingApprovalSince,
     created_at: run.createdAt.toISOString(),
     updated_at: run.updatedAt.toISOString(),
@@ -95,8 +100,8 @@ function runToJson(run: Run): RunJson {
 }
 
 interface RunFilters {
-  task_id?: string
-  status?: string
+  taskId?: string
+  status?: RunStatus
 }
 
 export async function runsRoutes(
@@ -110,14 +115,15 @@ export async function runsRoutes(
 
   // GET /api/v1/runs - List runs
   fastify.get('/', async (request, reply) => {
-    const { task_id, status } = request.query
+    const query = request.query as { task_id?: string; status?: string }
+    const { task_id, status } = query
 
     const filters: RunFilters = {}
     if (task_id) {
       filters.taskId = task_id
     }
     if (status) {
-      filters.status = status
+      filters.status = status as RunStatus
     }
 
     const runs = await runService.listRuns(filters)
@@ -138,7 +144,8 @@ export async function runsRoutes(
 
   // GET /api/v1/runs/:id - Get single run
   fastify.get('/:id', async (request, reply) => {
-    const run = await runService.getRun(request.params.id)
+    const params = request.params as { id: string }
+    const run = await runService.getRun(params.id)
 
     if (!run) {
       return reply.code(404).send({ error: 'Run not found' })
@@ -146,7 +153,7 @@ export async function runsRoutes(
 
     return {
       success: true,
-      data: runToJson(run),
+      data: runToJson(run as RunWithRelations),
     }
   })
 
@@ -156,7 +163,7 @@ export async function runsRoutes(
       workflow_id?: string
       task_id?: string
       task?: string
-      context?: unknown
+      context?: Record<string, unknown>
       notify_url?: string
     }
 
@@ -179,7 +186,7 @@ export async function runsRoutes(
 
       return reply.code(201).send({
         success: true,
-        data: runToJson(run),
+        data: runToJson(run as RunWithRelations),
       })
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
@@ -191,6 +198,7 @@ export async function runsRoutes(
 
   // PATCH /api/v1/runs/:id/status - Update run status
   fastify.patch('/:id/status', async (request, reply) => {
+    const params = request.params as { id: string }
     const { status } = request.body as { status?: string }
 
     if (!status) {
@@ -198,11 +206,11 @@ export async function runsRoutes(
     }
 
     try {
-      const run = await runService.updateRunStatus(request.params.id, status)
+      const run = await runService.updateRunStatus(params.id, status as RunStatus)
 
       return {
         success: true,
-        data: runToJson(run),
+        data: runToJson(run as RunWithRelations),
       }
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {

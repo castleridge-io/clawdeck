@@ -117,7 +117,7 @@ describe('LoginPage', () => {
 
       await user.click(screen.getByTestId('dev-login-button'))
 
-      expect(mockLogin).toHaveBeenCalledWith('admin', 'admin')
+      expect(mockLogin).toHaveBeenCalledWith('admin', 'changeme')
     })
 
     it('shows error when dev login fails', async () => {

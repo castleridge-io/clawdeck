@@ -64,7 +64,8 @@ export async function storiesRoutes(
 
   // GET /api/v1/runs/:runId/stories - List stories for a run
   fastify.get('/', async (request, reply) => {
-    const { runId } = request.params
+    const params = request.params as { runId: string }
+    const { runId } = params
 
     const run = await runService.getRun(runId)
     if (!run) {
@@ -81,7 +82,8 @@ export async function storiesRoutes(
 
   // GET /api/v1/runs/:runId/stories/:storyId - Get single story
   fastify.get('/:storyId', async (request, reply) => {
-    const { runId, storyId } = request.params
+    const params = request.params as { runId: string; storyId: string }
+    const { runId, storyId } = params
 
     const story = await storyService.getStory(storyId)
 
@@ -97,7 +99,8 @@ export async function storiesRoutes(
 
   // POST /api/v1/runs/:runId/stories - Create a new story (for loop workflows)
   fastify.post('/', async (request, reply) => {
-    const { runId } = request.params
+    const params = request.params as { runId: string }
+    const { runId } = params
     const { story_index, story_id, title, description, acceptance_criteria } =
       request.body as {
         story_index: number
@@ -155,7 +158,8 @@ export async function storiesRoutes(
 
   // POST /api/v1/runs/:runId/stories/:storyId/start - Start working on a story
   fastify.post('/:storyId/start', async (request, reply) => {
-    const { runId, storyId } = request.params
+    const params = request.params as { runId: string; storyId: string }
+    const { runId, storyId } = params
 
     const story = await storyService.getStory(storyId)
 
@@ -187,7 +191,8 @@ export async function storiesRoutes(
 
   // POST /api/v1/runs/:runId/stories/:storyId/complete - Complete a story
   fastify.post('/:storyId/complete', async (request, reply) => {
-    const { runId, storyId } = request.params
+    const params = request.params as { runId: string; storyId: string }
+    const { runId, storyId } = params
     const { output } = request.body as { output: unknown }
 
     const story = await storyService.getStory(storyId)
@@ -223,7 +228,8 @@ export async function storiesRoutes(
 
   // POST /api/v1/runs/:runId/stories/:storyId/fail - Fail a story (with retry)
   fastify.post('/:storyId/fail', async (request, reply) => {
-    const { runId, storyId } = request.params
+    const params = request.params as { runId: string; storyId: string }
+    const { runId, storyId } = params
     const { error: errorMessage, output } = request.body as {
       error: string
       output?: unknown
@@ -297,7 +303,8 @@ export async function storiesRoutes(
 
   // PATCH /api/v1/runs/:runId/stories/:storyId - Update story
   fastify.patch('/:storyId', async (request, reply) => {
-    const { runId, storyId } = request.params
+    const params = request.params as { runId: string; storyId: string }
+    const { runId, storyId } = params
     const { status, output } = request.body as {
       status?: string
       output?: unknown

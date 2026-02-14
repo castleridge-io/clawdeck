@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
-import type { Task, User } from '@prisma/client'
+import type { Task, User, TaskStatus, Priority } from '@prisma/client'
 import { wsManager } from '../websocket/manager.js'
 import { createWorkflowService } from '../services/workflow.service.js'
 import { createRunService } from '../services/run.service.js'
@@ -45,7 +45,7 @@ function taskToJson(task: Task): TaskJsonResponse {
     description: task.description,
     status: task.status,
     priority: task.priority,
-    position: task.position,
+    position: task.position ?? 0,
     board_id: task.boardId.toString(),
     user_id: task.userId?.toString(),
     completed: task.completed,
@@ -146,7 +146,7 @@ export async function tasksRoutes(
       const where: {
         userId: bigint
         assignedToAgent?: boolean
-        status?: string
+        status?: TaskStatus
         boardId?: bigint | { in: bigint[] }
         archived?: boolean
       } = { userId: BigInt(request.user.id) }
@@ -156,7 +156,7 @@ export async function tasksRoutes(
       }
 
       if (status && ['inbox', 'up_next', 'in_progress', 'in_review', 'done'].includes(status)) {
-        where.status = status
+        where.status = status as TaskStatus
       }
 
       // Support comma-separated board_ids for batch queries
@@ -296,8 +296,8 @@ export async function tasksRoutes(
         description: string | undefined
         boardId: bigint
         userId: bigint
-        status: string
-        priority: string
+        status: TaskStatus
+        priority: Priority
         tags: string[]
         position: number
         workflowType?: string
@@ -306,8 +306,8 @@ export async function tasksRoutes(
         description,
         boardId: BigInt(board_id),
         userId: BigInt(request.user.id),
-        status: status || 'inbox',
-        priority: priority || 'none',
+        status: (status || 'inbox') as TaskStatus,
+        priority: (priority || 'none') as Priority,
         tags,
         position: (lastTask?.position ?? -1) + 1,
       }
@@ -374,10 +374,10 @@ export async function tasksRoutes(
       }
 
       const updateData: {
-        status?: string
+        status?: TaskStatus
         completed?: boolean
         completedAt?: Date
-        priority?: string
+        priority?: Priority
         name?: string
         description?: string
       } = {}
@@ -389,7 +389,7 @@ export async function tasksRoutes(
 
       if (status && ['inbox', 'up_next', 'in_progress', 'in_review', 'done'].includes(status)) {
         if (status !== task.status) {
-          updateData.status = status
+          updateData.status = status as TaskStatus
           activityData.fieldName = 'status'
           activityData.oldValue = task.status
           activityData.newValue = status
@@ -404,7 +404,7 @@ export async function tasksRoutes(
 
       if (priority && ['none', 'low', 'medium', 'high'].includes(priority)) {
         if (priority !== task.priority) {
-          updateData.priority = priority
+          updateData.priority = priority as Priority
           activityData.fieldName = 'priority'
           activityData.oldValue = task.priority
           activityData.newValue = priority

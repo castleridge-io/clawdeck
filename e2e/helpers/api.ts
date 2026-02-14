@@ -1,7 +1,7 @@
 import { APIRequestContext } from '@playwright/test'
 
-const API_URL = process.env.API_URL || 'http://localhost:4333'
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3335'
+const API_URL = process.env.API_URL || 'http://localhost:3335'
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:8888'
 
 export interface TestUser {
   email: string
@@ -12,6 +12,57 @@ export interface TestUser {
 export const DEFAULT_USER: TestUser = {
   email: process.env.TEST_USER_EMAIL || 'admin',
   password: process.env.TEST_USER_PASSWORD || 'admin',
+}
+
+export interface TestOrganization {
+  id: string
+  name: string
+  slug: string
+}
+
+let cachedOrganization: TestOrganization | null = null
+
+/**
+ * Get or create default organization for tests
+ */
+export async function getOrCreateOrganization (request: APIRequestContext, token: string): Promise<TestOrganization> {
+  if (cachedOrganization) {
+    return cachedOrganization
+  }
+
+  // Try to get user's current organization
+  const userResponse = await request.get(`${API_URL}/api/v1/user`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (userResponse.ok()) {
+    const userData = await userResponse.json()
+    if (userData.data?.currentOrganizationId) {
+      cachedOrganization = {
+        id: userData.data.currentOrganizationId,
+        name: 'Default',
+        slug: 'default',
+      }
+      return cachedOrganization
+    }
+  }
+
+  // Create organization
+  const createResponse = await request.post(`${API_URL}/api/v1/organizations`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: {
+      name: 'E2E Test Organization',
+      slug: `e2e-test-${Date.now()}`,
+    },
+  })
+
+  if (!createResponse.ok()) {
+    throw new Error(`Failed to create organization: ${createResponse.status()} ${await createResponse.text()}`)
+  }
+
+  const result = await createResponse.json()
+  cachedOrganization = result.data
+  return cachedOrganization
 }
 
 /**
@@ -99,11 +150,20 @@ export async function getWorkflows (
 export async function createBoard (
   request: APIRequestContext,
   token: string,
+  userId: string,
+  organizationId: string,
   data: { name: string; icon?: string; color?: string }
 ): Promise<{ id: string; name: string }> {
   const response = await request.post(`${API_URL}/api/v1/boards`, {
     headers: { Authorization: `Bearer ${token}` },
-    data,
+    data: {
+      name: data.name,
+      icon: data.icon,
+      color: data.color,
+      position: data.position || 0,
+      userId,
+      organizationId,
+    },
   })
 
   if (!response.ok()) {

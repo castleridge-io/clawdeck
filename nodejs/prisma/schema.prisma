@@ -26,6 +26,58 @@ enum Priority {
   high    // 3
 }
 
+enum MembershipRole {
+  owner   // 0
+  admin   // 1
+  member  // 2
+  viewer  // 3
+}
+
+// Organization model
+model Organization {
+  id         BigInt   @id @default(autoincrement())
+  name       String
+  slug       String   @unique
+  avatarUrl  String?  @map("avatar_url")
+  plan       String   @default("free")
+  maxMembers Int      @default(5) @map("max_members")
+  settings   Json     @default("{}")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  memberships     Membership[]
+  agents          Agent[]
+  boards          Board[]
+  currentUsers    User[] @relation("CurrentOrganization")
+
+  @@index([slug], map: "organizations_slug_idx")
+  @@map("organizations")
+}
+
+// Membership model - joins users and organizations
+model Membership {
+  id             BigInt         @id @default(autoincrement())
+  organizationId  BigInt         @map("organization_id")
+  userId         BigInt         @map("user_id")
+  role           MembershipRole @default(member)
+  invitedBy      BigInt?        @map("invited_by")
+  invitedAt      DateTime?      @map("invited_at")
+  joinedAt       DateTime        @default(now()) @map("joined_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitedByUser  User?        @relation("InvitedBy", fields: [invitedBy], references: [id], onDelete: SetNull)
+
+  @@index([organizationId], map: "memberships_organization_id_idx")
+  @@index([userId], map: "memberships_user_id_idx")
+  @@unique([organizationId, userId], map: "memberships_organization_id_user_id_key")
+  @@map("memberships")
+}
+
 // User model
 model User {
   id                BigInt    @id @default(autoincrement())
@@ -38,23 +90,50 @@ model User {
   agentName         String?   @map("agent_name")
   agentEmoji        String?   @map("agent_emoji")
   agentLastActiveAt DateTime? @map("agent_last_active_at")
-  avatarUrl         String?   @map("avatar_url")
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
+  avatarUrl              String?   @map("avatar_url")
+  currentOrganizationId  BigInt?   @map("current_organization_id")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  apiTokens         ApiToken[]
-  boards            Board[]
+  apiTokens               ApiToken[]
+  boards                  Board[]
+  memberships             Membership[]
+  invitedMemberships    Membership[] @relation("InvitedBy")
+  currentOrganization    Organization?  @relation("CurrentOrganization", fields: [currentOrganizationId], references: [id], onDelete: SetNull)
   tasks             Task[]
   taskActivities    TaskActivity[]
   sessions          Session[]
   projects          Project[]
   taskLists         TaskList[]
   tags              Tag[]
+  oAuthAccounts     OAuthAccount[]
 
   @@index([emailAddress], map: "index_users_on_email_address")
   @@index([provider, uid], map: "index_users_on_provider_and_uid")
+  @@index([currentOrganizationId], map: "index_users_on_current_organization_id")
   @@map("users")
+}
+
+// OAuth Account model - for OAuth login providers
+model OAuthAccount {
+  id              BigInt    @id @default(autoincrement())
+  userId          BigInt    @map("user_id")
+  provider        String
+  providerId      String    @map("provider_id")
+  accessToken     String    @map("access_token")
+  refreshToken    String?   @map("refresh_token")
+  tokenExpiresAt  DateTime? @map("token_expires_at")
+  profileData     Json?     @map("profile_data")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId], map: "oauth_accounts_provider_provider_id_key")
+  @@index([userId], map: "index_oauth_accounts_on_user_id")
+  @@map("oauth_accounts")
 }
 
 // API Token model
@@ -97,12 +176,14 @@ model Agent {
   description  String?
   isActive     Boolean   @default(true) @map("is_active")
   lastActiveAt DateTime? @map("last_active_at")
-  position     Int       @default(0)
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  position        Int       @default(0)
+  organizationId BigInt   @map("organization_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  boards       Board[]
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  boards          Board[]
 
   @@index([uuid], map: "index_agents_on_uuid")
   @@index([slug], map: "index_agents_on_slug")
@@ -115,21 +196,24 @@ model Board {
   id        BigInt   @id @default(autoincrement())
   name      String
   icon      String   @default("📋")
-  color     String   @default("gray")
-  position  Int      @default(0)
-  userId    BigInt   @map("user_id")
-  agentId   BigInt?  @map("agent_id") // Optional linked agent
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  color        String   @default("gray")
+  position     Int      @default(0)
+  userId       BigInt   @map("user_id")
+  agentId      BigInt?  @map("agent_id") // Optional linked agent
+  organizationId BigInt   @map("organization_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  agent     Agent?   @relation(fields: [agentId], references: [id], onDelete: SetNull)
-  tasks     Task[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent        Agent?        @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tasks        Task[]
 
   @@index([userId], map: "index_boards_on_user_id")
   @@index([userId, position], map: "index_boards_on_user_id_and_position")
   @@index([agentId], map: "index_boards_on_agent_id")
+  @@index([organizationId], map: "index_boards_on_organization_id")
   @@map("boards")
 }
 

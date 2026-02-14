@@ -29,6 +29,21 @@ interface WorkflowSeedData {
 async function seed (): Promise<void> {
   console.log('Seeding ClawDeck database...')
 
+  // Create default organization first
+  const organization = await prisma.organization.upsert({
+    where: { slug: 'default' },
+    update: {},
+    create: {
+      name: 'Default Organization',
+      slug: 'default',
+      plan: 'free',
+      maxMembers: 100,
+      settings: {},
+    },
+  })
+
+  console.log(`Organization created/updated: ${organization.name} (ID: ${organization.id})`)
+
   // Create dev admin user (for easy dev login)
   const devPassword = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD || 'changeme', 10)
 
@@ -47,6 +62,24 @@ async function seed (): Promise<void> {
 
   console.log(`Dev user created/updated: ${devUser.emailAddress} (ID: ${devUser.id})`)
 
+  // Create membership for dev user in default organization
+  await prisma.membership.upsert({
+    where: { organizationId_userId: { userId: devUser.id, organizationId: organization.id } },
+    update: {},
+    create: {
+      userId: devUser.id,
+      organizationId: organization.id,
+      role: 'owner',
+      joinedAt: new Date(),
+    },
+  })
+
+  // Set dev user's current organization
+  await prisma.user.update({
+    where: { id: devUser.id },
+    data: { currentOrganizationId: organization.id },
+  })
+
   // Create OpenClaw system user
   const openclawPassword = await bcrypt.hash(process.env.SEED_OPENCLAW_PASSWORD || 'changeme', 10)
 
@@ -62,6 +95,24 @@ async function seed (): Promise<void> {
   })
 
   console.log(`User created/updated: ${user.emailAddress} (ID: ${user.id})`)
+
+  // Create membership for openclaw user in default organization
+  await prisma.membership.upsert({
+    where: { organizationId_userId: { userId: user.id, organizationId: organization.id } },
+    update: {},
+    create: {
+      userId: user.id,
+      organizationId: organization.id,
+      role: 'owner',
+      joinedAt: new Date(),
+    },
+  })
+
+  // Set openclaw user's current organization
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { currentOrganizationId: organization.id },
+  })
 
   // Create API token (use env var or generate random token)
   const tokenValue = process.env.SEED_API_TOKEN || `oc-sys-${crypto.randomUUID()}`
@@ -108,6 +159,7 @@ async function seed (): Promise<void> {
         color: agentData.color,
         description: `${agentData.name} agent board`,
         position: agentIndex,
+        organizationId: organization.id,
       },
     })
 
@@ -119,6 +171,7 @@ async function seed (): Promise<void> {
         icon: agentData.icon,
         color: agentData.color,
         agentId: agent.id,
+        organizationId: organization.id,
       },
       create: {
         id: 40 + agentIndex,
@@ -127,6 +180,7 @@ async function seed (): Promise<void> {
         color: agentData.color,
         userId: user.id,
         agentId: agent.id,
+        organizationId: organization.id,
         position: agentIndex,
       },
     })

@@ -122,7 +122,7 @@ export async function boardsRoutes (
 
   // POST /api/v1/boards - Create board
   fastify.post('/', async (request, reply) => {
-    const { name, icon, color, position } = request.body as {
+    const { name, icon, color,position } = request.body as {
       name?: string
       icon?: string
       color?: string
@@ -135,7 +135,10 @@ export async function boardsRoutes (
 
     // Get position (put at end)
     const lastBoard = await prisma.board.findFirst({
-      where: { userId: BigInt(request.user.id) },
+      where: {
+        userId: BigInt(request.user.id),
+        organizationId: BigInt(request.user.currentOrganizationId ?? 0),
+      },
       orderBy: { position: 'desc' },
     })
 
@@ -145,6 +148,7 @@ export async function boardsRoutes (
         icon,
         color,
         userId: BigInt(request.user.id),
+        organizationId: BigInt(request.user.currentOrganizationId ?? 0),
         position: position ?? (lastBoard?.position ?? -1) + 1,
       },
     })
@@ -157,12 +161,16 @@ export async function boardsRoutes (
 
   // PATCH /api/v1/boards/:id - Update board
   fastify.patch<{ Params: { id: string } }>('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
-    const { name, icon, color, position, agent_id: agentIdParam } = request.body as {
+    const { name, icon, color,position, agent_id: agentIdParam } = request.body as {
       name?: string
       icon?: string
       color?: string
       position?: number
       agent_id?: string | null
+    }
+
+    if (position !== undefined && position !== null) {
+      return reply.code(400).send({ error: 'position must be null' })
     }
 
     const board = await prisma.board.findFirst({

@@ -48,7 +48,7 @@ export default async function app (
 
   fastify.register(async function (fastify: FastifyInstance) {
     fastify.get('/ws', { websocket: true }, async (connection, req) => {
-      const token = req.query.token as string | undefined
+      const token = (req.query as { token?: string }).token
 
       if (!token) {
         connection.socket.close(1008, 'No token provided')

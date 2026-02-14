@@ -93,7 +93,7 @@ interface StepJson {
   output: unknown
   retry_count: number
   max_retries: number
-  type: string
+  type: string | null
   loop_config: unknown
   current_story_id: string | null
   created_at: string
@@ -112,7 +112,8 @@ export async function stepsRoutes(
 
   // GET /api/v1/runs/:runId/steps - List steps for a run
   fastify.get('/', async (request, reply) => {
-    const { runId } = request.params
+    const params = request.params as { runId: string }
+    const { runId } = params
 
     const run = await runService.getRun(runId)
     if (!run) {
@@ -129,7 +130,8 @@ export async function stepsRoutes(
 
   // GET /api/v1/runs/:runId/steps/pending - Get next pending step for a run
   fastify.get('/pending', async (request, reply) => {
-    const { runId } = request.params
+    const params = request.params as { runId: string }
+    const { runId } = params
 
     const run = await runService.getRun(runId)
     if (!run) {
@@ -154,7 +156,8 @@ export async function stepsRoutes(
 
   // GET /api/v1/runs/:runId/steps/:stepId - Get single step
   fastify.get('/:stepId', async (request, reply) => {
-    const { runId, stepId } = request.params
+    const params = request.params as { runId: string; stepId: string }
+    const { runId, stepId } = params
 
     const step = await stepService.getStep(stepId)
 
@@ -177,8 +180,10 @@ export async function stepsRoutes(
       },
     },
     async (request, reply) => {
-      const { runId, stepId } = request.params
-      const agentId = request.headers['x-agent-name'] || request.body?.agent_id
+      const params = request.params as { runId: string; stepId: string }
+      const { runId, stepId } = params
+      const body = request.body as { agent_id?: string }
+      const agentId = request.headers['x-agent-name'] || body.agent_id
 
       if (!agentId) {
         return reply.code(400).send({ error: 'agent_id or X-Agent-Name header is required' })
@@ -231,8 +236,8 @@ export async function stepsRoutes(
         // Step was already claimed by another agent
         const currentStep = await stepService.getStep(stepId)
         return reply.code(409).send({
-          error: `Step cannot be claimed. Current status: ${currentStep.status}`,
-          current_status: currentStep.status,
+          error: `Step cannot be claimed. Current status: ${currentStep?.status ?? 'unknown'}`,
+          current_status: currentStep?.status ?? 'unknown',
         })
       }
 
@@ -253,7 +258,8 @@ export async function stepsRoutes(
       },
     },
     async (request, reply) => {
-      const { runId, stepId } = request.params
+      const params = request.params as { runId: string; stepId: string }
+      const { runId, stepId } = params
       const { output } = request.body as { output: unknown }
 
       const step = await stepService.getStep(stepId)
@@ -296,7 +302,8 @@ export async function stepsRoutes(
       },
     },
     async (request, reply) => {
-      const { runId, stepId } = request.params
+      const params = request.params as { runId: string; stepId: string }
+      const { runId, stepId } = params
       const { error: errorMessage, output } = request.body as {
         error: string
         output?: unknown
@@ -319,7 +326,7 @@ export async function stepsRoutes(
         // Check if we can retry
         if (step.retryCount < step.maxRetries) {
           await stepService.incrementStepRetry(stepId)
-          const updatedStep = await stepService.updateStepStatus(stepId, 'waiting', {
+          const updatedStep = await stepService.updateStepStatus(stepId, 'pending', {
             error: errorMessage,
             output,
             retry: step.retryCount + 1,

@@ -1,13 +1,25 @@
 import { test, expect } from '@playwright/test'
-import { login, createBoard, deleteBoard, createTask, deleteTask } from '../helpers/api'
+import { login, createBoard, deleteBoard, createTask, deleteTask, getOrCreateOrganization } from '../helpers/api'
 
 test.describe('Boards / Kanban', () => {
   let token: string
+  let userId: string
+  let organizationId: string
   const createdBoardIds: string[] = []
   const createdTaskIds: string[] = []
 
   test.beforeAll(async ({ request }) => {
     token = await login(request)
+    // Get user info to extract userId
+    const userResponse = await request.get(`${process.env.API_URL || 'http://localhost:3335'}/api/v1/user`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!userResponse.ok()) {
+      throw new Error(`Failed to get user: ${userResponse.status()}`)
+    }
+    const userData = await userResponse.json()
+    userId = userData.data.id
+    organizationId = userData.data.currentOrganizationId || (await getOrCreateOrganization(request, token)).id
   })
 
   test.afterAll(async ({ request }) => {
@@ -53,7 +65,7 @@ test.describe('Boards / Kanban', () => {
 
   test('filter by search text', async ({ page, request }) => {
     // Create a board and task
-    const board = await createBoard(request, token, { name: `Filter Board ${Date.now()}` })
+    const board = await createBoard(request, token, userId, organizationId, { name: `Filter Board ${Date.now()}` })
     createdBoardIds.push(board.id)
 
     const task1 = await createTask(request, token, board.id, { name: 'UniqueTaskAlpha' })
@@ -73,7 +85,7 @@ test.describe('Boards / Kanban', () => {
 
   test('create task via modal', async ({ page, request }) => {
     // First create a board
-    const board = await createBoard(request, token, { name: `Task Board ${Date.now()}` })
+    const board = await createBoard(request, token, organizationId, { name: `Task Board ${Date.now()}` })
     createdBoardIds.push(board.id)
 
     await page.reload()
@@ -99,7 +111,7 @@ test.describe('Boards / Kanban', () => {
   })
 
   test('task card is visible in kanban', async ({ page, request }) => {
-    const board = await createBoard(request, token, { name: `Card Board ${Date.now()}` })
+    const board = await createBoard(request, token, organizationId, { name: `Card Board ${Date.now()}` })
     createdBoardIds.push(board.id)
 
     const task = await createTask(request, token, board.id, {
@@ -115,7 +127,7 @@ test.describe('Boards / Kanban', () => {
   })
 
   test('delete task', async ({ page, request }) => {
-    const board = await createBoard(request, token, { name: `Delete Task Board ${Date.now()}` })
+    const board = await createBoard(request, token, organizationId, { name: `Delete Task Board ${Date.now()}` })
     createdBoardIds.push(board.id)
 
     const task = await createTask(request, token, board.id, {
@@ -140,7 +152,7 @@ test.describe('Boards / Kanban', () => {
   })
 
   test('status filter works', async ({ page, request }) => {
-    const board = await createBoard(request, token, { name: `Status Filter Board ${Date.now()}` })
+    const board = await createBoard(request, token, organizationId, { name: `Status Filter Board ${Date.now()}` })
     createdBoardIds.push(board.id)
 
     const inboxTask = await createTask(request, token, board.id, {

@@ -195,6 +195,7 @@ export function createAgentService (options: AgentServiceOptions = {}) {
           color,
           description,
           position,
+          organizationId: BigInt(1), // Default organization
         },
         include: {
           boards: {
@@ -255,6 +256,7 @@ export function createAgentService (options: AgentServiceOptions = {}) {
           emoji,
           color,
           description,
+          organizationId: BigInt(1), // Default organization
         },
         include: {
           boards: {

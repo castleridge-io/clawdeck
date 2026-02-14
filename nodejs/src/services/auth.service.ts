@@ -399,6 +399,7 @@ export class AuthService {
         color: 'blue',
         position: 0,
         userId: BigInt(userId),
+        organizationId: BigInt(1), // Default organization
       },
     })
   }
