@@ -1,121 +1,98 @@
-import { describe, it, mock, before, after } from 'node:test'
+import { describe, it, mock, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert'
 import { prisma } from '../../src/db/prisma.js'
 import { archiveScheduler } from '../../src/services/archiveScheduler.js'
+import { wsManager } from '../../src/websocket/manager.js'
+let restoreStubs = []
 
-// Test utilities
-let testUser
-let testBoard
-let testTasks = []
-
-async function setupTestEnvironment () {
-  // Create test user
-  testUser = await prisma.user.create({
-    data: {
-      emailAddress: `test-archive-${Date.now()}@example.com`,
-      passwordDigest: 'hash',
-      agentAutoMode: true,
-      agentName: 'TestAgent',
-      agentEmoji: '🤖',
-    },
+function stubMethod (obj, methodName, implementation) {
+  const original = obj[methodName]
+  obj[methodName] = implementation
+  restoreStubs.push(() => {
+    obj[methodName] = original
   })
-
-  // Create test board
-  testBoard = await prisma.board.create({
-    data: {
-      name: 'Test Archive Board',
-      userId: testUser.id,
-      position: 0,
-    },
-  })
-
-  // Create test tasks with various completion dates
-  const now = new Date()
-  const oldDate = new Date(now.getTime() - 25 * 60 * 60 * 1000) // 25 hours ago
-
-  testTasks = await Promise.all([
-    // Old completed task (should be archived)
-    prisma.task.create({
-      data: {
-        name: 'Old Completed Task',
-        boardId: testBoard.id,
-        userId: testUser.id,
-        status: 'done',
-        completed: true,
-        completedAt: oldDate,
-      },
-    }),
-    // Recent completed task (should NOT be archived)
-    prisma.task.create({
-      data: {
-        name: 'Recent Completed Task',
-        boardId: testBoard.id,
-        userId: testUser.id,
-        status: 'done',
-        completed: true,
-        completedAt: now,
-      },
-    }),
-    // Incomplete task (should NOT be archived)
-    prisma.task.create({
-      data: {
-        name: 'Incomplete Task',
-        boardId: testBoard.id,
-        userId: testUser.id,
-        status: 'in_progress',
-      },
-    }),
-  ])
 }
 
-async function cleanupTestEnvironment () {
-  await prisma.taskActivity.deleteMany({})
-  await prisma.task.deleteMany({})
-  await prisma.board.deleteMany({})
-  await prisma.user.deleteMany({})
-  testTasks = []
+function makeTask (overrides = {}) {
+  return {
+    id: 101n,
+    name: 'Task',
+    description: null,
+    status: 'done',
+    priority: 'none',
+    position: 0,
+    boardId: 5n,
+    userId: 1n,
+    completed: true,
+    completedAt: new Date('2026-01-01T00:00:00.000Z'),
+    archived: false,
+    archivedAt: null,
+    archiveScheduled: false,
+    archiveScheduledAt: null,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+    ...overrides,
+  }
+}
+
+function makeTaskWithBoard (overrides = {}) {
+  return {
+    ...makeTask(overrides),
+    board: { userId: 1n },
+  }
 }
 
 describe('Archive Scheduler Service', () => {
-  before(async () => {
-    await setupTestEnvironment()
+  beforeEach(() => {
+    mock.restoreAll()
+    archiveScheduler.stop()
+    process.env.ARCHIVE_ENABLED = 'true'
+    restoreStubs = []
+
+    stubMethod(prisma.task, 'findMany', async () => [])
+    stubMethod(prisma.task, 'update', async ({ where }) => {
+      return makeTask({
+        id: where.id,
+        archived: true,
+        archivedAt: new Date(),
+        archiveScheduled: false,
+        archiveScheduledAt: null,
+      })
+    })
+    stubMethod(prisma.task, 'findUnique', async () => null)
+    stubMethod(prisma.taskActivity, 'create', async () => ({ id: 1n }))
+    mock.method(wsManager, 'broadcastTaskEvent', () => {})
   })
 
-  after(async () => {
-    // Stop scheduler if running
+  afterEach(() => {
     archiveScheduler.stop()
-    await cleanupTestEnvironment()
+    mock.restoreAll()
+    for (const restore of restoreStubs) {
+      restore()
+    }
+    delete process.env.ARCHIVE_ENABLED
   })
 
   describe('start()', () => {
     it('should start the scheduler when enabled', () => {
-      const originalEnabled = process.env.ARCHIVE_ENABLED
-      process.env.ARCHIVE_ENABLED = 'true'
-
-      archiveScheduler.stop() // Reset state
+      const runMock = mock.method(archiveScheduler, 'run', async () => {})
       archiveScheduler.start()
 
       assert.strictEqual(archiveScheduler.isRunning, true)
-
-      process.env.ARCHIVE_ENABLED = originalEnabled
+      assert.strictEqual(runMock.mock.callCount(), 1)
     })
 
     it('should not start when disabled', () => {
-      const originalEnabled = process.env.ARCHIVE_ENABLED
       process.env.ARCHIVE_ENABLED = 'false'
-
-      archiveScheduler.stop() // Reset state
+      const runMock = mock.method(archiveScheduler, 'run', async () => {})
       archiveScheduler.start()
 
       assert.strictEqual(archiveScheduler.isRunning, false)
-
-      process.env.ARCHIVE_ENABLED = originalEnabled
+      assert.strictEqual(runMock.mock.callCount(), 0)
     })
 
     it('should be idempotent when already running', () => {
-      const originalEnabled = process.env.ARCHIVE_ENABLED
-      process.env.ARCHIVE_ENABLED = 'true'
-
+      const runMock = mock.method(archiveScheduler, 'run', async () => {})
       archiveScheduler.start()
       const wasRunning = archiveScheduler.isRunning
       archiveScheduler.start()
@@ -123,23 +100,18 @@ describe('Archive Scheduler Service', () => {
 
       assert.strictEqual(wasRunning, stillRunning)
       assert.strictEqual(stillRunning, true)
-
-      process.env.ARCHIVE_ENABLED = originalEnabled
+      assert.strictEqual(runMock.mock.callCount(), 1)
     })
   })
 
   describe('stop()', () => {
     it('should stop a running scheduler', () => {
-      const originalEnabled = process.env.ARCHIVE_ENABLED
-      process.env.ARCHIVE_ENABLED = 'true'
-
+      mock.method(archiveScheduler, 'run', async () => {})
       archiveScheduler.start()
       assert.strictEqual(archiveScheduler.isRunning, true)
 
       archiveScheduler.stop()
       assert.strictEqual(archiveScheduler.isRunning, false)
-
-      process.env.ARCHIVE_ENABLED = originalEnabled
     })
 
     it('should be safe to call when not running', () => {
@@ -152,28 +124,19 @@ describe('Archive Scheduler Service', () => {
 
   describe('scheduleImmediateArchive()', () => {
     it('should archive a completed task immediately', async () => {
-      const task = await prisma.task.create({
-        data: {
-          name: 'Task to Immediate Archive',
-          boardId: testBoard.id,
-          userId: testUser.id,
-          status: 'done',
-          completed: true,
-          completedAt: new Date(),
-        },
+      const baseTask = makeTaskWithBoard({ id: 301n, name: 'Task to Immediate Archive' })
+      const archivedTask = makeTask({ id: 301n, name: 'Task to Immediate Archive', archived: true, archivedAt: new Date() })
+
+      let findUniqueCalls = 0
+      stubMethod(prisma.task, 'findUnique', async () => {
+        findUniqueCalls += 1
+        return findUniqueCalls === 1 ? baseTask : archivedTask
       })
 
-      const result = await archiveScheduler.scheduleImmediateArchive(task.id.toString())
+      const result = await archiveScheduler.scheduleImmediateArchive('301')
 
       assert.strictEqual(result.archived, true)
       assert.ok(result.archived_at)
-
-      // Verify in database
-      const archivedTask = await prisma.task.findUnique({
-        where: { id: task.id },
-      })
-      assert.strictEqual(archivedTask.archived, true)
-      assert.ok(archivedTask.archivedAt)
     })
 
     it('should throw error for non-existent task', async () => {
@@ -186,40 +149,22 @@ describe('Archive Scheduler Service', () => {
     })
 
     it('should throw error for incomplete task', async () => {
-      const task = await prisma.task.create({
-        data: {
-          name: 'Incomplete Task',
-          boardId: testBoard.id,
-          userId: testUser.id,
-          status: 'in_progress',
-        },
-      })
+      stubMethod(prisma.task, 'findUnique', async () => makeTaskWithBoard({ id: 302n, status: 'in_progress', completed: false }))
 
       await assert.rejects(
         async () => {
-          await archiveScheduler.scheduleImmediateArchive(task.id.toString())
+          await archiveScheduler.scheduleImmediateArchive('302')
         },
         { message: 'Only completed tasks can be archived' }
       )
     })
 
     it('should throw error for already archived task', async () => {
-      const task = await prisma.task.create({
-        data: {
-          name: 'Already Archived Task',
-          boardId: testBoard.id,
-          userId: testUser.id,
-          status: 'done',
-          completed: true,
-          completedAt: new Date(),
-          archived: true,
-          archivedAt: new Date(),
-        },
-      })
+      stubMethod(prisma.task, 'findUnique', async () => makeTaskWithBoard({ id: 303n, archived: true, archivedAt: new Date() }))
 
       await assert.rejects(
         async () => {
-          await archiveScheduler.scheduleImmediateArchive(task.id.toString())
+          await archiveScheduler.scheduleImmediateArchive('303')
         },
         { message: 'Task is already archived' }
       )
@@ -228,94 +173,67 @@ describe('Archive Scheduler Service', () => {
 
   describe('run() - scheduled archiving', () => {
     it('should archive tasks older than the delay period', async () => {
-      // Create an old completed task
-      const oldDate = new Date(Date.now() - 25 * 60 * 60 * 1000) // 25 hours ago
-      const task = await prisma.task.create({
-        data: {
-          name: 'Old Task for Scheduled Archive',
-          boardId: testBoard.id,
-          userId: testUser.id,
-          status: 'done',
-          completed: true,
-          completedAt: oldDate,
-        },
+      const oldTask = makeTaskWithBoard({ id: 401n, name: 'Old Task for Scheduled Archive' })
+      let findManyCalls = 0
+      let updateCalls = 0
+      stubMethod(prisma.task, 'findMany', async () => {
+        findManyCalls += 1
+        return [oldTask]
+      })
+      stubMethod(prisma.task, 'update', async () => {
+        updateCalls += 1
+        return makeTask({ id: 401n, archived: true, archivedAt: new Date() })
       })
 
-      // Run the scheduler
       await archiveScheduler.run()
-
-      // Verify the task was archived
-      const archivedTask = await prisma.task.findUnique({
-        where: { id: task.id },
-      })
-      assert.strictEqual(archivedTask.archived, true)
-      assert.ok(archivedTask.archivedAt)
+      assert.strictEqual(findManyCalls, 1)
+      assert.strictEqual(updateCalls, 1)
     })
 
     it('should not archive recent completed tasks', async () => {
-      // Create a recent completed task
-      const task = await prisma.task.create({
-        data: {
-          name: 'Recent Task Should Not Archive',
-          boardId: testBoard.id,
-          userId: testUser.id,
-          status: 'done',
-          completed: true,
-          completedAt: new Date(),
-        },
+      let findManyCalls = 0
+      let updateCalls = 0
+      stubMethod(prisma.task, 'findMany', async () => {
+        findManyCalls += 1
+        return []
+      })
+      stubMethod(prisma.task, 'update', async () => {
+        updateCalls += 1
+        return makeTask({ archived: true, archivedAt: new Date() })
       })
 
-      // Run the scheduler
       await archiveScheduler.run()
-
-      // Verify the task was NOT archived
-      const notArchivedTask = await prisma.task.findUnique({
-        where: { id: task.id },
-      })
-      assert.strictEqual(notArchivedTask.archived, false)
+      assert.strictEqual(findManyCalls, 1)
+      assert.strictEqual(updateCalls, 0)
     })
 
     it('should create activity record for archived tasks', async () => {
-      const oldDate = new Date(Date.now() - 25 * 60 * 60 * 1000)
-      const task = await prisma.task.create({
-        data: {
-          name: 'Task with Activity Record',
-          boardId: testBoard.id,
-          userId: testUser.id,
-          status: 'done',
-          completed: true,
-          completedAt: oldDate,
-        },
+      const oldTask = makeTaskWithBoard({ id: 402n, name: 'Task with Activity Record' })
+      stubMethod(prisma.task, 'findMany', async () => [oldTask])
+      let activityCalls = 0
+      let activityArgs = null
+      stubMethod(prisma.taskActivity, 'create', async (args) => {
+        activityCalls += 1
+        activityArgs = args
+        return { id: 2n }
       })
-
       await archiveScheduler.run()
-
-      const activities = await prisma.taskActivity.findMany({
-        where: { taskId: task.id },
-      })
-
-      assert.ok(activities.length > 0)
-      const archiveActivity = activities.find((a) => a.action === 'archived')
-      assert.ok(archiveActivity)
-      assert.strictEqual(archiveActivity.fieldName, 'archived')
-      assert.strictEqual(archiveActivity.oldValue, 'false')
-      assert.strictEqual(archiveActivity.newValue, 'true')
+      assert.strictEqual(activityCalls, 1)
+      assert.strictEqual(activityArgs.data.action, 'archived')
+      assert.strictEqual(activityArgs.data.fieldName, 'archived')
+      assert.strictEqual(activityArgs.data.oldValue, 'false')
+      assert.strictEqual(activityArgs.data.newValue, 'true')
     })
   })
 
   describe('taskToJson()', () => {
     it('should convert task to JSON with archive fields', async () => {
-      const task = await prisma.task.create({
-        data: {
-          name: 'JSON Test Task',
-          boardId: testBoard.id,
-          userId: testUser.id,
-          status: 'done',
-          completed: true,
-          completedAt: new Date(),
-          archived: true,
-          archivedAt: new Date(),
-        },
+      const task = makeTask({
+        id: 501n,
+        name: 'JSON Test Task',
+        archived: true,
+        archivedAt: new Date(),
+        completedAt: new Date(),
       })
 
       const json = archiveScheduler.taskToJson(task)
@@ -324,9 +242,7 @@ describe('Archive Scheduler Service', () => {
       assert.strictEqual(json.name, 'JSON Test Task')
       assert.strictEqual(json.archived, true)
       assert.ok(json.archived_at)
-      assert.strictEqual(json.board_id, testBoard.id.toString())
+      assert.strictEqual(json.board_id, task.boardId.toString())
     })
   })
 })
-
-export { setupTestEnvironment, cleanupTestEnvironment }

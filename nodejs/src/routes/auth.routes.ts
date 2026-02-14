@@ -1,9 +1,31 @@
+import type { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify'
 import { createAuthService } from '../services/auth.service.js'
 
-export async function authRoutes (fastify) {
+interface RegisterBody {
+  emailAddress?: string
+  password?: string
+  agentAutoMode?: boolean
+  agentName?: string
+  agentEmoji?: string
+}
+
+interface LoginBody {
+  emailAddress?: string
+  password?: string
+}
+
+interface ChangePasswordBody {
+  currentPassword?: string
+  newPassword?: string
+}
+
+export async function authRoutes (
+  fastify: FastifyInstance,
+  _opts: FastifyPluginOptions
+): Promise<void> {
   const authService = createAuthService(fastify)
 
-  fastify.post('/register', async (request, reply) => {
+  fastify.post('/register', async (request: FastifyRequest<{ Body: RegisterBody }>, reply: FastifyReply) => {
     const { emailAddress, password, agentAutoMode, agentName, agentEmoji } = request.body
 
     if (!emailAddress) {
@@ -26,7 +48,7 @@ export async function authRoutes (fastify) {
       const sessionId = await authService.createSession(
         user.id,
         request.ip,
-        request.headers['user-agent']
+        request.headers['user-agent'] as string | undefined
       )
       const token = authService.generateSessionToken(sessionId)
 
@@ -44,17 +66,18 @@ export async function authRoutes (fastify) {
         apiToken,
       })
     } catch (error) {
-      if (error.message === 'User already exists') {
-        return reply.code(409).send({ error: error.message })
+      const err = error as Error
+      if (err.message === 'User already exists') {
+        return reply.code(409).send({ error: err.message })
       }
-      if (error.message.includes('Password')) {
-        return reply.code(400).send({ error: error.message })
+      if (err.message.includes('Password')) {
+        return reply.code(400).send({ error: err.message })
       }
       throw error
     }
   })
 
-  fastify.post('/login', async (request, reply) => {
+  fastify.post('/login', async (request: FastifyRequest<{ Body: LoginBody }>, reply: FastifyReply) => {
     const { emailAddress, password } = request.body
 
     if (!emailAddress || !password) {
@@ -66,7 +89,7 @@ export async function authRoutes (fastify) {
         emailAddress,
         password,
         request.ip,
-        request.headers['user-agent']
+        request.headers['user-agent'] as string | undefined
       )
 
       // Get or create API token for the user
@@ -85,7 +108,7 @@ export async function authRoutes (fastify) {
         token,
         apiToken: apiTokenRecord.token,
       })
-    } catch (error) {
+    } catch {
       return reply.code(401).send({ error: 'Invalid credentials' })
     }
   })
@@ -95,16 +118,16 @@ export async function authRoutes (fastify) {
     {
       onRequest: [fastify.authenticate],
     },
-    async (request, reply) => {
+    async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const sessionId = request.user.sessionId
+        const sessionId = (request.user as Record<string, unknown>).sessionId as string | undefined
 
         if (sessionId) {
           await authService.logout(sessionId)
         }
 
         return reply.send({ message: 'Logged out successfully' })
-      } catch (error) {
+      } catch {
         return reply.code(500).send({ error: 'Failed to logout' })
       }
     }
@@ -115,7 +138,7 @@ export async function authRoutes (fastify) {
     {
       onRequest: [fastify.authenticate],
     },
-    async (request, reply) => {
+    async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const user = await authService.getUserById(request.user.id)
 
@@ -134,7 +157,7 @@ export async function authRoutes (fastify) {
           avatarUrl: user.avatarUrl,
           createdAt: user.createdAt,
         })
-      } catch (error) {
+      } catch {
         return reply.code(500).send({ error: 'Failed to fetch user' })
       }
     }
@@ -145,9 +168,12 @@ export async function authRoutes (fastify) {
     {
       onRequest: [fastify.authenticate],
     },
-    async (request, reply) => {
+    async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const user = await authService.updateProfile(request.user.id, request.body)
+        const user = await authService.updateProfile(
+          request.user.id,
+          request.body as Record<string, unknown>
+        )
 
         return reply.send({
           id: user.id.toString(),
@@ -159,8 +185,9 @@ export async function authRoutes (fastify) {
           avatarUrl: user.avatarUrl,
         })
       } catch (error) {
-        if (error.message.includes('Email')) {
-          return reply.code(400).send({ error: error.message })
+        const err = error as Error
+        if (err.message.includes('Email')) {
+          return reply.code(400).send({ error: err.message })
         }
         return reply.code(500).send({ error: 'Failed to update profile' })
       }
@@ -172,8 +199,8 @@ export async function authRoutes (fastify) {
     {
       onRequest: [fastify.authenticate],
     },
-    async (request, reply) => {
-      const { currentPassword, newPassword } = request.body
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { currentPassword, newPassword } = request.body as ChangePasswordBody
 
       if (!currentPassword || !newPassword) {
         return reply.code(400).send({ error: 'Current and new password are required' })
@@ -196,8 +223,9 @@ export async function authRoutes (fastify) {
 
         return reply.send({ message: 'Password updated successfully' })
       } catch (error) {
-        if (error.message.includes('Password')) {
-          return reply.code(400).send({ error: error.message })
+        const err = error as Error
+        if (err.message.includes('Password')) {
+          return reply.code(400).send({ error: err.message })
         }
         return reply.code(500).send({ error: 'Failed to update password' })
       }
@@ -209,7 +237,7 @@ export async function authRoutes (fastify) {
     {
       onRequest: [fastify.authenticate],
     },
-    async (request, reply) => {
+    async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const apiToken = await authService.getApiToken(request.user.id)
 
@@ -219,7 +247,7 @@ export async function authRoutes (fastify) {
           lastUsedAt: apiToken.lastUsedAt,
           createdAt: apiToken.createdAt,
         })
-      } catch (error) {
+      } catch {
         return reply.code(500).send({ error: 'Failed to fetch API token' })
       }
     }
@@ -230,7 +258,7 @@ export async function authRoutes (fastify) {
     {
       onRequest: [fastify.authenticate],
     },
-    async (request, reply) => {
+    async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const apiToken = await authService.regenerateApiToken(request.user.id)
 
@@ -239,7 +267,7 @@ export async function authRoutes (fastify) {
           name: apiToken.name,
           createdAt: apiToken.createdAt,
         })
-      } catch (error) {
+      } catch {
         return reply.code(500).send({ error: 'Failed to regenerate API token' })
       }
     }

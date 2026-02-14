@@ -1,7 +1,7 @@
-import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
+import type { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
-import type { Task, Step, Story, Run, Prisma } from '@prisma/client'
+import type { Task } from '@prisma/client'
 
 // Helper to safely parse JSON (prevents crashes from invalid JSON in DB)
 function safeJsonParse(str: string | null): unknown | null {
@@ -23,7 +23,7 @@ function taskToJson(task: Task): TaskJson {
     priority: task.priority,
     position: task.position,
     board_id: task.boardId.toString(),
-    user_id: task.userId?.toString(),
+    user_id: task.userId?.toString() ?? null,
     completed: task.completed,
     completed_at: task.completedAt?.toISOString() ?? null,
     archived: task.archived,
@@ -74,11 +74,11 @@ async function recordActivity(
 
 interface TaskJson {
   id: string
-  name: string
+  name: string | null
   description: string | null
   status: string
   priority: string
-  position: number
+  position: number | null
   board_id: string
   user_id: string | null
   completed: boolean
@@ -88,7 +88,7 @@ interface TaskJson {
   due_date: string | null
   tags: string[]
   blocked: boolean
-  assigned_to_agent: boolean | null
+  assigned_to_agent: boolean
   assigned_at: string | null
   agent_claimed_at: string | null
   created_at: string
@@ -103,7 +103,7 @@ export async function archivesRoutes(
   fastify.addHook('onRequest', authenticateRequest)
 
   // GET /api/v1/archives - List archived tasks with filters
-  fastify.get('/', async (request, reply) => {
+  fastify.get<{ Querystring: { board_id?: string; page?: string; limit?: string } }>('/', async (request: FastifyRequest<{ Querystring: { board_id?: string; page?: string; limit?: string } }>, reply: FastifyReply) => {
     const { board_id, page = '1', limit = '50' } = request.query
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
@@ -141,7 +141,7 @@ export async function archivesRoutes(
   })
 
   // PATCH /api/v1/archives/:id/unarchive - Restore task from archive
-  fastify.patch('/:id/unarchive', async (request, reply) => {
+  fastify.patch<{ Params: { id: string } }>('/:id/unarchive', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const task = await prisma.task.findFirst({
       where: {
         id: BigInt(request.params.id),
@@ -166,9 +166,9 @@ export async function archivesRoutes(
     })
 
     // Record activity
-    await recordActivity(updatedTask, request.user, 'unarchived', {
-      actorName: request.agentName,
-      actorEmoji: request.agentEmoji,
+    await recordActivity(updatedTask, { id: request.user.id }, 'unarchived', {
+      actorName: request.agentName ?? undefined,
+      actorEmoji: request.agentEmoji ?? undefined,
       fieldName: 'archived',
       oldValue: 'true',
       newValue: 'false',
@@ -179,7 +179,7 @@ export async function archivesRoutes(
   })
 
   // DELETE /api/v1/archives/:id - Permanently delete archived task
-  fastify.delete('/:id', async (request, reply) => {
+  fastify.delete<{ Params: { id: string } }>('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const task = await prisma.task.findFirst({
       where: {
         id: BigInt(request.params.id),

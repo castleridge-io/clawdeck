@@ -1,8 +1,7 @@
-import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
+import type { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
 import type { Board, Task as PrismaTask } from '@prisma/client'
-import type { Agent } from '@prisma/client'
 
 interface BoardJson {
   id: string
@@ -18,24 +17,20 @@ interface BoardJson {
 
 interface TaskJson {
   id: string
-  name: string
+  name: string | null
   description: string | null
-  status: 'inbox' | 'up_next' | 'in_progress' | 'in_review' | 'done'
-  priority: 'none' | 'low' | 'medium' | 'high'
-  position: number
+  status: string
+  priority: string
+  position: number | null
   blocked: boolean
-  assigned_to_agent: boolean | null
+  assigned_to_agent: boolean
   tags: string[]
   created_at: string
   updated_at: string
 }
 
-interface BoardDetailJson extends BoardJson {
-  tasks: TaskJson[]
-}
-
 // Helper function to create board JSON response
-async function boardToJson(board: Board): Promise<BoardJson> {
+async function boardToJson (board: Board): Promise<BoardJson> {
   // Get agent UUID if board is linked to an agent
   let agentUuid: string | null = null
   if (board.agentId) {
@@ -60,13 +55,13 @@ async function boardToJson(board: Board): Promise<BoardJson> {
 }
 
 // Helper function to create task JSON response
-function taskToJson(task: PrismaTask): TaskJson {
+function taskToJson (task: PrismaTask): TaskJson {
   return {
     id: task.id.toString(),
     name: task.name,
     description: task.description,
-    status: ['inbox', 'up_next', 'in_progress', 'in_review', 'done'][task.status],
-    priority: ['none', 'low', 'medium', 'high'][task.priority],
+    status: task.status,
+    priority: task.priority,
     position: task.position,
     blocked: task.blocked,
     assigned_to_agent: task.assignedToAgent,
@@ -76,9 +71,9 @@ function taskToJson(task: PrismaTask): TaskJson {
   }
 }
 
-export async function boardsRoutes(
+export async function boardsRoutes (
   fastify: FastifyInstance,
-  opts: FastifyPluginOptions
+  _opts: FastifyPluginOptions
 ): Promise<void> {
   // Apply authentication to all routes
   fastify.addHook('onRequest', authenticateRequest)
@@ -99,7 +94,7 @@ export async function boardsRoutes(
   })
 
   // GET /api/v1/boards/:id - Get single board
-  fastify.get('/:id', async (request, reply) => {
+  fastify.get<{ Params: { id: string } }>('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const board = await prisma.board.findFirst({
       where: {
         id: BigInt(request.params.id),
@@ -161,8 +156,8 @@ export async function boardsRoutes(
   })
 
   // PATCH /api/v1/boards/:id - Update board
-  fastify.patch('/:id', async (request, reply) => {
-    const { name, icon, color, position, agent_id } = request.body as {
+  fastify.patch<{ Params: { id: string } }>('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    const { name, icon, color, position, agent_id: agentIdParam } = request.body as {
       name?: string
       icon?: string
       color?: string
@@ -181,22 +176,22 @@ export async function boardsRoutes(
       return reply.code(404).send({ error: 'Board not found' })
     }
 
-    const updateData: Partial<Board> = {}
+    const updateData: Record<string, unknown> = {}
     if (name !== undefined) updateData.name = name
     if (icon !== undefined) updateData.icon = icon
     if (color !== undefined) updateData.color = color
     if (position !== undefined) updateData.position = position
 
     // Handle agent_id update - accepts UUID string or null
-    if (agent_id !== undefined) {
-      if (agent_id === null) {
+    if (agentIdParam !== undefined) {
+      if (agentIdParam === null) {
         // Unlink board from agent
         updateData.agentId = null
       } else {
         // Look up agent by UUID (must be active)
         const agent = await prisma.agent.findFirst({
           where: {
-            uuid: agent_id,
+            uuid: agentIdParam,
             isActive: true,
           },
         })
@@ -219,7 +214,7 @@ export async function boardsRoutes(
   })
 
   // DELETE /api/v1/boards/:id - Delete board
-  fastify.delete('/:id', async (request, reply) => {
+  fastify.delete<{ Params: { id: string } }>('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const board = await prisma.board.findFirst({
       where: {
         id: BigInt(request.params.id),

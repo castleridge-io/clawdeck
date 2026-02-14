@@ -8,10 +8,16 @@ import { prisma } from '../db/prisma.js'
 import type { User } from '@prisma/client'
 import { createAuthService } from '../services/auth.service.js'
 
-// Extend FastifyRequest with user property
+// Extend @fastify/jwt user type so request.user is properly typed
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    user: User
+  }
+}
+
+// Extend FastifyRequest with additional properties
 declare module 'fastify' {
   interface FastifyRequest {
-    user: User
     agentName: string | null
     agentEmoji: string | null
   }

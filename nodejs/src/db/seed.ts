@@ -3,8 +3,31 @@ import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
-async function seed () {
-  console.log('🌱 Seeding ClawDeck database...')
+interface AgentSeedData {
+  id: string
+  icon: string
+  name: string
+  color: string
+}
+
+interface WorkflowStepSeedData {
+  stepId: string
+  name: string
+  agentId: string
+  inputTemplate: string
+  expects: string
+  type: string
+  position: number
+}
+
+interface WorkflowSeedData {
+  name: string
+  description: string
+  steps: WorkflowStepSeedData[]
+}
+
+async function seed (): Promise<void> {
+  console.log('Seeding ClawDeck database...')
 
   // Create dev admin user (for easy dev login)
   const devPassword = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD || 'changeme', 10)
@@ -18,11 +41,11 @@ async function seed () {
       admin: true,
       agentAutoMode: false,
       agentName: 'Admin',
-      agentEmoji: '🔧',
+      agentEmoji: '',
     },
   })
 
-  console.log(`✅ Dev user created/updated: ${devUser.emailAddress} (ID: ${devUser.id})`)
+  console.log(`Dev user created/updated: ${devUser.emailAddress} (ID: ${devUser.id})`)
 
   // Create OpenClaw system user
   const openclawPassword = await bcrypt.hash(process.env.SEED_OPENCLAW_PASSWORD || 'changeme', 10)
@@ -38,7 +61,7 @@ async function seed () {
     },
   })
 
-  console.log(`✅ User created/updated: ${user.emailAddress} (ID: ${user.id})`)
+  console.log(`User created/updated: ${user.emailAddress} (ID: ${user.id})`)
 
   // Create API token (use env var or generate random token)
   const tokenValue = process.env.SEED_API_TOKEN || `oc-sys-${crypto.randomUUID()}`
@@ -54,20 +77,22 @@ async function seed () {
     },
   })
 
-  console.log(`✅ API token created: ${token.token.substring(0, 20)}...`)
+  console.log(`API token created: ${token.token.substring(0, 20)}...`)
 
   // Create agent boards
-  const agents = [
-    { id: 'jarvis-leader', icon: '👔', name: 'Jarvis Leader', color: 'purple' },
-    { id: 'dave-engineer', icon: '👨‍💻', name: 'Dave Engineer', color: 'blue' },
-    { id: 'sally-designer', icon: '👩‍🎨', name: 'Sally Designer', color: 'pink' },
-    { id: 'mike-qa', icon: '🧪', name: 'Mike QA', color: 'green' },
-    { id: 'richard', icon: '📚', name: 'Richard', color: 'yellow' },
-    { id: 'nolan', icon: '⚙️', name: 'Nolan', color: 'gray' },
-    { id: 'elsa', icon: '📢', name: 'Elsa', color: 'orange' },
+  const agents: AgentSeedData[] = [
+    { id: 'jarvis-leader', icon: '', name: 'Jarvis Leader', color: 'purple' },
+    { id: 'dave-engineer', icon: '', name: 'Dave Engineer', color: 'blue' },
+    { id: 'sally-designer', icon: '', name: 'Sally Designer', color: 'pink' },
+    { id: 'mike-qa', icon: '', name: 'Mike QA', color: 'green' },
+    { id: 'richard', icon: '', name: 'Richard', color: 'yellow' },
+    { id: 'nolan', icon: '', name: 'Nolan', color: 'gray' },
+    { id: 'elsa', icon: '', name: 'Elsa', color: 'orange' },
   ]
 
   for (const agentData of agents) {
+    const agentIndex = agents.indexOf(agentData)
+
     // Create or update agent
     const agent = await prisma.agent.upsert({
       where: { slug: agentData.id },
@@ -82,13 +107,13 @@ async function seed () {
         emoji: agentData.icon,
         color: agentData.color,
         description: `${agentData.name} agent board`,
-        position: agents.indexOf(agentData),
+        position: agentIndex,
       },
     })
 
     // Create or update board linked to agent
     const board = await prisma.board.upsert({
-      where: { id: 40 + agents.indexOf(agentData) },
+      where: { id: 40 + agentIndex },
       update: {
         name: `${agentData.name} Board`,
         icon: agentData.icon,
@@ -96,22 +121,22 @@ async function seed () {
         agentId: agent.id,
       },
       create: {
-        id: 40 + agents.indexOf(agentData),
+        id: 40 + agentIndex,
         name: `${agentData.name} Board`,
         icon: agentData.icon,
         color: agentData.color,
         userId: user.id,
         agentId: agent.id,
-        position: agents.indexOf(agentData),
+        position: agentIndex,
       },
     })
     console.log(
-      `✅ Agent & Board created: ${agentData.name} (Agent ID: ${agent.id}, Board ID: ${board.id})`
+      `Agent & Board created: ${agentData.name} (Agent ID: ${agent.id}, Board ID: ${board.id})`
     )
   }
 
   // Create default workflows
-  const defaultWorkflows = [
+  const defaultWorkflows: WorkflowSeedData[] = [
     {
       name: 'feature-development',
       description: 'Design, implement, and review a new feature',
@@ -235,7 +260,7 @@ async function seed () {
           },
         })
       }
-      console.log(`✅ Workflow updated: ${workflowData.name}`)
+      console.log(`Workflow updated: ${workflowData.name}`)
     } else {
       // Create new workflow
       const workflow = await prisma.workflow.create({
@@ -261,16 +286,16 @@ async function seed () {
           },
         })
       }
-      console.log(`✅ Workflow created: ${workflowData.name}`)
+      console.log(`Workflow created: ${workflowData.name}`)
     }
   }
 
-  console.log('🎉 Seeding complete!')
+  console.log('Seeding complete!')
 }
 
 seed()
-  .catch((e) => {
-    console.error('❌ Seeding failed:', e)
+  .catch((e: unknown) => {
+    console.error('Seeding failed:', e)
     process.exit(1)
   })
   .finally(async () => {
