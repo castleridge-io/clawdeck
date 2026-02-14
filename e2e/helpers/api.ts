@@ -456,3 +456,76 @@ export async function rejectStep (
   const result = await response.json()
   return result.data
 }
+
+/**
+ * Claim step by agent (agent polls for work)
+ */
+export async function claimStepByAgent (
+  request: APIRequestContext,
+  token: string,
+  agentId: string
+): Promise<{ found: boolean; step_id?: string; run_id?: string; resolved_input?: string; story_id?: string }> {
+  const response = await request.post(
+    `${API_URL}/api/v1/steps/claim-by-agent`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { agent_id: agentId },
+    }
+  )
+
+  if (!response.ok()) {
+    throw new Error(`Claim step by agent failed: ${response.status()} ${await response.text()}`)
+  }
+
+  const result = await response.json()
+  return result.data
+}
+
+/**
+ * Complete step with pipeline (merges context and advances)
+ */
+export async function completeStepWithPipeline (
+  request: APIRequestContext,
+  token: string,
+  stepId: string,
+  output: string
+): Promise<{ step_completed: boolean; run_completed: boolean }> {
+  const response = await request.post(
+    `${API_URL}/api/v1/steps/${stepId}/complete-with-pipeline`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { output },
+    }
+  )
+
+  if (!response.ok()) {
+    throw new Error(`Complete step with pipeline failed: ${response.status()} ${await response.text()}`)
+  }
+
+  const result = await response.json()
+  return result.data
+}
+
+/**
+ * Cleanup abandoned steps
+ */
+export async function cleanupAbandonedSteps (
+  request: APIRequestContext,
+  token: string,
+  maxAgeMinutes?: number
+): Promise<{ cleaned_count: number }> {
+  const url = maxAgeMinutes
+    ? `${API_URL}/api/v1/steps/cleanup-abandoned?max_age_minutes=${maxAgeMinutes}`
+    : `${API_URL}/api/v1/steps/cleanup-abandoned`
+
+  const response = await request.post(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!response.ok()) {
+    throw new Error(`Cleanup abandoned steps failed: ${response.status()} ${await response.text()}`)
+  }
+
+  const result = await response.json()
+  return result.data
+}

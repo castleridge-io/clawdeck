@@ -12,6 +12,9 @@ import {
   deleteRun,
   approveStep,
   rejectStep,
+  claimStepByAgent,
+  completeStepWithPipeline,
+  cleanupAbandonedSteps,
 } from '../helpers/api'
 
 test.describe('Workflow Executor', () => {
@@ -399,6 +402,147 @@ test.describe('Workflow Executor', () => {
       // #then: Run should be failed
       const finalRun = await getRun(request, token, run.id)
       expect(finalRun.status).toBe('failed')
+    })
+  })
+
+  test.describe('Agent API (Phase 3)', () => {
+    test('should claim step by agent without knowing runId', async ({ request }) => {
+      // #given: Create workflow with specific agent
+      const workflow = await createWorkflow(request, token, {
+        name: `Agent Claim Test ${Date.now()}`,
+        description: 'Test agent claiming work',
+        steps: [
+          {
+            stepId: 'plan',
+            agentId: 'test-planner-agent',
+            inputTemplate: 'Plan: {{task}}',
+            expects: 'STATUS: done',
+            type: 'single',
+          },
+        ],
+      })
+      createdWorkflowIds.push(workflow.id)
+
+      const run = await createRun(request, token, {
+        workflowId: workflow.id,
+        task: 'Test agent claim',
+      })
+      createdRunIds.push(run.id)
+
+      // #when: Agent claims work by agent_id (no runId needed)
+      const claimedStep = await claimStepByAgent(request, token, 'test-planner-agent')
+
+      // #then: Should find and claim the step
+      expect(claimedStep.found).toBe(true)
+      expect(claimedStep.step_id).toBeDefined()
+      expect(claimedStep.run_id).toBe(run.id)
+      expect(claimedStep.resolved_input).toContain('Test agent claim')
+    })
+
+    test('should return found: false when no work for agent', async ({ request }) => {
+      // #when: Unknown agent claims work
+      const result = await claimStepByAgent(request, token, 'non-existent-agent-xyz')
+
+      // #then: Should return not found
+      expect(result.found).toBe(false)
+    })
+
+    test('should complete step with pipeline and merge context', async ({ request }) => {
+      // #given: Create workflow with two steps
+      const workflow = await createWorkflow(request, token, {
+        name: `Pipeline Test ${Date.now()}`,
+        description: 'Test pipeline completion',
+        steps: [
+          {
+            stepId: 'plan',
+            agentId: 'pipeline-planner',
+            inputTemplate: 'Plan: {{task}}',
+            expects: 'STATUS: done',
+            type: 'single',
+          },
+          {
+            stepId: 'develop',
+            agentId: 'pipeline-developer',
+            inputTemplate: 'Develop: {{task}} Branch: {{branch}}',
+            expects: 'STATUS: done',
+            type: 'single',
+          },
+        ],
+      })
+      createdWorkflowIds.push(workflow.id)
+
+      const run = await createRun(request, token, {
+        workflowId: workflow.id,
+        task: 'Test pipeline',
+      })
+      createdRunIds.push(run.id)
+
+      // #when: Agent claims work
+      const claimedStep = await claimStepByAgent(request, token, 'pipeline-planner')
+      expect(claimedStep.found).toBe(true)
+
+      // #when: Complete with pipeline (merges context)
+      const result = await completeStepWithPipeline(
+        request,
+        token,
+        claimedStep.step_id!,
+        'STATUS: done\nBRANCH: feature/test'
+      )
+
+      // #then: Step should be completed, pipeline should advance
+      expect(result.step_completed).toBe(true)
+      expect(result.run_completed).toBe(false)
+
+      // #then: Next step should be pending
+      const steps = await getSteps(request, token, run.id)
+      const developStep = steps.find((s) => s.step_id === 'develop')
+      expect(developStep?.status).toBe('pending')
+    })
+
+    test('should mark run completed when last step done via pipeline', async ({ request }) => {
+      // #given: Create workflow with single step
+      const workflow = await createWorkflow(request, token, {
+        name: `Single Step Pipeline ${Date.now()}`,
+        description: 'Test single step completion',
+        steps: [
+          {
+            stepId: 'plan',
+            agentId: 'single-step-agent',
+            inputTemplate: 'Plan: {{task}}',
+            expects: 'STATUS: done',
+            type: 'single',
+          },
+        ],
+      })
+      createdWorkflowIds.push(workflow.id)
+
+      await createRun(request, token, {
+        workflowId: workflow.id,
+        task: 'Test single step',
+      })
+      createdRunIds.push(workflow.id)
+
+      // #when: Claim and complete
+      const claimedStep = await claimStepByAgent(request, token, 'single-step-agent')
+      const result = await completeStepWithPipeline(
+        request,
+        token,
+        claimedStep.step_id!,
+        'STATUS: done'
+      )
+
+      // #then: Run should be completed
+      expect(result.step_completed).toBe(true)
+      expect(result.run_completed).toBe(true)
+    })
+
+    test('should cleanup abandoned steps', async ({ request }) => {
+      // #when: Call cleanup endpoint
+      const result = await cleanupAbandonedSteps(request, token, 15)
+
+      // #then: Should return count (may be 0 if no abandoned steps)
+      expect(result.cleaned_count).toBeDefined()
+      expect(typeof result.cleaned_count).toBe('number')
     })
   })
 })
