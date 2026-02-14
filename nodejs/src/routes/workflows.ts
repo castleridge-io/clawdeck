@@ -1,9 +1,36 @@
+import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { createWorkflowService } from '../services/workflow.service.js'
 import { parseWorkflowYaml } from '../services/yaml-import.service.js'
+import type { Workflow } from '@prisma/client'
+
+interface StepJson {
+  id: string
+  step_id: string
+  agent_id: string | null
+  step_index: number
+  input_template: string
+  expects: string
+  status: string
+  output: unknown
+  retry_count: number
+  max_retries: number
+  type: string
+  loop_config: unknown
+  current_story_id: string | null
+}
+
+interface WorkflowJson {
+  id: string
+  name: string
+  description: string
+  steps: StepJson[]
+  created_at: string
+  updated_at: string
+}
 
 // Helper function to convert workflow to JSON response
-function workflowToJson (workflow) {
+function workflowToJson(workflow: Workflow | null): WorkflowJson | null {
   if (!workflow) return null
   return {
     id: workflow.id.toString ? workflow.id.toString() : workflow.id,
@@ -15,7 +42,10 @@ function workflowToJson (workflow) {
   }
 }
 
-export async function workflowsRoutes (fastify, opts) {
+export async function workflowsRoutes(
+  fastify: FastifyInstance,
+  opts: FastifyPluginOptions
+): Promise<void> {
   const workflowService = createWorkflowService()
 
   // Apply authentication to all routes
@@ -25,7 +55,7 @@ export async function workflowsRoutes (fastify, opts) {
   fastify.get('/', async (request, reply) => {
     const { name } = request.query
 
-    const filters = {}
+    const filters: Record<string, unknown> = {}
     if (name) {
       filters.name = name
     }
@@ -54,7 +84,11 @@ export async function workflowsRoutes (fastify, opts) {
 
   // POST /api/v1/workflows - Create workflow
   fastify.post('/', async (request, reply) => {
-    const { name, description, steps } = request.body
+    const { name, description, steps } = request.body as {
+      name?: string
+      description?: string
+      steps?: unknown
+    }
 
     try {
       const workflow = await workflowService.createWorkflow({
@@ -68,7 +102,7 @@ export async function workflowsRoutes (fastify, opts) {
         data: workflowToJson(workflow),
       })
     } catch (error) {
-      if (error.message.includes('is required') || error.message.includes('must be an array')) {
+      if (error instanceof Error && (error.message.includes('is required') || error.message.includes('must be an array'))) {
         return reply.code(400).send({ error: error.message })
       }
       throw error
@@ -77,7 +111,11 @@ export async function workflowsRoutes (fastify, opts) {
 
   // PATCH /api/v1/workflows/:id - Update workflow
   fastify.patch('/:id', async (request, reply) => {
-    const { name, description, steps } = request.body
+    const { name, description, steps } = request.body as {
+      name?: string
+      description?: string
+      steps?: unknown
+    }
 
     try {
       const workflow = await workflowService.updateWorkflow(request.params.id, {
@@ -95,7 +133,7 @@ export async function workflowsRoutes (fastify, opts) {
         data: workflowToJson(workflow),
       }
     } catch (error) {
-      if (error.message.includes('is required') || error.message.includes('must be an array')) {
+      if (error instanceof Error && (error.message.includes('is required') || error.message.includes('must be an array'))) {
         return reply.code(400).send({ error: error.message })
       }
       throw error
@@ -108,10 +146,10 @@ export async function workflowsRoutes (fastify, opts) {
       await workflowService.deleteWorkflow(request.params.id)
       return reply.code(204).send()
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error instanceof Error && error.message.includes('not found')) {
         return reply.code(404).send({ error: error.message })
       }
-      if (error.message.includes('Cannot delete')) {
+      if (error instanceof Error && error.message.includes('Cannot delete')) {
         return reply.code(400).send({ error: error.message })
       }
       throw error
@@ -120,7 +158,7 @@ export async function workflowsRoutes (fastify, opts) {
 
   // POST /api/v1/workflows/import-yaml - Import workflow from YAML
   fastify.post('/import-yaml', async (request, reply) => {
-    const { yaml } = request.body
+    const { yaml } = request.body as { yaml?: string }
 
     if (!yaml) {
       return reply.code(400).send({ error: 'yaml is required' })
@@ -135,7 +173,7 @@ export async function workflowsRoutes (fastify, opts) {
         data: workflowToJson(workflow),
       })
     } catch (error) {
-      if (error.message.includes('YAML') || error.message.includes('is required')) {
+      if (error instanceof Error && (error.message.includes('YAML') || error.message.includes('is required'))) {
         return reply.code(400).send({ error: error.message })
       }
       throw error

@@ -2,105 +2,105 @@
 
 ```yaml
 - generic [ref=e3]:
-  - complementary [ref=e4]:
-    - generic [ref=e5]:
-      - heading "🦀 ClawDeck" [level=1] [ref=e6]:
-        - generic [ref=e7]: 🦀
-        - generic [ref=e8]: ClawDeck
-      - button "Collapse sidebar" [ref=e9] [cursor=pointer]:
-        - img [ref=e10]
-    - navigation [ref=e12]:
-      - heading "Workspace" [level=2] [ref=e13]
-      - link "📊 Dashboard" [ref=e14] [cursor=pointer]:
-        - /url: /dashboard
-        - generic [ref=e15]: 📊
-        - text: Dashboard
-      - link "📋 Boards" [ref=e16] [cursor=pointer]:
-        - /url: /boards
-        - generic [ref=e17]: 📋
-        - text: Boards
-      - link "✅ Tasks" [ref=e18] [cursor=pointer]:
-        - /url: /tasks
-        - generic [ref=e19]: ✅
-        - text: Tasks
-      - link "📦 Archive" [ref=e20] [cursor=pointer]:
-        - /url: /archive
-        - generic [ref=e21]: 📦
-        - text: Archive
-      - generic [ref=e22]:
-        - heading "Automation" [level=2] [ref=e23]
-        - link "🤖 Agents" [ref=e24] [cursor=pointer]:
-          - /url: /agents
-          - generic [ref=e25]: 🤖
-          - text: Agents
-        - link "🔄 Workflows" [ref=e26] [cursor=pointer]:
-          - /url: /workflows
-          - generic [ref=e27]: 🔄
-          - text: Workflows
-        - link "▶️ Runs" [ref=e28] [cursor=pointer]:
-          - /url: /runs
-          - generic [ref=e29]: ▶️
-          - text: Runs
-      - generic [ref=e30]:
-        - heading "System" [level=2] [ref=e31]
-        - link "⚙️ Settings" [ref=e32] [cursor=pointer]:
-          - /url: /settings
-          - generic [ref=e33]: ⚙️
-          - text: Settings
-        - link "🔐 Admin" [ref=e34] [cursor=pointer]:
-          - /url: /admin
-          - generic [ref=e35]: 🔐
-          - text: Admin
-    - generic [ref=e36]:
-      - generic [ref=e37]:
-        - generic [ref=e38]: 🔧
-        - paragraph [ref=e40]: Admin
-      - button "Sign out" [ref=e41] [cursor=pointer]
-  - main [ref=e42]:
-    - generic [ref=e43]:
-      - heading "Dashboard" [level=1] [ref=e44]
-      - generic [ref=e45]:
-        - generic [ref=e46]:
-          - paragraph [ref=e47]: Total Tasks
-          - paragraph [ref=e48]: "0"
-        - generic [ref=e49]:
-          - paragraph [ref=e50]: In Progress
-          - paragraph [ref=e51]: "0"
-        - generic [ref=e52]:
-          - paragraph [ref=e53]: Active Agents
-          - paragraph [ref=e54]: "0"
-        - generic [ref=e55]:
-          - paragraph [ref=e56]: Completed
-          - paragraph [ref=e57]: "0"
-      - generic [ref=e58]:
-        - heading "Task Overview" [level=2] [ref=e59]
-        - generic [ref=e60]:
-          - generic [ref=e61]:
-            - generic [ref=e62]: "0"
-            - generic [ref=e63]: inbox
-          - generic [ref=e64]:
-            - generic [ref=e65]: "0"
-            - generic [ref=e66]: up next
-          - generic [ref=e67]:
-            - generic [ref=e68]: "0"
-            - generic [ref=e69]: in progress
-          - generic [ref=e70]:
-            - generic [ref=e71]: "0"
-            - generic [ref=e72]: in review
-          - generic [ref=e73]:
-            - generic [ref=e74]: "0"
-            - generic [ref=e75]: done
-      - generic [ref=e76]:
-        - link "📋 Boards 0 boards" [ref=e77] [cursor=pointer]:
-          - /url: /boards
-          - heading "📋 Boards" [level=3] [ref=e78]
-          - paragraph [ref=e79]: 0 boards
-        - link "🤖 Agents 7 agents" [ref=e80] [cursor=pointer]:
-          - /url: /agents
-          - heading "🤖 Agents" [level=3] [ref=e81]
-          - paragraph [ref=e82]: 7 agents
-        - link "▶️ Runs View execution history" [ref=e83] [cursor=pointer]:
-          - /url: /runs
-          - heading "▶️ Runs" [level=3] [ref=e84]
-          - paragraph [ref=e85]: View execution history
+    - complementary [ref=e4]:
+        - generic [ref=e5]:
+            - heading "🦀 ClawDeck" [level=1] [ref=e6]:
+                - generic [ref=e7]: 🦀
+                - generic [ref=e8]: ClawDeck
+            - button "Collapse sidebar" [ref=e9] [cursor=pointer]:
+                - img [ref=e10]
+        - navigation [ref=e12]:
+            - heading "Workspace" [level=2] [ref=e13]
+            - link "📊 Dashboard" [ref=e14] [cursor=pointer]:
+                - /url: /dashboard
+                - generic [ref=e15]: 📊
+                - text: Dashboard
+            - link "📋 Boards" [ref=e16] [cursor=pointer]:
+                - /url: /boards
+                - generic [ref=e17]: 📋
+                - text: Boards
+            - link "✅ Tasks" [ref=e18] [cursor=pointer]:
+                - /url: /tasks
+                - generic [ref=e19]: ✅
+                - text: Tasks
+            - link "📦 Archive" [ref=e20] [cursor=pointer]:
+                - /url: /archive
+                - generic [ref=e21]: 📦
+                - text: Archive
+            - generic [ref=e22]:
+                - heading "Automation" [level=2] [ref=e23]
+                - link "🤖 Agents" [ref=e24] [cursor=pointer]:
+                    - /url: /agents
+                    - generic [ref=e25]: 🤖
+                    - text: Agents
+                - link "🔄 Workflows" [ref=e26] [cursor=pointer]:
+                    - /url: /workflows
+                    - generic [ref=e27]: 🔄
+                    - text: Workflows
+                - link "▶️ Runs" [ref=e28] [cursor=pointer]:
+                    - /url: /runs
+                    - generic [ref=e29]: ▶️
+                    - text: Runs
+            - generic [ref=e30]:
+                - heading "System" [level=2] [ref=e31]
+                - link "⚙️ Settings" [ref=e32] [cursor=pointer]:
+                    - /url: /settings
+                    - generic [ref=e33]: ⚙️
+                    - text: Settings
+                - link "🔐 Admin" [ref=e34] [cursor=pointer]:
+                    - /url: /admin
+                    - generic [ref=e35]: 🔐
+                    - text: Admin
+        - generic [ref=e36]:
+            - generic [ref=e37]:
+                - generic [ref=e38]: 🔧
+                - paragraph [ref=e40]: Admin
+            - button "Sign out" [ref=e41] [cursor=pointer]
+    - main [ref=e42]:
+        - generic [ref=e43]:
+            - heading "Dashboard" [level=1] [ref=e44]
+            - generic [ref=e45]:
+                - generic [ref=e46]:
+                    - paragraph [ref=e47]: Total Tasks
+                    - paragraph [ref=e48]: '0'
+                - generic [ref=e49]:
+                    - paragraph [ref=e50]: In Progress
+                    - paragraph [ref=e51]: '0'
+                - generic [ref=e52]:
+                    - paragraph [ref=e53]: Active Agents
+                    - paragraph [ref=e54]: '0'
+                - generic [ref=e55]:
+                    - paragraph [ref=e56]: Completed
+                    - paragraph [ref=e57]: '0'
+            - generic [ref=e58]:
+                - heading "Task Overview" [level=2] [ref=e59]
+                - generic [ref=e60]:
+                    - generic [ref=e61]:
+                        - generic [ref=e62]: '0'
+                        - generic [ref=e63]: inbox
+                    - generic [ref=e64]:
+                        - generic [ref=e65]: '0'
+                        - generic [ref=e66]: up next
+                    - generic [ref=e67]:
+                        - generic [ref=e68]: '0'
+                        - generic [ref=e69]: in progress
+                    - generic [ref=e70]:
+                        - generic [ref=e71]: '0'
+                        - generic [ref=e72]: in review
+                    - generic [ref=e73]:
+                        - generic [ref=e74]: '0'
+                        - generic [ref=e75]: done
+            - generic [ref=e76]:
+                - link "📋 Boards 0 boards" [ref=e77] [cursor=pointer]:
+                    - /url: /boards
+                    - heading "📋 Boards" [level=3] [ref=e78]
+                    - paragraph [ref=e79]: 0 boards
+                - link "🤖 Agents 7 agents" [ref=e80] [cursor=pointer]:
+                    - /url: /agents
+                    - heading "🤖 Agents" [level=3] [ref=e81]
+                    - paragraph [ref=e82]: 7 agents
+                - link "▶️ Runs View execution history" [ref=e83] [cursor=pointer]:
+                    - /url: /runs
+                    - heading "▶️ Runs" [level=3] [ref=e84]
+                    - paragraph [ref=e85]: View execution history
 ```

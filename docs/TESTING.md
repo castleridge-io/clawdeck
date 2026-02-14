@@ -3,6 +3,7 @@
 ## Overview
 
 ClawDeck uses a multi-tier testing approach:
+
 - **Unit Tests**: Test individual functions and modules
 - **Integration Tests**: Test API endpoints with test database
 - **E2E Tests**: Test full user flows across the application
@@ -36,6 +37,7 @@ yarn test:docker
 ```
 
 This will:
+
 - Create isolated test database on port 15433
 - Run all unit, integration, and e2e tests
 - Clean up containers after completion
@@ -149,14 +151,14 @@ describe('Tasks API', () => {
     const response = await fetch('http://localhost:3500/api/v1/tasks', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         name: 'Test Task',
         status: 'inbox',
-        board_id: 1
-      })
+        board_id: 1,
+      }),
     })
 
     assert.strictEqual(response.status, 201)
@@ -167,8 +169,8 @@ describe('Tasks API', () => {
   it('should get tasks for a board', async () => {
     const response = await fetch('http://localhost:3500/api/v1/tasks?board_id=1', {
       headers: {
-        'Authorization': `Bearer ${authToken}`
-      }
+        Authorization: `Bearer ${authToken}`,
+      },
     })
 
     assert.strictEqual(response.status, 200)
@@ -198,34 +200,34 @@ describe('Task Management E2E', () => {
     // 1. Create board
     const boardResponse = await fetch('http://localhost:3500/api/v1/boards', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${authToken}` },
-      body: JSON.stringify({ name: 'Test Board', icon: '🧪' })
+      headers: { Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ name: 'Test Board', icon: '🧪' }),
     })
     const board = await boardResponse.json()
 
     // 2. Create task
     const taskResponse = await fetch('http://localhost:3500/api/v1/tasks', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${authToken}` },
+      headers: { Authorization: `Bearer ${authToken}` },
       body: JSON.stringify({
         name: 'E2E Test Task',
         status: 'inbox',
-        board_id: board.id
-      })
+        board_id: board.id,
+      }),
     })
     const task = await taskResponse.json()
 
     // 3. Update task status
     const updateResponse = await fetch(`http://localhost:3500/api/v1/tasks/${task.id}`, {
       method: 'PATCH',
-      headers: { 'Authorization': `Bearer ${authToken}` },
-      body: JSON.stringify({ status: 'done' })
+      headers: { Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ status: 'done' }),
     })
     assert.strictEqual(updateResponse.status, 200)
 
     // 4. Verify task is complete
     const finalResponse = await fetch(`http://localhost:3500/api/v1/tasks/${task.id}`, {
-      headers: { 'Authorization': `Bearer ${authToken}` }
+      headers: { Authorization: `Bearer ${authToken}` },
     })
     const finalTask = await finalResponse.json()
     assert.strictEqual(finalTask.status, 'done')
@@ -237,14 +239,15 @@ describe('Task Management E2E', () => {
 
 The test environment uses a completely separate PostgreSQL instance:
 
-| Property | Development | Test |
-|----------|-------------|------|
-| Database Name | `clawdeck_development` | `clawdeck_test` |
-| User | `clawdeck` | `clawdeck_test` |
-| Port | `15432` | `15433` |
-| Network | `clawdeck-network` | `clawdeck-test-network` |
+| Property      | Development            | Test                    |
+| ------------- | ---------------------- | ----------------------- |
+| Database Name | `clawdeck_development` | `clawdeck_test`         |
+| User          | `clawdeck`             | `clawdeck_test`         |
+| Port          | `15432`                | `15433`                 |
+| Network       | `clawdeck-network`     | `clawdeck-test-network` |
 
 This ensures:
+
 - Tests never affect development data
 - Tests can run while development server is running
 - Tests can run in parallel with development work

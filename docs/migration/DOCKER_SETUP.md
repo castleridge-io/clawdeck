@@ -19,6 +19,7 @@ nano .env
 ```
 
 **Generate secure JWT secret**:
+
 ```bash
 openssl rand -hex 32
 ```
@@ -74,16 +75,19 @@ docker-compose exec postgres pg_isready -U clawdeck
 **Password**: From `.env` file
 
 **Connect directly**:
+
 ```bash
 docker-compose exec postgres psql -U clawdeck -d clawdeck_development
 ```
 
 **Backup database**:
+
 ```bash
 docker-compose exec postgres pg_dump -U clawdeck clawdeck_development > backup.sql
 ```
 
 **Restore database**:
+
 ```bash
 docker-compose exec -T postgres psql -U clawdeck clawdeck_development < backup.sql
 ```
@@ -95,16 +99,19 @@ docker-compose exec -T postgres psql -U clawdeck clawdeck_development < backup.s
 **Health**: `http://localhost:3000/health`
 
 **View logs**:
+
 ```bash
 docker-compose logs -f api
 ```
 
 **Restart API**:
+
 ```bash
 docker-compose restart api
 ```
 
 **Run commands in container**:
+
 ```bash
 # Open shell in container
 docker-compose exec api sh
@@ -197,6 +204,7 @@ docker-compose exec postgres psql -U clawdeck -d clawdeck_development -c "SELECT
 ### Using Docker Compose in Production
 
 **1. Create production environment file**:
+
 ```bash
 cp .env.docker.example .env.production
 
@@ -207,11 +215,13 @@ JWT_SECRET=<generated-secret>
 ```
 
 **2. Use production override file**:
+
 ```bash
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 **3. Set up reverse proxy** (Nginx):
+
 ```bash
 # Enable nginx profile
 docker-compose --profile with-nginx up -d
@@ -446,6 +456,7 @@ WantedBy=multi-user.target
 ```
 
 **Enable service**:
+
 ```bash
 sudo systemctl enable clawdeck-docker.service
 sudo systemctl start clawdeck-docker.service
@@ -457,12 +468,12 @@ sudo systemctl start clawdeck-docker.service
 
 ### Docker Compose Services
 
-| Service | Container | Ports | Purpose |
-|---------|-----------|-------|---------|
-| **PostgreSQL** | clawdeck-postgres | 5432 | Database |
-| **API** | clawdeck-api | 3000 | Task management API |
-| **Redis** | clawdeck-redis | 6379 | Caching (optional) |
-| **Nginx** | clawdeck-nginx | 80, 443 | Reverse proxy (optional) |
+| Service        | Container         | Ports   | Purpose                  |
+| -------------- | ----------------- | ------- | ------------------------ |
+| **PostgreSQL** | clawdeck-postgres | 5432    | Database                 |
+| **API**        | clawdeck-api      | 3000    | Task management API      |
+| **Redis**      | clawdeck-redis    | 6379    | Caching (optional)       |
+| **Nginx**      | clawdeck-nginx    | 80, 443 | Reverse proxy (optional) |
 
 ### Quick Commands
 

@@ -1,10 +1,13 @@
+import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { createStorageService } from '../services/storage.service.js'
-import { prisma } from '../db/prisma.js'
 
 const MAX_AVATAR_SIZE = 512 * 1024
 const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
-export async function avatarRoutes (fastify) {
+export async function avatarRoutes(
+  fastify: FastifyInstance,
+  opts: FastifyPluginOptions
+): Promise<void> {
   const storageService = createStorageService()
 
   fastify.post(
@@ -73,7 +76,10 @@ export async function avatarRoutes (fastify) {
     },
     async (request, reply) => {
       try {
-        const { filename, contentType } = request.body
+        const { filename, contentType } = request.body as {
+          filename?: string
+          contentType?: string
+        }
 
         if (!filename || !contentType) {
           return reply.code(400).send({ error: 'filename and contentType are required' })

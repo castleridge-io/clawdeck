@@ -11,11 +11,11 @@ This guide sets up bidirectional integration so OpenClaw agents can work on Claw
 
 ## Endpoints
 
-| Service | URL |
-|---------|-----|
-| ClawDeck API | `http://localhost:4333/api/v1` |
-| ClawDeck Frontend | `http://localhost:8888` |
-| OpenClaw Gateway | `ws://127.0.0.1:18789` |
+| Service           | URL                            |
+| ----------------- | ------------------------------ |
+| ClawDeck API      | `http://localhost:4333/api/v1` |
+| ClawDeck Frontend | `http://localhost:8888`        |
+| OpenClaw Gateway  | `ws://127.0.0.1:18789`         |
 
 ## Authentication
 
@@ -37,6 +37,7 @@ CLAWDECK_PASSWORD="your-password"
 ```
 
 The skill automatically:
+
 - Uses `CLAWDECK_API_TOKEN` if set (no expiry)
 - Falls back to login with `CLAWDECK_EMAIL` + `CLAWDECK_PASSWORD` to get fresh JWT
 
@@ -44,26 +45,26 @@ The skill automatically:
 
 ## Agent → Board Mapping
 
-| OpenClaw Agent | Agent ID | ClawDeck Board | Board ID | Emoji | Color |
-|----------------|----------|----------------|----------|-------|-------|
-| Jarvis Leader | `main` | Jarvis Leader Board | 40 | 👔 | purple |
-| Dave Engineer | `coder` | Dave Engineer Board | 41 | 👨‍💻 | blue |
-| Sally Designer | `sally` | Sally Designer Board | 42 | 👩‍🎨 | pink |
-| Mike QA | `mike` | Mike QA Board | 43 | 🧪 | green |
-| Richard | `richard` | Richard Board | 44 | 📚 | yellow |
-| Nolan | `nolan` | Nolan Board | 45 | ⚙️ | gray |
-| Elsa | `elsa` | Elsa Board | 46 | 📢 | orange |
+| OpenClaw Agent | Agent ID  | ClawDeck Board       | Board ID | Emoji | Color  |
+| -------------- | --------- | -------------------- | -------- | ----- | ------ |
+| Jarvis Leader  | `main`    | Jarvis Leader Board  | 40       | 👔    | purple |
+| Dave Engineer  | `coder`   | Dave Engineer Board  | 41       | 👨‍💻    | blue   |
+| Sally Designer | `sally`   | Sally Designer Board | 42       | 👩‍🎨    | pink   |
+| Mike QA        | `mike`    | Mike QA Board        | 43       | 🧪    | green  |
+| Richard        | `richard` | Richard Board        | 44       | 📚    | yellow |
+| Nolan          | `nolan`   | Nolan Board          | 45       | ⚙️    | gray   |
+| Elsa           | `elsa`    | Elsa Board           | 46       | 📢    | orange |
 
 ### Workflow Agents (Subagents)
 
-| Agent | Agent ID | Board | Emoji | Color |
-|-------|----------|-------|-------|-------|
-| Bug Fix Triager | `bug-fix/triager` | - | 🔍 | red |
-| Bug Fix Investigator | `bug-fix/investigator` | - | 🕵️ | orange |
-| Bug Fix Fixer | `bug-fix/fixer` | - | 🔧 | blue |
-| Feature Dev Planner | `feature-dev/planner` | - | 📋 | purple |
-| Feature Dev Developer | `feature-dev/developer` | - | 💻 | green |
-| Security Scanner | `security-audit/scanner` | - | 🛡️ | red |
+| Agent                 | Agent ID                 | Board | Emoji | Color  |
+| --------------------- | ------------------------ | ----- | ----- | ------ |
+| Bug Fix Triager       | `bug-fix/triager`        | -     | 🔍    | red    |
+| Bug Fix Investigator  | `bug-fix/investigator`   | -     | 🕵️    | orange |
+| Bug Fix Fixer         | `bug-fix/fixer`          | -     | 🔧    | blue   |
+| Feature Dev Planner   | `feature-dev/planner`    | -     | 📋    | purple |
+| Feature Dev Developer | `feature-dev/developer`  | -     | 💻    | green  |
+| Security Scanner      | `security-audit/scanner` | -     | 🛡️    | red    |
 
 ---
 
@@ -72,6 +73,7 @@ The skill automatically:
 ### 1. Environment Variables
 
 In `~/.openclaw/.env`:
+
 ```bash
 # Required
 CLAWDECK_API_URL="http://localhost:4333/api/v1"
@@ -91,6 +93,7 @@ CLAWDECK_PASSWORD="your-password"
 3. Copy the token
 
 OR register via API:
+
 ```bash
 curl -X POST "http://localhost:4333/api/v1/auth/register" \
   -H "Content-Type: application/json" \
@@ -100,6 +103,7 @@ curl -X POST "http://localhost:4333/api/v1/auth/register" \
 ### 3. OpenClaw Config
 
 In `~/.openclaw/openclaw.json`:
+
 ```json
 "skills": {
   "entries": {
@@ -160,17 +164,20 @@ curl -X POST "http://localhost:4333/api/v1/agents/register" \
 ## API Quick Reference
 
 ### Test Connection
+
 ```bash
 curl http://localhost:4333/up
 ```
 
 ### List Boards
+
 ```bash
 curl -s "http://localhost:4333/api/v1/boards" \
   -H "Authorization: Bearer $CLAWDECK_API_TOKEN" | jq '.data'
 ```
 
 ### Link Board to Agent
+
 ```bash
 # Link board to agent by UUID
 curl -X PATCH "http://localhost:4333/api/v1/boards/BOARD_ID" \
@@ -186,12 +193,14 @@ curl -X PATCH "http://localhost:4333/api/v1/boards/BOARD_ID" \
 ```
 
 ### List Agents
+
 ```bash
 curl -s "http://localhost:4333/api/v1/agents" \
   -H "Authorization: Bearer $CLAWDECK_API_TOKEN" | jq '.data'
 ```
 
 ### Create Task
+
 ```bash
 curl -X POST "http://localhost:4333/api/v1/tasks" \
   -H "Authorization: Bearer $CLAWDECK_API_TOKEN" \
@@ -202,6 +211,7 @@ curl -X POST "http://localhost:4333/api/v1/tasks" \
 ```
 
 ### Get Tasks for Agent
+
 ```bash
 curl -s "http://localhost:4333/api/v1/tasks?board_id=40" \
   -H "Authorization: Bearer $CLAWDECK_API_TOKEN" \
@@ -209,6 +219,7 @@ curl -s "http://localhost:4333/api/v1/tasks?board_id=40" \
 ```
 
 ### Claim Task
+
 ```bash
 curl -X PATCH "http://localhost:4333/api/v1/tasks/TASK_ID/claim" \
   -H "Authorization: Bearer $CLAWDECK_API_TOKEN" \
@@ -216,6 +227,7 @@ curl -X PATCH "http://localhost:4333/api/v1/tasks/TASK_ID/claim" \
 ```
 
 ### Update Task Status
+
 ```bash
 curl -X PATCH "http://localhost:4333/api/v1/tasks/TASK_ID" \
   -H "Authorization: Bearer $CLAWDECK_API_TOKEN" \
@@ -228,13 +240,13 @@ curl -X PATCH "http://localhost:4333/api/v1/tasks/TASK_ID" \
 
 ## Task Statuses
 
-| Status | Who Sets It | Meaning |
-|--------|-------------|---------|
-| `inbox` | User | New, not prioritized |
-| `up_next` | User | Ready for agent assignment |
-| `in_progress` | Agent | Currently being worked on |
-| `in_review` | Agent | Done, needs human review |
-| `done` | User | Approved and complete |
+| Status        | Who Sets It | Meaning                    |
+| ------------- | ----------- | -------------------------- |
+| `inbox`       | User        | New, not prioritized       |
+| `up_next`     | User        | Ready for agent assignment |
+| `in_progress` | Agent       | Currently being worked on  |
+| `in_review`   | Agent       | Done, needs human review   |
+| `done`        | User        | Approved and complete      |
 
 ---
 
@@ -251,19 +263,20 @@ curl -X PATCH "http://localhost:4333/api/v1/tasks/TASK_ID" \
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `~/.openclaw/.env` | Environment variables |
-| `~/.openclaw/openclaw.json` | OpenClaw configuration |
+| File                                   | Purpose                   |
+| -------------------------------------- | ------------------------- |
+| `~/.openclaw/.env`                     | Environment variables     |
+| `~/.openclaw/openclaw.json`            | OpenClaw configuration    |
 | `~/.openclaw/skills/clawdeck/SKILL.md` | OpenClaw skill definition |
-| `docs/API.md` | Full ClawDeck API docs |
-| `docs/AGENT_INTEGRATION.md` | Agent integration spec |
+| `docs/API.md`                          | Full ClawDeck API docs    |
+| `docs/AGENT_INTEGRATION.md`            | Agent integration spec    |
 
 ---
 
 ## Troubleshooting
 
 ### ClawDeck not responding
+
 ```bash
 # Check if API is up
 curl http://localhost:4333/up
@@ -274,6 +287,7 @@ docker-compose ps
 ```
 
 ### Invalid token error
+
 ```bash
 # Regenerate token via API
 curl -X POST "http://localhost:4333/api/v1/settings/regenerate_token" \
@@ -281,4 +295,5 @@ curl -X POST "http://localhost:4333/api/v1/settings/regenerate_token" \
 ```
 
 ### Agent not found
+
 Register the agent first using the `/agents/register` endpoint.

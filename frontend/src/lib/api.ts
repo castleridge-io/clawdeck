@@ -118,8 +118,19 @@ export async function getBoard(boardId: string): Promise<Board> {
 // Tasks API
 // ============================================
 
-export async function getTasks(boardId: string): Promise<Task[]> {
-  return fetchData(`/tasks?board_id=${boardId}`, z.array(TaskSchema))
+interface TasksFilter {
+  boardId?: string
+  boardIds?: string[]
+}
+
+export async function getTasks(filter?: TasksFilter): Promise<Task[]> {
+  if (filter?.boardIds && filter.boardIds.length > 0) {
+    return fetchData(`/tasks?board_ids=${filter.boardIds.join(',')}`, z.array(TaskSchema))
+  }
+  if (filter?.boardId) {
+    return fetchData(`/tasks?board_id=${filter.boardId}`, z.array(TaskSchema))
+  }
+  return fetchData('/tasks', z.array(TaskSchema))
 }
 
 export async function createTask(taskData: Partial<Task>): Promise<Task> {
@@ -413,6 +424,56 @@ export async function getAdminTasks(
     `/admin/tasks${queryString ? `?${queryString}` : ''}`,
     AdminListResponse(AdminTaskSchema)
   )
+}
+
+// ============================================
+// Dashboard API
+// ============================================
+
+export interface DashboardData {
+  boards: Board[]
+  agents: Agent[]
+  taskCounts: {
+    total: number
+    inbox: number
+    up_next: number
+    in_progress: number
+    in_review: number
+    done: number
+  }
+  priorityCounts: {
+    high: number
+    medium: number
+    low: number
+    none: number
+  }
+  tasksPerBoard: Record<string, number>
+  assignedCount: number
+}
+
+const DashboardSchema = z.object({
+  boards: z.array(BoardSchema),
+  agents: z.array(AgentSchema),
+  taskCounts: z.object({
+    total: z.number(),
+    inbox: z.number(),
+    up_next: z.number(),
+    in_progress: z.number(),
+    in_review: z.number(),
+    done: z.number(),
+  }),
+  priorityCounts: z.object({
+    high: z.number(),
+    medium: z.number(),
+    low: z.number(),
+    none: z.number(),
+  }),
+  tasksPerBoard: z.record(z.string(), z.number()),
+  assignedCount: z.number(),
+})
+
+export async function getDashboard(): Promise<DashboardData> {
+  return fetchWithAuth('/dashboard', DashboardSchema)
 }
 
 // Re-export types for backward compatibility

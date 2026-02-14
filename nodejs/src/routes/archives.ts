@@ -1,10 +1,20 @@
+import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
-import { wsManager } from '../websocket/manager.js'
-import { archiveScheduler } from '../services/archiveScheduler.js'
+import type { Task, Step, Story, Run, Prisma } from '@prisma/client'
+
+// Helper to safely parse JSON (prevents crashes from invalid JSON in DB)
+function safeJsonParse(str: string | null): unknown | null {
+  if (!str) return null
+  try {
+    return JSON.parse(str)
+  } catch {
+    return str // Return as-is if not valid JSON
+  }
+}
 
 // Helper function to create task JSON response
-function taskToJson (task) {
+function taskToJson(task: Task): TaskJson {
   return {
     id: task.id.toString(),
     name: task.name,
@@ -30,7 +40,21 @@ function taskToJson (task) {
 }
 
 // Helper function to record task activity
-async function recordActivity (task, user, action, activityData = {}) {
+async function recordActivity(
+  task: Task,
+  user: { id: bigint; agentName?: string | null; agentEmoji?: string | null },
+  action: string,
+  activityData: {
+    actorType?: string
+    actorName?: string
+    actorEmoji?: string
+    fieldName?: string
+    oldValue?: string
+    newValue?: string
+    note?: string
+    source?: string
+  } = {}
+): Promise<void> {
   await prisma.taskActivity.create({
     data: {
       taskId: BigInt(task.id),
@@ -48,18 +72,44 @@ async function recordActivity (task, user, action, activityData = {}) {
   })
 }
 
-export async function archivesRoutes (fastify, opts) {
+interface TaskJson {
+  id: string
+  name: string
+  description: string | null
+  status: string
+  priority: string
+  position: number
+  board_id: string
+  user_id: string | null
+  completed: boolean
+  completed_at: string | null
+  archived: boolean
+  archived_at: string | null
+  due_date: string | null
+  tags: string[]
+  blocked: boolean
+  assigned_to_agent: boolean | null
+  assigned_at: string | null
+  agent_claimed_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export async function archivesRoutes(
+  fastify: FastifyInstance,
+  opts: FastifyPluginOptions
+): Promise<void> {
   // Apply authentication to all routes
   fastify.addHook('onRequest', authenticateRequest)
 
   // GET /api/v1/archives - List archived tasks with filters
   fastify.get('/', async (request, reply) => {
-    const { board_id, page = 1, limit = 50 } = request.query
+    const { board_id, page = '1', limit = '50' } = request.query
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
     const take = parseInt(limit)
 
-    const where = {
+    const where: {
       userId: BigInt(request.user.id),
       archived: true,
     }
@@ -125,9 +175,6 @@ export async function archivesRoutes (fastify, opts) {
       source: 'api',
     })
 
-    // Broadcast task unarchived
-    wsManager.broadcastTaskEvent(request.user.id, 'task_unarchived', taskToJson(updatedTask))
-
     return taskToJson(updatedTask)
   })
 
@@ -154,34 +201,6 @@ export async function archivesRoutes (fastify, opts) {
       where: { id: task.id },
     })
 
-    // Broadcast task deletion
-    wsManager.broadcastTaskEvent(request.user.id, 'task_deleted', {
-      id: taskData.id,
-      board_id: taskData.board_id,
-    })
-
     return reply.code(204).send()
-  })
-
-  // PATCH /api/v1/archives/:id/schedule - Schedule immediate archive (override delay)
-  fastify.patch('/:id/schedule', async (request, reply) => {
-    try {
-      const task = await archiveScheduler.scheduleImmediateArchive(request.params.id)
-      return {
-        success: true,
-        data: task,
-      }
-    } catch (error) {
-      if (error.message === 'Task not found') {
-        return reply.code(404).send({ error: 'Task not found' })
-      }
-      if (error.message === 'Only completed tasks can be archived') {
-        return reply.code(400).send({ error: error.message })
-      }
-      if (error.message === 'Task is already archived') {
-        return reply.code(400).send({ error: error.message })
-      }
-      throw error
-    }
   })
 }

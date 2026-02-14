@@ -2,101 +2,101 @@
 
 ```yaml
 - generic [ref=e3]:
-  - complementary [ref=e4]:
-    - generic [ref=e5]:
-      - heading "🦀 ClawDeck" [level=1] [ref=e6]:
-        - generic [ref=e7]: 🦀
-        - generic [ref=e8]: ClawDeck
-      - button "Collapse sidebar" [ref=e9] [cursor=pointer]:
-        - img [ref=e10]
-    - navigation [ref=e12]:
-      - heading "Workspace" [level=2] [ref=e13]
-      - link "📊 Dashboard" [ref=e14] [cursor=pointer]:
-        - /url: /dashboard
-        - generic [ref=e15]: 📊
-        - text: Dashboard
-      - link "📋 Boards" [ref=e16] [cursor=pointer]:
-        - /url: /boards
-        - generic [ref=e17]: 📋
-        - text: Boards
-      - link "✅ Tasks" [ref=e18] [cursor=pointer]:
-        - /url: /tasks
-        - generic [ref=e19]: ✅
-        - text: Tasks
-      - link "📦 Archive" [ref=e20] [cursor=pointer]:
-        - /url: /archive
-        - generic [ref=e21]: 📦
-        - text: Archive
-      - generic [ref=e22]:
-        - heading "Automation" [level=2] [ref=e23]
-        - link "🤖 Agents" [ref=e24] [cursor=pointer]:
-          - /url: /agents
-          - generic [ref=e25]: 🤖
-          - text: Agents
-        - link "🔄 Workflows" [ref=e26] [cursor=pointer]:
-          - /url: /workflows
-          - generic [ref=e27]: 🔄
-          - text: Workflows
-        - link "▶️ Runs" [ref=e28] [cursor=pointer]:
-          - /url: /runs
-          - generic [ref=e29]: ▶️
-          - text: Runs
-      - generic [ref=e30]:
-        - heading "System" [level=2] [ref=e31]
-        - link "⚙️ Settings" [ref=e32] [cursor=pointer]:
-          - /url: /settings
-          - generic [ref=e33]: ⚙️
-          - text: Settings
-        - link "🔐 Admin" [ref=e34] [cursor=pointer]:
-          - /url: /admin
-          - generic [ref=e35]: 🔐
-          - text: Admin
-    - generic [ref=e36]:
-      - generic [ref=e37]:
-        - generic [ref=e38]: 🔧
-        - paragraph [ref=e40]: Admin
-      - button "Sign out" [ref=e41] [cursor=pointer]
-  - main [ref=e42]:
-    - generic [ref=e43]:
-      - generic [ref=e44]:
-        - heading "Workflows" [level=1] [ref=e45]
-        - generic [ref=e46]:
-          - button "Import YAML" [ref=e47] [cursor=pointer]
-          - button "Create Workflow" [ref=e48] [cursor=pointer]
-      - table [ref=e50]:
-        - rowgroup [ref=e51]:
-          - row "Name Description Steps Created Actions" [ref=e52]:
-            - columnheader "Name" [ref=e53]
-            - columnheader "Description" [ref=e54]
-            - columnheader "Steps" [ref=e55]
-            - columnheader "Created" [ref=e56]
-            - columnheader "Actions" [ref=e57]
-        - rowgroup [ref=e58]:
-          - row "content-review Single-step approval workflow for content review 1 N/A Run Edit Delete" [ref=e59]:
-            - cell "content-review" [ref=e60]
-            - cell "Single-step approval workflow for content review" [ref=e61]
-            - cell "1" [ref=e62]
-            - cell "N/A" [ref=e63]
-            - cell "Run Edit Delete" [ref=e64]:
-              - button "Run" [ref=e65] [cursor=pointer]
-              - button "Edit" [ref=e66] [cursor=pointer]
-              - button "Delete" [ref=e67] [cursor=pointer]
-          - row "bug-fix Investigate, fix, and verify a bug 3 N/A Run Edit Delete" [ref=e68]:
-            - cell "bug-fix" [ref=e69]
-            - cell "Investigate, fix, and verify a bug" [ref=e70]
-            - cell "3" [ref=e71]
-            - cell "N/A" [ref=e72]
-            - cell "Run Edit Delete" [ref=e73]:
-              - button "Run" [ref=e74] [cursor=pointer]
-              - button "Edit" [ref=e75] [cursor=pointer]
-              - button "Delete" [ref=e76] [cursor=pointer]
-          - row "feature-development Design, implement, and review a new feature 3 N/A Run Edit Delete" [ref=e77]:
-            - cell "feature-development" [ref=e78]
-            - cell "Design, implement, and review a new feature" [ref=e79]
-            - cell "3" [ref=e80]
-            - cell "N/A" [ref=e81]
-            - cell "Run Edit Delete" [ref=e82]:
-              - button "Run" [ref=e83] [cursor=pointer]
-              - button "Edit" [ref=e84] [cursor=pointer]
-              - button "Delete" [ref=e85] [cursor=pointer]
+    - complementary [ref=e4]:
+        - generic [ref=e5]:
+            - heading "🦀 ClawDeck" [level=1] [ref=e6]:
+                - generic [ref=e7]: 🦀
+                - generic [ref=e8]: ClawDeck
+            - button "Collapse sidebar" [ref=e9] [cursor=pointer]:
+                - img [ref=e10]
+        - navigation [ref=e12]:
+            - heading "Workspace" [level=2] [ref=e13]
+            - link "📊 Dashboard" [ref=e14] [cursor=pointer]:
+                - /url: /dashboard
+                - generic [ref=e15]: 📊
+                - text: Dashboard
+            - link "📋 Boards" [ref=e16] [cursor=pointer]:
+                - /url: /boards
+                - generic [ref=e17]: 📋
+                - text: Boards
+            - link "✅ Tasks" [ref=e18] [cursor=pointer]:
+                - /url: /tasks
+                - generic [ref=e19]: ✅
+                - text: Tasks
+            - link "📦 Archive" [ref=e20] [cursor=pointer]:
+                - /url: /archive
+                - generic [ref=e21]: 📦
+                - text: Archive
+            - generic [ref=e22]:
+                - heading "Automation" [level=2] [ref=e23]
+                - link "🤖 Agents" [ref=e24] [cursor=pointer]:
+                    - /url: /agents
+                    - generic [ref=e25]: 🤖
+                    - text: Agents
+                - link "🔄 Workflows" [ref=e26] [cursor=pointer]:
+                    - /url: /workflows
+                    - generic [ref=e27]: 🔄
+                    - text: Workflows
+                - link "▶️ Runs" [ref=e28] [cursor=pointer]:
+                    - /url: /runs
+                    - generic [ref=e29]: ▶️
+                    - text: Runs
+            - generic [ref=e30]:
+                - heading "System" [level=2] [ref=e31]
+                - link "⚙️ Settings" [ref=e32] [cursor=pointer]:
+                    - /url: /settings
+                    - generic [ref=e33]: ⚙️
+                    - text: Settings
+                - link "🔐 Admin" [ref=e34] [cursor=pointer]:
+                    - /url: /admin
+                    - generic [ref=e35]: 🔐
+                    - text: Admin
+        - generic [ref=e36]:
+            - generic [ref=e37]:
+                - generic [ref=e38]: 🔧
+                - paragraph [ref=e40]: Admin
+            - button "Sign out" [ref=e41] [cursor=pointer]
+    - main [ref=e42]:
+        - generic [ref=e43]:
+            - generic [ref=e44]:
+                - heading "Workflows" [level=1] [ref=e45]
+                - generic [ref=e46]:
+                    - button "Import YAML" [ref=e47] [cursor=pointer]
+                    - button "Create Workflow" [ref=e48] [cursor=pointer]
+            - table [ref=e50]:
+                - rowgroup [ref=e51]:
+                    - row "Name Description Steps Created Actions" [ref=e52]:
+                        - columnheader "Name" [ref=e53]
+                        - columnheader "Description" [ref=e54]
+                        - columnheader "Steps" [ref=e55]
+                        - columnheader "Created" [ref=e56]
+                        - columnheader "Actions" [ref=e57]
+                - rowgroup [ref=e58]:
+                    - row "content-review Single-step approval workflow for content review 1 N/A Run Edit Delete" [ref=e59]:
+                        - cell "content-review" [ref=e60]
+                        - cell "Single-step approval workflow for content review" [ref=e61]
+                        - cell "1" [ref=e62]
+                        - cell "N/A" [ref=e63]
+                        - cell "Run Edit Delete" [ref=e64]:
+                            - button "Run" [ref=e65] [cursor=pointer]
+                            - button "Edit" [ref=e66] [cursor=pointer]
+                            - button "Delete" [ref=e67] [cursor=pointer]
+                    - row "bug-fix Investigate, fix, and verify a bug 3 N/A Run Edit Delete" [ref=e68]:
+                        - cell "bug-fix" [ref=e69]
+                        - cell "Investigate, fix, and verify a bug" [ref=e70]
+                        - cell "3" [ref=e71]
+                        - cell "N/A" [ref=e72]
+                        - cell "Run Edit Delete" [ref=e73]:
+                            - button "Run" [ref=e74] [cursor=pointer]
+                            - button "Edit" [ref=e75] [cursor=pointer]
+                            - button "Delete" [ref=e76] [cursor=pointer]
+                    - row "feature-development Design, implement, and review a new feature 3 N/A Run Edit Delete" [ref=e77]:
+                        - cell "feature-development" [ref=e78]
+                        - cell "Design, implement, and review a new feature" [ref=e79]
+                        - cell "3" [ref=e80]
+                        - cell "N/A" [ref=e81]
+                        - cell "Run Edit Delete" [ref=e82]:
+                            - button "Run" [ref=e83] [cursor=pointer]
+                            - button "Edit" [ref=e84] [cursor=pointer]
+                            - button "Delete" [ref=e85] [cursor=pointer]
 ```

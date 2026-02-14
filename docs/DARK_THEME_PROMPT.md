@@ -1,37 +1,43 @@
 # Dark Theme Update Prompt
 
-*Prompt for Claude Code to update ClawDeck colors to match maxie.bot style*
+_Prompt for Claude Code to update ClawDeck colors to match maxie.bot style_
 
 ---
 
 ## Task: Update ClawDeck color scheme to match maxie.bot style
 
 ### Goal:
+
 Change the app's color palette to a dark theme with warm accents. NO layout changes — colors and styling only.
 
 ### New Color Palette:
 
 **Backgrounds:**
+
 - Page background: `#0a0a0a` (near black)
 - Card/panel background: `#141414` or `#1a1a1a` (dark gray)
 - Hover states: slightly lighter (`#1f1f1f` or `#252525`)
 
 **Text:**
+
 - Primary text: `#ffffff` (white)
 - Secondary text: `#a1a1a1` (gray-400 equivalent)
 - Muted text: `#6b6b6b` (gray-500 equivalent)
 
 **Accent (replace red-500):**
+
 - Primary accent: `#f97316` (orange-500) — for links, buttons, highlights
 - Hover: `#ea580c` (orange-600)
 - Or use the coral from Cardy logo: `#F27B6A`
 
 **Status colors:**
+
 - Online/success: `#22c55e` (green-500)
 - Warning/blocked: `#f59e0b` (amber-500)
 - Error: `#ef4444` (red-500)
 
 **Borders:**
+
 - Subtle borders: `#262626` or `#2a2a2a`
 - Or use `white/10` for transparency-based borders
 
@@ -39,6 +45,7 @@ Change the app's color palette to a dark theme with warm accents. NO layout chan
 
 1. **Tailwind config (if customizing):**
    Add custom colors or use existing dark grays:
+
    ```js
    // tailwind.config.js
    theme: {
@@ -89,18 +96,21 @@ Change the app's color palette to a dark theme with warm accents. NO layout chan
    - Secondary: `bg-neutral-800 text-white hover:bg-neutral-700`
 
 ### Keep:
+
 - All existing layouts and structure
 - Font choices (Nunito)
 - Border radius values
 - Spacing/padding
 
 ### Landing page decision:
+
 - Option A: Keep landing page white (contrast between marketing/app)
 - Option B: Match dark theme everywhere
 
 Recommend: Option A — white landing, dark app. Creates nice contrast when user logs in.
 
 ### Test:
+
 - Check all pages after changes
 - Ensure text is readable (contrast)
 - Verify hover states are visible

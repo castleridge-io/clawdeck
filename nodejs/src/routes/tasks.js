@@ -61,7 +61,7 @@ export async function tasksRoutes (fastify, opts) {
 
   // GET /api/v1/tasks - List tasks with filters
   fastify.get('/', async (request, reply) => {
-    const { assigned, status, board_id, archived } = request.query
+    const { assigned, status, board_id, board_ids, archived } = request.query
 
     const where = { userId: BigInt(request.user.id) }
 
@@ -73,7 +73,11 @@ export async function tasksRoutes (fastify, opts) {
       where.status = status
     }
 
-    if (board_id) {
+    // Support comma-separated board_ids for batch queries
+    if (board_ids) {
+      const ids = board_ids.split(',').map(id => BigInt(id.trim()))
+      where.boardId = { in: ids }
+    } else if (board_id) {
       where.boardId = BigInt(board_id)
     }
 

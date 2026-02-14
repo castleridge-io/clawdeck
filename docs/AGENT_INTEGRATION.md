@@ -9,6 +9,7 @@ ClawDeck is designed as a **personal mission control for your AI agent**. This d
 This isn't a generic kanban. It's **your window into what your agent is doing**.
 
 The board should feel like:
+
 - Checking in on a coworker
 - Seeing their desk, their tasks, their status
 - A two-way communication channel
@@ -34,12 +35,13 @@ curl -H "Authorization: Bearer cd_xxxxxxxxxxxx" \
 
 Every request should include headers that identify the agent:
 
-| Header | Required | Description |
-|--------|----------|-------------|
-| `X-Agent-Name` | Yes | Agent's display name (e.g., "Maxie") |
-| `X-Agent-Emoji` | Yes | Agent's emoji (e.g., "🦊") |
+| Header          | Required | Description                          |
+| --------------- | -------- | ------------------------------------ |
+| `X-Agent-Name`  | Yes      | Agent's display name (e.g., "Maxie") |
+| `X-Agent-Emoji` | Yes      | Agent's emoji (e.g., "🦊")           |
 
 These headers are used to:
+
 - Track agent's last active time
 - Display agent identity in the UI
 - Attribute activity notes to the agent
@@ -101,6 +103,7 @@ GET /api/v1/boards
 ```
 
 **Response:**
+
 ```json
 {
   "boards": [
@@ -123,6 +126,7 @@ GET /api/v1/boards/:id
 ```
 
 **Response:**
+
 ```json
 {
   "board": {
@@ -181,20 +185,22 @@ GET /api/v1/tasks
 
 **Query Parameters:**
 
-| Parameter | Description |
-|-----------|-------------|
-| `board_id` | Filter by board ID |
-| `status` | Filter by status: `inbox`, `up_next`, `in_progress`, `in_review`, `done` |
-| `assigned` | Filter by assignment: `true` for assigned tasks |
-| `blocked` | Filter by blocked state: `true` or `false` |
-| `tag` | Filter by tag name |
+| Parameter  | Description                                                              |
+| ---------- | ------------------------------------------------------------------------ |
+| `board_id` | Filter by board ID                                                       |
+| `status`   | Filter by status: `inbox`, `up_next`, `in_progress`, `in_review`, `done` |
+| `assigned` | Filter by assignment: `true` for assigned tasks                          |
+| `blocked`  | Filter by blocked state: `true` or `false`                               |
+| `tag`      | Filter by tag name                                                       |
 
 **Example — Get assigned tasks:**
+
 ```http
 GET /api/v1/tasks?assigned=true
 ```
 
 **Response:**
+
 ```json
 {
   "tasks": [
@@ -376,13 +382,13 @@ Every 30-60 seconds:
 
 ## Task Statuses
 
-| Status | Meaning | Who moves it here |
-|--------|---------|-------------------|
-| `inbox` | Ideas, backlog — agent sees but ignores | User |
-| `up_next` | Ready for work, awaiting assignment | User |
-| `in_progress` | Agent is actively working | Agent |
-| `in_review` | Agent finished, needs human review | Agent |
-| `done` | Approved and complete | User |
+| Status        | Meaning                                 | Who moves it here |
+| ------------- | --------------------------------------- | ----------------- |
+| `inbox`       | Ideas, backlog — agent sees but ignores | User              |
+| `up_next`     | Ready for work, awaiting assignment     | User              |
+| `in_progress` | Agent is actively working               | Agent             |
+| `in_review`   | Agent finished, needs human review      | Agent             |
+| `done`        | Approved and complete                   | User              |
 
 ---
 
@@ -402,11 +408,13 @@ Examples: `bug`, `feature`, `research`, `urgent`, `tech-debt`
 A task can be `blocked` in any status (usually `in_progress`).
 
 **When blocked:**
+
 - Red visual indicator on card
 - Agent should add activity note explaining why
 - Agent waits for user to respond/unblock
 
 **Unblocking:**
+
 - User sets `blocked: false` via UI
 - Or agent clears it: `{ "task": { "blocked": false } }`
 - Agent continues work
@@ -417,15 +425,16 @@ A task can be `blocked` in any status (usually `in_progress`).
 
 The API returns standard HTTP status codes:
 
-| Code | Meaning |
-|------|---------|
-| 200 | Success |
-| 201 | Created |
-| 401 | Invalid or missing API token |
-| 404 | Resource not found |
-| 422 | Validation error |
+| Code | Meaning                      |
+| ---- | ---------------------------- |
+| 200  | Success                      |
+| 201  | Created                      |
+| 401  | Invalid or missing API token |
+| 404  | Resource not found           |
+| 422  | Validation error             |
 
 **Error response format:**
+
 ```json
 {
   "error": "Task not found"

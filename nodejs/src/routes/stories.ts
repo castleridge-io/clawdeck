@@ -1,11 +1,13 @@
+import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { createStoryService } from '../services/story.service.js'
 import { createRunService } from '../services/run.service.js'
 import { createStepService } from '../services/step.service.js'
 import { prisma } from '../db/prisma.js'
+import type { Story, Step, Run, Prisma } from '@prisma/client'
 
 // Helper to safely parse JSON (prevents crashes from invalid JSON in DB)
-function safeJsonParse (str) {
+function safeJsonParse(str: string | null): unknown | null {
   if (!str) return null
   try {
     return JSON.parse(str)
@@ -15,7 +17,7 @@ function safeJsonParse (str) {
 }
 
 // Helper function to convert story to JSON response
-function storyToJson (story) {
+function storyToJson(story: Story): StoryJson {
   return {
     id: story.id,
     run_id: story.runId,
@@ -33,7 +35,26 @@ function storyToJson (story) {
   }
 }
 
-export async function storiesRoutes (fastify, opts) {
+interface StoryJson {
+  id: string
+  run_id: string
+  story_index: number
+  story_id: string
+  title: string
+  description: string | null
+  acceptance_criteria: string | null
+  status: string
+  output: unknown
+  retry_count: number
+  max_retries: number
+  created_at: string
+  updated_at: string
+}
+
+export async function storiesRoutes(
+  fastify: FastifyInstance,
+  opts: FastifyPluginOptions
+): Promise<void> {
   const storyService = createStoryService()
   const runService = createRunService()
   const stepService = createStepService()
@@ -77,7 +98,14 @@ export async function storiesRoutes (fastify, opts) {
   // POST /api/v1/runs/:runId/stories - Create a new story (for loop workflows)
   fastify.post('/', async (request, reply) => {
     const { runId } = request.params
-    const { story_index, story_id, title, description, acceptance_criteria } = request.body
+    const { story_index, story_id, title, description, acceptance_criteria } =
+      request.body as {
+        story_index: number
+        story_id: string
+        title?: string
+        description?: string
+        acceptance_criteria?: string
+      }
 
     if (!title) {
       return reply.code(400).send({ error: 'title is required' })
@@ -89,7 +117,7 @@ export async function storiesRoutes (fastify, opts) {
     }
 
     // Convert acceptance_criteria to string format
-    let acceptanceCriteria = null
+    let acceptanceCriteria: string | null = null
     if (acceptance_criteria !== undefined && acceptance_criteria !== null) {
       if (Array.isArray(acceptance_criteria)) {
         acceptanceCriteria = acceptance_criteria.map((c) => `- ${c}`).join('\n')
@@ -118,7 +146,7 @@ export async function storiesRoutes (fastify, opts) {
         data: storyToJson(story),
       })
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error instanceof Error && error.message.includes('not found')) {
         return reply.code(404).send({ error: error.message })
       }
       throw error
@@ -150,11 +178,8 @@ export async function storiesRoutes (fastify, opts) {
         data: storyToJson(updatedStory),
       }
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error instanceof Error && error.message.includes('not found')) {
         return reply.code(404).send({ error: error.message })
-      }
-      if (error.message.includes('Invalid status')) {
-        return reply.code(400).send({ error: error.message })
       }
       throw error
     }
@@ -163,7 +188,7 @@ export async function storiesRoutes (fastify, opts) {
   // POST /api/v1/runs/:runId/stories/:storyId/complete - Complete a story
   fastify.post('/:storyId/complete', async (request, reply) => {
     const { runId, storyId } = request.params
-    const { output } = request.body
+    const { output } = request.body as { output: unknown }
 
     const story = await storyService.getStory(storyId)
 
@@ -186,10 +211,10 @@ export async function storiesRoutes (fastify, opts) {
         data: storyToJson(updatedStory),
       }
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error instanceof Error && error.message.includes('not found')) {
         return reply.code(404).send({ error: error.message })
       }
-      if (error.message.includes('Invalid status')) {
+      if (error instanceof Error && error.message.includes('Invalid status')) {
         return reply.code(400).send({ error: error.message })
       }
       throw error
@@ -199,7 +224,10 @@ export async function storiesRoutes (fastify, opts) {
   // POST /api/v1/runs/:runId/stories/:storyId/fail - Fail a story (with retry)
   fastify.post('/:storyId/fail', async (request, reply) => {
     const { runId, storyId } = request.params
-    const { error: errorMessage, output } = request.body
+    const { error: errorMessage, output } = request.body as {
+      error: string
+      output?: unknown
+    }
 
     if (!errorMessage) {
       return reply.code(400).send({ error: 'error message is required' })
@@ -209,13 +237,6 @@ export async function storiesRoutes (fastify, opts) {
 
     if (!story || story.runId !== runId) {
       return reply.code(404).send({ error: 'Story not found' })
-    }
-
-    if (story.status !== 'running') {
-      return reply.code(400).send({
-        error: `Story cannot be failed. Current status: ${story.status}`,
-        current_status: story.status,
-      })
     }
 
     try {
@@ -239,7 +260,7 @@ export async function storiesRoutes (fastify, opts) {
         const updatedStory = await storyService.updateStoryStatus(storyId, 'failed', {
           error: errorMessage,
           output,
-          retries_exhausted: true,
+          retries_exceeded: true,
         })
 
         // Find and fail the parent loop step that's processing this story
@@ -255,7 +276,7 @@ export async function storiesRoutes (fastify, opts) {
           await stepService.updateStepStatus(parentStep.id, 'failed', {
             error: `Story '${story.title}' failed after max retries: ${errorMessage}`,
             storyId,
-            retries_exhausted: true,
+            retries_exceeded: true,
           })
         }
 
@@ -267,7 +288,7 @@ export async function storiesRoutes (fastify, opts) {
         }
       }
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error instanceof Error && error.message.includes('not found')) {
         return reply.code(404).send({ error: error.message })
       }
       throw error
@@ -277,7 +298,10 @@ export async function storiesRoutes (fastify, opts) {
   // PATCH /api/v1/runs/:runId/stories/:storyId - Update story
   fastify.patch('/:storyId', async (request, reply) => {
     const { runId, storyId } = request.params
-    const { status, output } = request.body
+    const { status, output } = request.body as {
+      status?: string
+      output?: unknown
+    }
 
     if (!status && output === undefined) {
       return reply.code(400).send({ error: 'status or output is required' })
@@ -301,10 +325,10 @@ export async function storiesRoutes (fastify, opts) {
         data: storyToJson(updatedStory),
       }
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error instanceof Error && error.message.includes('not found')) {
         return reply.code(404).send({ error: error.message })
       }
-      if (error.message.includes('Invalid status')) {
+      if (error instanceof Error && error.message.includes('Invalid status')) {
         return reply.code(400).send({ error: error.message })
       }
       throw error

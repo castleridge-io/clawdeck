@@ -1,0 +1,347 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1771036042131,
+  "projectRoot": "/home/montelai/tools/clawdeck",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "@playwright/test",
+        "version": "1.58.2",
+        "category": "testing"
+      }
+    ],
+    "packageManager": "yarn",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "yarn build",
+    "testCommand": "yarn test",
+    "lintCommand": "yarn lint",
+    "devCommand": "yarn dev",
+    "scripts": {
+      "dev": "yarn workspace clawdeck dev",
+      "dev:frontend": "yarn workspace clawdeck-frontend dev",
+      "build": "yarn workspaces foreach -Wt run build",
+      "test": "yarn workspace clawdeck test",
+      "test:frontend": "yarn workspace clawdeck-frontend test",
+      "lint": "eslint .",
+      "lint:fix": "eslint . --fix",
+      "format": "prettier --write .",
+      "format:check": "prettier --check .",
+      "typecheck": "yarn workspaces foreach -Wt run typecheck",
+      "prepare": "husky"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": true,
+    "workspaces": [
+      "nodejs",
+      "frontend"
+    ],
+    "mainDirectories": [
+      "docs"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 6,
+      "lastAccessed": 1771036042114,
+      "keyFiles": [
+        "AGENT_INTEGRATION.md",
+        "API.md",
+        "DARK_THEME_PROMPT.md",
+        "QUICKSTART.md",
+        "TESTING.md"
+      ]
+    },
+    "e2e": {
+      "path": "e2e",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1771036042114,
+      "keyFiles": [
+        "Dockerfile",
+        "package.json",
+        "playwright.config.ts",
+        "run-tests.sh"
+      ]
+    },
+    "e2e-results": {
+      "path": "e2e-results",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1771036042127,
+      "keyFiles": []
+    },
+    "frontend": {
+      "path": "frontend",
+      "purpose": null,
+      "fileCount": 15,
+      "lastAccessed": 1771036042127,
+      "keyFiles": [
+        "Dockerfile",
+        "Dockerfile.dev",
+        "docker-entrypoint.dev.sh",
+        "index.html",
+        "nginx.conf"
+      ]
+    },
+    "nodejs": {
+      "path": "nodejs",
+      "purpose": null,
+      "fileCount": 15,
+      "lastAccessed": 1771036042127,
+      "keyFiles": [
+        "Dockerfile",
+        "README.md",
+        "create_user.js",
+        "docker-compose.test.yml",
+        "docker-compose.yml"
+      ]
+    },
+    "skills": {
+      "path": "skills",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1771036042128,
+      "keyFiles": []
+    },
+    "test-results": {
+      "path": "test-results",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1771036042128,
+      "keyFiles": []
+    },
+    "e2e/helpers": {
+      "path": "e2e/helpers",
+      "purpose": "Helper functions",
+      "fileCount": 1,
+      "lastAccessed": 1771036042128,
+      "keyFiles": [
+        "api.ts"
+      ]
+    },
+    "e2e/tests": {
+      "path": "e2e/tests",
+      "purpose": "Test files",
+      "fileCount": 4,
+      "lastAccessed": 1771036042129,
+      "keyFiles": [
+        "auth.spec.ts",
+        "boards.spec.ts",
+        "settings.spec.ts"
+      ]
+    },
+    "frontend/dist": {
+      "path": "frontend/dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 1,
+      "lastAccessed": 1771036042129,
+      "keyFiles": [
+        "index.html"
+      ]
+    },
+    "frontend/node_modules": {
+      "path": "frontend/node_modules",
+      "purpose": "Dependencies",
+      "fileCount": 0,
+      "lastAccessed": 1771036042130,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "nodejs/src/services/yaml-import.service.js",
+      "accessCount": 2,
+      "lastAccessed": 1771038792535,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/admin.service.js",
+      "accessCount": 2,
+      "lastAccessed": 1771038792588,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/yaml-import.service.ts",
+      "accessCount": 2,
+      "lastAccessed": 1771038828829,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/step.service.js",
+      "accessCount": 2,
+      "lastAccessed": 1771038865007,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/index.ts",
+      "accessCount": 2,
+      "lastAccessed": 1771038898062,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/boards.js",
+      "accessCount": 1,
+      "lastAccessed": 1771038572123,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/boards.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038592335,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/settings.js",
+      "accessCount": 1,
+      "lastAccessed": 1771038612797,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/workflows.js",
+      "accessCount": 1,
+      "lastAccessed": 1771038612814,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/settings.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038620419,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/workflows.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038645047,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/runs.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038645373,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/steps.js",
+      "accessCount": 1,
+      "lastAccessed": 1771038662757,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/archives.js",
+      "accessCount": 1,
+      "lastAccessed": 1771038662784,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/stories.js",
+      "accessCount": 1,
+      "lastAccessed": 1771038662836,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/steps.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038698711,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/archives.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038699031,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/stories.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038699207,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/avatars.routes.js",
+      "accessCount": 1,
+      "lastAccessed": 1771038722444,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/admin.routes.js",
+      "accessCount": 1,
+      "lastAccessed": 1771038722457,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/storage.service.js",
+      "accessCount": 1,
+      "lastAccessed": 1771038722469,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/avatars.routes.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038735147,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/routes/admin.routes.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038735238,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/storage.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038745118,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/story.service.js",
+      "accessCount": 1,
+      "lastAccessed": 1771038792616,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/story.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038819776,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/admin.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038820007,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/step.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1771038820239,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

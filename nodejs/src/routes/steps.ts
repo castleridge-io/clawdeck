@@ -1,28 +1,32 @@
+import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { createStepService } from '../services/step.service.js'
 import { createRunService } from '../services/run.service.js'
+import type { Step, Run, Story, Prisma } from '@prisma/client'
 
 // JSON Schema for validation
 const stepStatusSchema = {
   type: 'string',
   enum: ['waiting', 'running', 'completed', 'failed', 'awaiting_approval'],
-}
+} as const
 
 const claimBodySchema = {
   type: 'object',
   properties: {
     agent_id: { type: 'string' },
   },
+  required: ['agent_id'],
   additionalProperties: false,
-}
+} as const
 
 const completeBodySchema = {
   type: 'object',
   properties: {
     output: {},
   },
+  required: ['output'],
   additionalProperties: false,
-}
+} as const
 
 const failBodySchema = {
   type: 'object',
@@ -32,7 +36,7 @@ const failBodySchema = {
     output: {},
   },
   additionalProperties: false,
-}
+} as const
 
 const patchBodySchema = {
   type: 'object',
@@ -43,10 +47,10 @@ const patchBodySchema = {
   },
   anyOf: [{ required: ['status'] }, { required: ['output'] }, { required: ['current_story_id'] }],
   additionalProperties: false,
-}
+} as const
 
 // Helper to safely parse JSON (prevents crashes from invalid JSON in DB)
-function safeJsonParse (str) {
+function safeJsonParse(str: string | null): unknown | null {
   if (!str) return null
   try {
     return JSON.parse(str)
@@ -56,7 +60,7 @@ function safeJsonParse (str) {
 }
 
 // Helper function to convert step to JSON response
-function stepToJson (step) {
+function stepToJson(step: Step): StepJson {
   return {
     id: step.id,
     run_id: step.runId,
@@ -77,7 +81,29 @@ function stepToJson (step) {
   }
 }
 
-export async function stepsRoutes (fastify, opts) {
+interface StepJson {
+  id: string
+  run_id: string
+  step_id: string
+  agent_id: string | null
+  step_index: number
+  input_template: string
+  expects: string
+  status: string
+  output: unknown
+  retry_count: number
+  max_retries: number
+  type: string
+  loop_config: unknown
+  current_story_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export async function stepsRoutes(
+  fastify: FastifyInstance,
+  opts: FastifyPluginOptions
+): Promise<void> {
   const stepService = createStepService()
   const runService = createRunService()
 
@@ -228,7 +254,7 @@ export async function stepsRoutes (fastify, opts) {
     },
     async (request, reply) => {
       const { runId, stepId } = request.params
-      const { output } = request.body
+      const { output } = request.body as { output: unknown }
 
       const step = await stepService.getStep(stepId)
 
@@ -253,7 +279,7 @@ export async function stepsRoutes (fastify, opts) {
           run_completed: result.runCompleted,
         }
       } catch (error) {
-        if (error.code === 'P2025') {
+        if (error instanceof Error && error.message.includes('P2025')) {
           return reply.code(404).send({ error: 'Step not found' })
         }
         throw error
@@ -271,7 +297,10 @@ export async function stepsRoutes (fastify, opts) {
     },
     async (request, reply) => {
       const { runId, stepId } = request.params
-      const { error: errorMessage, output } = request.body
+      const { error: errorMessage, output } = request.body as {
+        error: string
+        output?: unknown
+      }
 
       const step = await stepService.getStep(stepId)
 
@@ -307,7 +336,7 @@ export async function stepsRoutes (fastify, opts) {
           const updatedStep = await stepService.updateStepStatus(stepId, 'failed', {
             error: errorMessage,
             output,
-            retries_exhausted: true,
+            retries_exceeded: true,
           })
 
           // Update run status to failed
@@ -321,7 +350,7 @@ export async function stepsRoutes (fastify, opts) {
           }
         }
       } catch (error) {
-        if (error.message.includes('not found')) {
+        if (error instanceof Error && error.message.includes('not found')) {
           return reply.code(404).send({ error: error.message })
         }
         throw error
@@ -339,7 +368,11 @@ export async function stepsRoutes (fastify, opts) {
     },
     async (request, reply) => {
       const { runId, stepId } = request.params
-      const { status, output, current_story_id } = request.body
+      const { status, output, current_story_id } = request.body as {
+        status?: string
+        output?: unknown
+        current_story_id?: string | null
+      }
 
       const step = await stepService.getStep(stepId)
 
@@ -359,14 +392,14 @@ export async function stepsRoutes (fastify, opts) {
           data: stepToJson(updatedStep),
         }
       } catch (error) {
-        if (error.message.includes('not found')) {
+        if (error instanceof Error && error.message.includes('not found')) {
           return reply.code(404).send({ error: error.message })
         }
-        if (error.message.includes('Invalid status')) {
+        if (error instanceof Error && error.message.includes('Invalid status')) {
           return reply.code(400).send({ error: error.message })
         }
         throw error
       }
     }
-  )
+  })
 }

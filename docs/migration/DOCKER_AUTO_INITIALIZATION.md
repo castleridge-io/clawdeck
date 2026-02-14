@@ -38,12 +38,14 @@ curl http://localhost:3000/health
 **When**: PostgreSQL container first starts
 
 **What happens**:
+
 1. PostgreSQL database created
 2. Runs init scripts from `postgres/init/`
 3. Creates extensions and indexes
 4. Records migration version
 
 **Files**:
+
 - `postgres/init/01-init-database.sh` - Initialization script
 
 ### 2. API Server Initialization
@@ -51,6 +53,7 @@ curl http://localhost:3000/health
 **When**: API container starts (after PostgreSQL is healthy)
 
 **What happens**:
+
 1. Checks `AUTO_MIGRATE` environment variable
 2. If `true`, runs:
    - `npx prisma generate` (generate client)
@@ -58,6 +61,7 @@ curl http://localhost:3000/health
 3. Starts API server
 
 **Configuration**:
+
 ```bash
 # In .env or docker-compose.yml
 AUTO_MIGRATE=true
@@ -143,9 +147,9 @@ services:
     image: postgres:16-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init:/docker-entrypoint-initdb.d  # Init scripts
+      - ./postgres/init:/docker-entrypoint-initdb.d # Init scripts
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-U", "clawdeck"]
+      test: ['CMD-SHELL', 'pg_isready', '-U', 'clawdeck']
 
   api:
     environment:
@@ -262,6 +266,7 @@ docker-compose logs -f api
 ```
 
 **You'll see**:
+
 ```
 api       | 🔧 Initializing ClawDeck database...
 api       | ✅ Database initialized successfully
@@ -279,14 +284,14 @@ api       | Server listening on 0.0.0.0:3000
 
 Docker Compose provides everything systemd would:
 
-| Feature | Systemd | Docker Compose |
-|---------|----------|----------------|
-| Auto-start on boot | ✅ | ✅ (via Docker daemon) |
-| Auto-restart on crash | ✅ | ✅ (`restart: unless-stopped`) |
-| Health checks | ✅ | ✅ (`healthcheck:`) |
-| Dependency management | ✅ | ✅ (`depends_on: condition: service_healthy`) |
-| Log management | ✅ | ✅ (`docker-compose logs`) |
-| Resource limits | ✅ | ✅ (`deploy.resources`) |
+| Feature               | Systemd | Docker Compose                                |
+| --------------------- | ------- | --------------------------------------------- |
+| Auto-start on boot    | ✅      | ✅ (via Docker daemon)                        |
+| Auto-restart on crash | ✅      | ✅ (`restart: unless-stopped`)                |
+| Health checks         | ✅      | ✅ (`healthcheck:`)                           |
+| Dependency management | ✅      | ✅ (`depends_on: condition: service_healthy`) |
+| Log management        | ✅      | ✅ (`docker-compose logs`)                    |
+| Resource limits       | ✅      | ✅ (`deploy.resources`)                       |
 
 ### How Docker Auto-Start Works
 
@@ -340,6 +345,7 @@ curl http://localhost:3000/health
 ### Issue: Migrations Don't Run
 
 **Check**:
+
 ```bash
 # Is AUTO_MIGRATE set?
 docker-compose exec api printenv | grep AUTO_MIGRATE
@@ -349,6 +355,7 @@ docker-compose logs api | grep -i migration
 ```
 
 **Fix**:
+
 ```bash
 # Add to .env
 echo "AUTO_MIGRATE=true" >> .env
@@ -360,6 +367,7 @@ docker-compose restart api
 ### Issue: Init Scripts Don't Run
 
 **Check**:
+
 ```bash
 # Init scripts only run on FIRST start
 docker volume rm clawdeck_postgres_data
@@ -370,6 +378,7 @@ docker-compose up -d
 ### Issue: Database Already Initialized
 
 **This is normal!**
+
 - Init scripts only run on fresh database
 - `ON CONFLICT DO NOTHING` prevents errors
 - Migration version tracking prevents re-runs

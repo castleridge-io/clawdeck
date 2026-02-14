@@ -130,18 +130,29 @@ All services have `restart: unless-stopped`, which means:
 ### Health Checks
 
 **PostgreSQL health check**:
+
 ```yaml
 healthcheck:
-  test: ["CMD-SHELL", "pg_isready", "-U", "clawdeck"]
+  test: ['CMD-SHELL', 'pg_isready', '-U', 'clawdeck']
   interval: 10s
   timeout: 5s
   retries: 5
 ```
 
 **API health check**:
+
 ```yaml
 healthcheck:
-  test: ["CMD-SHELL", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/healthz", "--timeout=5"]
+  test:
+    [
+      'CMD-SHELL',
+      'wget',
+      '--no-verbose',
+      '--tries=1',
+      '--spider',
+      'http://localhost:3000/healthz',
+      '--timeout=5',
+    ]
   interval: 30s
   timeout: 10s
   retries: 3
@@ -149,6 +160,7 @@ healthcheck:
 ```
 
 **Dependency management**:
+
 ```yaml
 depends_on:
   postgres:
@@ -303,6 +315,7 @@ docker-compose up -d
 ```
 
 **What happens**:
+
 1. All containers start
 2. Health checks pass
 3. API server starts (skips migrations if already applied)
@@ -369,12 +382,14 @@ docker inspect clawdeck-api | jq '.[0].State.Health'
 ### Issue: Migrations Fail
 
 **Check logs**:
+
 ```bash
 docker-compose logs api | grep -i error
 docker-compose logs postgres
 ```
 
 **Manual migration**:
+
 ```bash
 # Connect to container
 docker-compose exec api sh
@@ -389,11 +404,13 @@ npx prisma studio
 ### Issue: Services Won't Start
 
 **Check port conflicts**:
+
 ```bash
 netstat -tuln | grep -E '3000|5432|6379'
 ```
 
 **Rebuild from scratch**:
+
 ```bash
 docker-compose down -v
 docker-compose build --no-cache
@@ -446,17 +463,18 @@ docker-compose exec api npx prisma migrate deploy
 
 ### Auto-Initialization Features
 
-| Feature | Description | Default |
-|---------|-------------|---------|
-| **AUTO_MIGRATE** | Run migrations on startup | `true` |
-| **AUTO_SEED** | Seed database on startup | `false` |
-| **Health Checks** | Ensure services are healthy | Enabled |
-| **Restart Policy** | Auto-restart on failure | `unless-stopped` |
-| **Dependency Management** | API waits for PostgreSQL | Enabled |
+| Feature                   | Description                 | Default          |
+| ------------------------- | --------------------------- | ---------------- |
+| **AUTO_MIGRATE**          | Run migrations on startup   | `true`           |
+| **AUTO_SEED**             | Seed database on startup    | `false`          |
+| **Health Checks**         | Ensure services are healthy | Enabled          |
+| **Restart Policy**        | Auto-restart on failure     | `unless-stopped` |
+| **Dependency Management** | API waits for PostgreSQL    | Enabled          |
 
 ### No Systemd Needed
 
 Docker Compose handles everything:
+
 - ✅ Auto-start on boot (Docker daemon auto-start)
 - ✅ Auto-restart on crash
 - ✅ Health checks

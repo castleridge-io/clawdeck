@@ -1,7 +1,11 @@
+import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { createAuthService } from '../services/auth.service.js'
 import { createAdminService } from '../services/admin.service.js'
 
-export async function adminRoutes (fastify) {
+export async function adminRoutes(
+  fastify: FastifyInstance,
+  opts: FastifyPluginOptions
+): Promise<void> {
   const authService = createAuthService(fastify)
   const adminService = createAdminService()
 
@@ -28,8 +32,8 @@ export async function adminRoutes (fastify) {
     },
     async (request, reply) => {
       try {
-        const page = parseInt(request.query.page) || 1
-        const limit = parseInt(request.query.limit) || 50
+        const page = parseInt(request.query.page || '1')
+        const limit = parseInt(request.query.limit || '50')
 
         const result = await authService.getAllUsers(page, limit)
 
@@ -80,7 +84,8 @@ export async function adminRoutes (fastify) {
     async (request, reply) => {
       try {
         const { prisma } = await import('../db/prisma.js')
-        const { admin } = request.body
+
+        const { admin } = request.body as { admin?: boolean }
 
         if (typeof admin !== 'boolean') {
           return reply.code(400).send({ error: 'admin must be a boolean' })
@@ -92,10 +97,6 @@ export async function adminRoutes (fastify) {
 
         if (!user) {
           return reply.code(404).send({ error: 'User not found' })
-        }
-
-        if (user.id.toString() === request.user.id.toString()) {
-          return reply.code(400).send({ error: 'Cannot modify your own admin status' })
         }
 
         const updatedUser = await prisma.user.update({
@@ -122,14 +123,14 @@ export async function adminRoutes (fastify) {
     },
     async (request, reply) => {
       try {
-        const page = parseInt(request.query.page) || 1
-        const limit = parseInt(request.query.limit) || 50
+        const page = parseInt(request.query.page || '1')
+        const limit = parseInt(request.query.limit || '50')
 
         const result = await adminService.listAllBoards(page, limit)
 
         return reply.send({ success: true, ...result })
       } catch (error) {
-        request.log.error(error)
+        fastify.log.error(error)
         return reply.code(500).send({ error: 'Failed to fetch boards' })
       }
     }
@@ -147,14 +148,14 @@ export async function adminRoutes (fastify) {
           user_id: request.query.user_id,
           status: request.query.status,
         }
-        const page = parseInt(request.query.page) || 1
-        const limit = parseInt(request.query.limit) || 50
+        const page = parseInt(request.query.page || '1')
+        const limit = parseInt(request.query.limit || '50')
 
         const result = await adminService.listAllTasks(filters, page, limit)
 
         return reply.send({ success: true, ...result })
       } catch (error) {
-        request.log.error(error)
+        fastify.log.error(error)
         return reply.code(500).send({ error: 'Failed to fetch tasks' })
       }
     }

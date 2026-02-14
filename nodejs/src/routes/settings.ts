@@ -1,15 +1,46 @@
+import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { authenticateRequest, authenticateAdmin } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
 import { randomUUID } from 'node:crypto'
 import { createSettingsService } from '../services/settings.service.js'
+import type { ApiToken, User } from '@prisma/client'
 
-export async function settingsRoutes (fastify, opts) {
+interface UserJson {
+  id: string
+  email: string
+  agent_auto_mode: boolean
+  agent_name: string | null
+  agent_emoji: string | null
+  agent_last_active_at: string | null
+}
+
+interface ApiTokenJson {
+  id: string
+  name: string
+  token: string
+  last_used_at: string | null
+  created_at: string
+}
+
+interface SettingsData extends UserJson {
+  api_tokens: ApiTokenJson[]
+}
+
+interface OpenClawSettings {
+  url?: string
+  api_key?: string
+}
+
+export async function settingsRoutes(
+  fastify: FastifyInstance,
+  opts: FastifyPluginOptions
+): Promise<void> {
   // Apply authentication to all routes
   fastify.addHook('onRequest', authenticateRequest)
   const settingsService = createSettingsService()
 
   // GET /api/v1/settings - Get user settings (agent config)
-  fastify.get('/', async (request) => {
+  fastify.get('/', async (request, reply) => {
     const apiTokens = await prisma.apiToken.findMany({
       where: { userId: BigInt(request.user.id) },
       orderBy: { createdAt: 'desc' },
@@ -37,9 +68,13 @@ export async function settingsRoutes (fastify, opts) {
 
   // PATCH /api/v1/settings - Update user settings
   fastify.patch('/', async (request, reply) => {
-    const { agent_auto_mode, agent_name, agent_emoji } = request.body
+    const { agent_auto_mode, agent_name, agent_emoji } = request.body as {
+      agent_auto_mode?: boolean
+      agent_name?: string
+      agent_emoji?: string
+    }
 
-    const updateData = {}
+    const updateData: Partial<User> = {}
     if (agent_auto_mode !== undefined) {
       updateData.agentAutoMode = agent_auto_mode
     }
@@ -70,9 +105,9 @@ export async function settingsRoutes (fastify, opts) {
 
   // POST /api/v1/settings/regenerate_token - Generate new API token
   fastify.post('/regenerate_token', async (request, reply) => {
-    const { name } = request.body
+    const { name } = request.body as { name?: string }
 
-    const token = `cd_${randomUUID()}`
+    const token = `oc-sys-${randomUUID()}`
 
     const apiToken = await prisma.apiToken.create({
       data: {
@@ -108,7 +143,7 @@ export async function settingsRoutes (fastify, opts) {
 
   // PATCH /api/v1/settings/openclaw - Update OpenClaw settings
   fastify.patch('/openclaw', { preHandler: authenticateAdmin }, async (request, reply) => {
-    const { url, apiKey } = request.body
+    const { url, apiKey } = request.body as OpenClawSettings
 
     const settings = await settingsService.updateOpenClawSettings({ url, apiKey })
     return {

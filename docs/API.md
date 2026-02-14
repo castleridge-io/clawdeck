@@ -63,6 +63,7 @@ curl http://localhost:8888/up
 ```
 
 **Response (200 OK)**:
+
 ```json
 {
   "status": "ok"
@@ -80,6 +81,7 @@ Register a new user account.
 **Authentication**: None required
 
 **Request Body**:
+
 ```json
 {
   "emailAddress": "user@example.com",
@@ -91,6 +93,7 @@ Register a new user account.
 ```
 
 **Response (201 Created)**:
+
 ```json
 {
   "user": {
@@ -107,6 +110,7 @@ Register a new user account.
 ```
 
 **Errors**:
+
 - `400` - Invalid input
 - `409` - User already exists
 
@@ -119,6 +123,7 @@ Login with email/password.
 **Authentication**: None required
 
 **Request Body**:
+
 ```json
 {
   "emailAddress": "user@example.com",
@@ -127,6 +132,7 @@ Login with email/password.
 ```
 
 **Response (200 OK)**:
+
 ```json
 {
   "user": {
@@ -143,6 +149,7 @@ Login with email/password.
 ```
 
 **Errors**:
+
 - `400` - Missing credentials
 - `401` - Invalid credentials
 
@@ -155,11 +162,13 @@ Logout current session.
 **Authentication**: JWT required
 
 **Headers**:
+
 ```http
 Authorization: Bearer <jwt_token>
 ```
 
 **Response (200 OK)**:
+
 ```json
 {
   "message": "Logged out successfully"
@@ -175,6 +184,7 @@ Get current user profile.
 **Authentication**: JWT required
 
 **Response (200 OK)**:
+
 ```json
 {
   "id": "123",
@@ -198,6 +208,7 @@ Update current user profile.
 **Authentication**: JWT required
 
 **Request Body**:
+
 ```json
 {
   "agentName": "New Name",
@@ -207,6 +218,7 @@ Update current user profile.
 ```
 
 **Response (200 OK)**:
+
 ```json
 {
   "id": "123",
@@ -228,6 +240,7 @@ Change user password.
 **Authentication**: JWT required
 
 **Request Body**:
+
 ```json
 {
   "currentPassword": "oldpassword123",
@@ -236,6 +249,7 @@ Change user password.
 ```
 
 **Response (200 OK)**:
+
 ```json
 {
   "message": "Password updated successfully"
@@ -251,6 +265,7 @@ Get current user's API token.
 **Authentication**: JWT required
 
 **Response (200 OK)**:
+
 ```json
 {
   "token": "oc-sys-6e07444c51f93cb9ab69282a06878195-b3032039",
@@ -269,6 +284,7 @@ Regenerate API token (invalidates old token).
 **Authentication**: JWT required
 
 **Response (200 OK)**:
+
 ```json
 {
   "token": "oc-sys-newtokenhere",
@@ -290,6 +306,7 @@ List all boards for authenticated user.
 **Query Parameters**: None
 
 **Response (200 OK)**:
+
 ```json
 {
   "success": true,
@@ -317,6 +334,7 @@ Get single board with tasks.
 **Authentication**: Required
 
 **Response (200 OK)**:
+
 ```json
 {
   "success": true,
@@ -357,6 +375,7 @@ Create a new board.
 **Authentication**: Required
 
 **Request Body**:
+
 ```json
 {
   "name": "My Project Board",
@@ -367,6 +386,7 @@ Create a new board.
 ```
 
 **Response (201 Created)**:
+
 ```json
 {
   "success": true,
@@ -392,6 +412,7 @@ Update a board.
 **Authentication**: Required
 
 **Request Body** (all fields optional):
+
 ```json
 {
   "name": "Updated Board Name",
@@ -402,6 +423,7 @@ Update a board.
 ```
 
 **Response (200 OK)**:
+
 ```json
 {
   "success": true,
@@ -439,11 +461,13 @@ List tasks with optional filters.
 **Authentication**: Required
 
 **Query Parameters**:
+
 - `assigned` (optional): Filter for assigned tasks (`"true"` or `"false"`)
 - `status` (optional): Filter by status (`inbox`, `up_next`, `in_progress`, `in_review`, `done`)
 - `board_id` (optional): Filter by board ID
 
 **Examples**:
+
 ```bash
 # Get all tasks
 GET /tasks
@@ -459,6 +483,7 @@ GET /tasks?board_id=40
 ```
 
 **Response (200 OK)**:
+
 ```json
 {
   "success": true,
@@ -498,6 +523,7 @@ Get next task for agent auto-mode.
 **Requires**: User must have `agentAutoMode = true`
 
 **Response (200 OK)**:
+
 ```json
 {
   "id": "123",
@@ -530,6 +556,7 @@ Get single task details.
 **Authentication**: Required
 
 **Response (200 OK)**:
+
 ```json
 {
   "id": "123",
@@ -562,6 +589,7 @@ Create a new task.
 **Authentication**: Required
 
 **Request Body**:
+
 ```json
 {
   "name": "New task name",
@@ -574,6 +602,7 @@ Create a new task.
 ```
 
 **Response (201 Created)**:
+
 ```json
 {
   "id": "124",
@@ -606,6 +635,7 @@ Update a task.
 **Authentication**: Required
 
 **Request Body** (all fields optional):
+
 ```json
 {
   "name": "Updated name",
@@ -617,6 +647,7 @@ Update a task.
 ```
 
 **Task Statuses**:
+
 - `inbox` - New, not prioritized
 - `up_next` - Ready to be assigned
 - `in_progress` - Being worked on
@@ -624,6 +655,7 @@ Update a task.
 - `done` - Complete
 
 **Priorities**:
+
 - `none`, `low`, `medium`, `high`
 
 **Response (200 OK)**: Returns updated task
@@ -689,6 +721,7 @@ Get user settings.
 **Authentication**: Required
 
 **Response (200 OK)**:
+
 ```json
 {
   "success": true,
@@ -710,6 +743,7 @@ Update user settings.
 **Authentication**: Required
 
 **Request Body**:
+
 ```json
 {
   "agentAutoMode": true,
@@ -719,6 +753,7 @@ Update user settings.
 ```
 
 **Response (200 OK)**:
+
 ```json
 {
   "success": true,
@@ -740,6 +775,7 @@ Regenerate API token.
 **Authentication**: Required
 
 **Response (200 OK)**:
+
 ```json
 {
   "success": true,
@@ -764,6 +800,7 @@ List all active agents.
 **Authentication**: Required
 
 **Response (200 OK)**:
+
 ```json
 {
   "success": true,
@@ -802,6 +839,7 @@ Get a single agent by UUID.
 **Authentication**: Required
 
 **Response (200 OK)**:
+
 ```json
 {
   "success": true,
@@ -825,7 +863,7 @@ Get a single agent by UUID.
 **Errors**:
 | Code | Description |
 |------|-------------|
-| 404  | Agent not found |
+| 404 | Agent not found |
 
 ---
 
@@ -836,6 +874,7 @@ Create a new agent. UUID is auto-generated.
 **Authentication**: Admin required
 
 **Request Body**:
+
 ```json
 {
   "name": "New Agent",
@@ -848,6 +887,7 @@ Create a new agent. UUID is auto-generated.
 ```
 
 **Response (201 Created)**:
+
 ```json
 {
   "success": true,
@@ -871,8 +911,8 @@ Create a new agent. UUID is auto-generated.
 **Errors**:
 | Code | Description |
 |------|-------------|
-| 400  | Missing required field (name or slug) |
-| 409  | Agent with this name or slug already exists |
+| 400 | Missing required field (name or slug) |
+| 409 | Agent with this name or slug already exists |
 
 ---
 
@@ -883,6 +923,7 @@ Register an existing agent from OpenClaw with a pre-existing UUID.
 **Authentication**: Admin required
 
 **Request Body**:
+
 ```json
 {
   "uuid": "external-uuid-from-openclaw",
@@ -895,6 +936,7 @@ Register an existing agent from OpenClaw with a pre-existing UUID.
 ```
 
 **Response (201 Created)**:
+
 ```json
 {
   "success": true,
@@ -918,8 +960,8 @@ Register an existing agent from OpenClaw with a pre-existing UUID.
 **Errors**:
 | Code | Description |
 |------|-------------|
-| 400  | Missing required field (uuid, name, or slug) |
-| 409  | Agent with this UUID, name, or slug already exists |
+| 400 | Missing required field (uuid, name, or slug) |
+| 409 | Agent with this UUID, name, or slug already exists |
 
 ---
 
@@ -930,6 +972,7 @@ Update an agent.
 **Authentication**: Admin required
 
 **Request Body**:
+
 ```json
 {
   "name": "Updated Name",
@@ -940,6 +983,7 @@ Update an agent.
 ```
 
 **Response (200 OK)**:
+
 ```json
 {
   "success": true,
@@ -963,8 +1007,8 @@ Update an agent.
 **Errors**:
 | Code | Description |
 |------|-------------|
-| 404  | Agent not found |
-| 409  | Agent with this name or slug already exists |
+| 404 | Agent not found |
+| 409 | Agent with this name or slug already exists |
 
 ---
 
@@ -979,7 +1023,7 @@ Soft delete an agent (sets `is_active` to false).
 **Errors**:
 | Code | Description |
 |------|-------------|
-| 404  | Agent not found |
+| 404 | Agent not found |
 
 ---
 
@@ -1054,6 +1098,7 @@ WebSocket connection for real-time updates.
 **Connect with API token as query parameter.**
 
 **Events**:
+
 - `task_created` - New task created
 - `task_updated` - Task modified
 - `task_deleted` - Task removed
@@ -1066,16 +1111,16 @@ WebSocket connection for real-time updates.
 
 ## Common Error Codes
 
-| Code | Description |
-|------|-------------|
-| 200  | Success |
-| 201  | Created |
-| 204  | No Content |
-| 400  | Bad Request |
-| 401  | Unauthorized |
-| 404  | Not Found |
+| Code | Description                  |
+| ---- | ---------------------------- |
+| 200  | Success                      |
+| 201  | Created                      |
+| 204  | No Content                   |
+| 400  | Bad Request                  |
+| 401  | Unauthorized                 |
+| 404  | Not Found                    |
 | 409  | Conflict (user exists, etc.) |
-| 500  | Internal Server Error |
+| 500  | Internal Server Error        |
 
 ---
 
@@ -1118,6 +1163,7 @@ User: openclaw@system.local
 ```
 
 **Example**:
+
 ```bash
 curl http://localhost:8888/api/v1/boards \
   -H "Authorization: Bearer oc-sys-6e07444c51f93cb9ab69282a06878195-b3032039"

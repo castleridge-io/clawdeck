@@ -1,7 +1,11 @@
 ---
 name: clawdeck
-description: "ClawDeck task management and workflow orchestration. Use for querying/claiming tasks, managing workflows, runs, steps, and stories. Agents can claim steps, report progress, and complete work."
-metadata: {"openclaw":{"emoji":"📋","requires":{"bins":["curl","jq"],"env":["CLAWDECK_API_URL"]}}}
+description: 'ClawDeck task management and workflow orchestration. Use for querying/claiming tasks, managing workflows, runs, steps, and stories. Agents can claim steps, report progress, and complete work.'
+metadata:
+  {
+    'openclaw':
+      { 'emoji': '📋', 'requires': { 'bins': ['curl', 'jq'], 'env': ['CLAWDECK_API_URL'] } },
+  }
 ---
 
 # ClawDeck Task & Workflow Management
@@ -187,13 +191,13 @@ curl -X PATCH "$CLAWDECK_API_URL/tasks/TASK_ID" \
 
 ## Task Statuses
 
-| Status | Who Sets It | Meaning |
-|--------|-------------|---------|
-| `inbox` | User | New, not prioritized |
-| `up_next` | User | Ready for agent |
-| `in_progress` | Agent | Working on it |
-| `in_review` | Agent | Done, needs review |
-| `done` | User | Complete |
+| Status        | Who Sets It | Meaning              |
+| ------------- | ----------- | -------------------- |
+| `inbox`       | User        | New, not prioritized |
+| `up_next`     | User        | Ready for agent      |
+| `in_progress` | Agent       | Working on it        |
+| `in_review`   | Agent       | Done, needs review   |
+| `done`        | User        | Complete             |
 
 ---
 
@@ -449,12 +453,12 @@ curl -X PATCH "$CLAWDECK_API_URL/runs/RUN_ID/steps/STEP_ID" \
 
 ## Step Statuses
 
-| Status | Meaning |
-|--------|---------|
-| `waiting` | Ready to claim |
-| `running` | Agent working |
-| `completed` | Finished |
-| `failed` | Failed (may retry) |
+| Status              | Meaning            |
+| ------------------- | ------------------ |
+| `waiting`           | Ready to claim     |
+| `running`           | Agent working      |
+| `completed`         | Finished           |
+| `failed`            | Failed (may retry) |
 | `awaiting_approval` | Needs human review |
 
 ---
@@ -529,12 +533,12 @@ curl -X PATCH "$CLAWDECK_API_URL/runs/RUN_ID/stories/STORY_ID" \
 
 ## Story Statuses
 
-| Status | Meaning |
-|--------|---------|
-| `pending` | Ready to start |
-| `running` | Agent working |
-| `completed` | Finished |
-| `failed` | Failed (may retry) |
+| Status      | Meaning            |
+| ----------- | ------------------ |
+| `pending`   | Ready to start     |
+| `running`   | Agent working      |
+| `completed` | Finished           |
+| `failed`    | Failed (may retry) |
 
 ---
 

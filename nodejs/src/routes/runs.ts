@@ -1,8 +1,55 @@
+import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { createRunService } from '../services/run.service.js'
+import type { Run, Step, Story } from '@prisma/client'
+
+interface StepJson {
+  id: string
+  step_id: string
+  agent_id: string | null
+  step_index: number
+  input_template: string
+  expects: string
+  status: string
+  output: unknown
+  retry_count: number
+  max_retries: number
+  type: string
+  loop_config: unknown
+  current_story_id: string | null
+}
+
+interface StoryJson {
+  id: string
+  story_index: number
+  story_id: string
+  title: string
+  description: string
+  acceptance_criteria: string
+  status: string
+  output: unknown
+  retry_count: number
+  max_retries: number
+}
+
+interface RunJson {
+  id: string
+  workflow_id: string
+  task_id: string | null
+  task: string
+  status: string
+  context: unknown
+  notify_url: string | null
+  awaiting_approval: boolean
+  awaiting_approval_since: string | null
+  created_at: string
+  updated_at: string
+  steps: StepJson[]
+  stories: StoryJson[]
+}
 
 // Helper function to convert run to JSON response
-function runToJson (run) {
+function runToJson(run: Run): RunJson {
   return {
     id: run.id,
     workflow_id: run.workflowId.toString(),
@@ -16,7 +63,7 @@ function runToJson (run) {
     created_at: run.createdAt.toISOString(),
     updated_at: run.updatedAt.toISOString(),
     steps:
-      run.steps?.map((step) => ({
+      run.steps?.map((step: Step) => ({
         id: step.id,
         step_id: step.stepId,
         agent_id: step.agentId,
@@ -32,7 +79,7 @@ function runToJson (run) {
         current_story_id: step.currentStoryId,
       })) || [],
     stories:
-      run.stories?.map((story) => ({
+      run.stories?.map((story: Story) => ({
         id: story.id,
         story_index: story.storyIndex,
         story_id: story.storyId,
@@ -47,7 +94,15 @@ function runToJson (run) {
   }
 }
 
-export async function runsRoutes (fastify, opts) {
+interface RunFilters {
+  task_id?: string
+  status?: string
+}
+
+export async function runsRoutes(
+  fastify: FastifyInstance,
+  opts: FastifyPluginOptions
+): Promise<void> {
   const runService = createRunService()
 
   // Apply authentication to all routes
@@ -57,7 +112,7 @@ export async function runsRoutes (fastify, opts) {
   fastify.get('/', async (request, reply) => {
     const { task_id, status } = request.query
 
-    const filters = {}
+    const filters: RunFilters = {}
     if (task_id) {
       filters.taskId = task_id
     }
@@ -97,7 +152,13 @@ export async function runsRoutes (fastify, opts) {
 
   // POST /api/v1/runs - Create run
   fastify.post('/', async (request, reply) => {
-    const { workflow_id, task_id, task, context, notify_url } = request.body
+    const { workflow_id, task_id, task, context, notify_url } = request.body as {
+      workflow_id?: string
+      task_id?: string
+      task?: string
+      context?: unknown
+      notify_url?: string
+    }
 
     if (!workflow_id) {
       return reply.code(400).send({ error: 'workflow_id is required' })
@@ -121,7 +182,7 @@ export async function runsRoutes (fastify, opts) {
         data: runToJson(run),
       })
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error instanceof Error && error.message.includes('not found')) {
         return reply.code(400).send({ error: error.message })
       }
       throw error
@@ -130,7 +191,7 @@ export async function runsRoutes (fastify, opts) {
 
   // PATCH /api/v1/runs/:id/status - Update run status
   fastify.patch('/:id/status', async (request, reply) => {
-    const { status } = request.body
+    const { status } = request.body as { status?: string }
 
     if (!status) {
       return reply.code(400).send({ error: 'status is required' })
@@ -144,10 +205,10 @@ export async function runsRoutes (fastify, opts) {
         data: runToJson(run),
       }
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error instanceof Error && error.message.includes('not found')) {
         return reply.code(404).send({ error: error.message })
       }
-      if (error.message.includes('Invalid status')) {
+      if (error instanceof Error && error.message.includes('Invalid status')) {
         return reply.code(400).send({ error: error.message })
       }
       throw error

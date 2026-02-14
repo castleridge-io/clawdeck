@@ -1,79 +1,24 @@
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getBoards, getAgents, getTasks } from '../lib/api'
-import type { Board, Agent, Task } from '../types'
+import { useDashboard } from '../hooks/useDashboard'
 import LoadingSpinner from '../components/LoadingSpinner'
 
-interface TaskCounts {
-  inbox: number
-  up_next: number
-  in_progress: number
-  in_review: number
-  done: number
-}
+export default function DashboardPage() {
+  const { data, isLoading, error } = useDashboard()
 
-export default function DashboardPage () {
-  const [loading, setLoading] = useState(true)
-  const [boards, setBoards] = useState<Board[]>([])
-  const [agents, setAgents] = useState<Agent[]>([])
-  const [taskCounts, setTaskCounts] = useState<TaskCounts>({
-    inbox: 0,
-    up_next: 0,
-    in_progress: 0,
-    in_review: 0,
-    done: 0,
-  })
-
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  async function loadData () {
-    try {
-      const [boardsData, agentsData] = await Promise.all([
-        getBoards().catch(() => []),
-        getAgents().catch(() => []),
-      ])
-
-      setBoards(boardsData)
-      setAgents(agentsData)
-
-      // Load tasks from all boards
-      const taskPromises = boardsData.map((board) =>
-        getTasks(board.id).catch((): Task[] => [])
-      )
-      const taskResults = await Promise.all(taskPromises)
-      const allTasks = taskResults.flat()
-
-      // Count tasks by status
-      const counts: TaskCounts = {
-        inbox: 0,
-        up_next: 0,
-        in_progress: 0,
-        in_review: 0,
-        done: 0,
-      }
-
-      for (const task of allTasks) {
-        if (task.status in counts) {
-          counts[task.status as keyof TaskCounts]++
-        }
-      }
-
-      setTaskCounts(counts)
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (loading) {
+  if (isLoading) {
     return <LoadingSpinner />
   }
 
+  if (error || !data) {
+    return (
+      <div className='p-6'>
+        <p className='text-red-400'>Failed to load dashboard data</p>
+      </div>
+    )
+  }
+
+  const { boards, agents, taskCounts } = data
   const activeAgents = agents.filter((a) => a.status === 'active').length
-  const totalTasks = Object.values(taskCounts).reduce((a, b) => a + b, 0)
 
   return (
     <div className='p-6'>
@@ -83,7 +28,7 @@ export default function DashboardPage () {
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
         <div className='bg-slate-800 rounded-lg p-4'>
           <p className='text-slate-400 text-sm'>Total Tasks</p>
-          <p className='text-3xl font-bold text-white'>{totalTasks}</p>
+          <p className='text-3xl font-bold text-white'>{taskCounts.total}</p>
         </div>
 
         <div className='bg-slate-800 rounded-lg p-4'>
@@ -106,12 +51,14 @@ export default function DashboardPage () {
       <div className='bg-slate-800 rounded-lg p-6 mb-8'>
         <h2 className='text-lg font-semibold text-white mb-4'>Task Overview</h2>
         <div className='flex gap-4'>
-          {Object.entries(taskCounts).map(([status, count]) => (
-            <div key={status} className='flex-1 text-center'>
-              <div className='text-2xl font-bold text-white mb-1'>{count}</div>
-              <div className='text-xs text-slate-400 uppercase'>{status.replace('_', ' ')}</div>
-            </div>
-          ))}
+          {Object.entries(taskCounts)
+            .filter(([status]) => status !== 'total')
+            .map(([status, count]) => (
+              <div key={status} className='flex-1 text-center'>
+                <div className='text-2xl font-bold text-white mb-1'>{count}</div>
+                <div className='text-xs text-slate-400 uppercase'>{status.replace('_', ' ')}</div>
+              </div>
+            ))}
         </div>
       </div>
 
