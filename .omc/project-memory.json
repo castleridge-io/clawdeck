@@ -189,8 +189,8 @@
     },
     {
       "path": "nodejs/src",
-      "accessCount": 38,
-      "lastAccessed": 1771109516054,
+      "accessCount": 40,
+      "lastAccessed": 1771110022404,
       "type": "directory"
     },
     {
@@ -320,6 +320,12 @@
       "type": "file"
     },
     {
+      "path": "e2e/tests",
+      "accessCount": 4,
+      "lastAccessed": 1771110033508,
+      "type": "directory"
+    },
+    {
       "path": ".env",
       "accessCount": 3,
       "lastAccessed": 1771053019303,
@@ -390,12 +396,6 @@
       "accessCount": 2,
       "lastAccessed": 1771081257962,
       "type": "file"
-    },
-    {
-      "path": "e2e/tests",
-      "accessCount": 2,
-      "lastAccessed": 1771109523239,
-      "type": "directory"
     },
     {
       "path": "e2e/package.json",
