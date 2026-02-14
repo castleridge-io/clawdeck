@@ -9,13 +9,13 @@ The **Antfarm** workflow orchestration system was merged into ClawDeck, providin
 
 ## Implementation Progress
 
-| Phase | Description | Status |
-|-------|-------------|--------|
-| Phase 1 | Workflow Executor Service | ✅ Complete |
-| Phase 2 | API Routes for Steps/Runs | ✅ Complete |
-| Phase 3 | Agent API Integration | ⏳ In Progress |
-| Phase 4 | Scheduler (cleanup, retry) | 🔲 Pending |
-| Phase 5 | WebSocket Events | 🔲 Pending |
+| Phase | Description | Status | E2E Tests |
+|-------|-------------|--------|-----------|
+| Phase 1 | Workflow Executor Service | ✅ Complete | ✅ |
+| Phase 2 | API Routes for Steps/Runs | ✅ Complete | ✅ |
+| Phase 3 | Agent API Integration | ✅ Complete | ✅ 5 tests |
+| Phase 4 | Scheduler (cleanup, retry) | ✅ Complete | - |
+| Phase 5 | WebSocket Events | 🔲 Pending | - |
 
 ## What Was Merged
 
