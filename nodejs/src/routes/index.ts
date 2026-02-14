@@ -14,6 +14,7 @@ import { agentsRoutes } from './agents.js'
 import { oauthRoutes } from './oauth.routes.js'
 import { dashboardRoutes } from './dashboard.js'
 import { organizationsRoutes } from './organizations.js'
+import { agentStepsRoutes } from './agent-steps.js'
 
 export async function registerRoutes (
   fastify: FastifyInstance,
@@ -32,6 +33,8 @@ export async function registerRoutes (
   await fastify.register(runsRoutes, { prefix: '/runs' })
   await fastify.register(agentsRoutes, { prefix: '/agents' })
   await fastify.register(oauthRoutes, { prefix: '/oauth' })
+  // Agent-facing endpoints for workflow execution
+  await fastify.register(agentStepsRoutes, { prefix: '/steps' })
   // Nested routes under runs
   await fastify.register(stepsRoutes, { prefix: '/runs/:runId/steps' })
   await fastify.register(storiesRoutes, { prefix: '/runs/:runId/stories' })
