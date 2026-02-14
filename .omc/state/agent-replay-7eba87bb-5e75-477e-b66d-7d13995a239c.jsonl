@@ -1,0 +1,17 @@
+{"t":0,"agent":"a3ec17e","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"ae9bc3a","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"ad2c0a7","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"a80a85a","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"af8d238","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"system","event":"keyword_detected","keyword":"tdd"}
+{"t":0,"agent":"system","event":"skill_invoked","skill_name":"oh-my-claudecode:tdd"}
+{"t":0,"agent":"a8e0be1","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"a96cd1b","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"a9f93e8","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"a4df504","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"a1eeb08","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"a27421e","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"a9f2083","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"a246a95","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"system","event":"keyword_detected","keyword":"tdd"}
+{"t":0,"agent":"system","event":"skill_invoked","skill_name":"oh-my-claudecode:tdd"}

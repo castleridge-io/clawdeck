@@ -1,8 +1,4 @@
-import type { WebSocket } from '@fastify/websocket'
-
-interface WebSocketConnection {
-  socket: WebSocket
-}
+import type { WebSocket } from 'ws'
 
 interface WSMessage {
   type: string
@@ -12,9 +8,9 @@ interface WSMessage {
 }
 
 class WebSocketManager {
-  private clients: Map<string, Set<WebSocketConnection>> = new Map()
+  private clients: Map<string, Set<WebSocket>> = new Map()
 
-  addClient (userId: bigint | string, connection: WebSocketConnection): void {
+  addClient (userId: bigint | string, connection: WebSocket): void {
     const userIdStr = String(userId)
     if (!this.clients.has(userIdStr)) {
       this.clients.set(userIdStr, new Set())
@@ -28,12 +24,12 @@ class WebSocketManager {
     })
 
     // Handle disconnect
-    connection.socket.on('close', () => {
+    connection.on('close', () => {
       this.removeClient(userId, connection)
     })
   }
 
-  removeClient (userId: bigint | string, connection: WebSocketConnection): void {
+  removeClient (userId: bigint | string, connection: WebSocket): void {
     const userIdStr = String(userId)
     const userClients = this.clients.get(userIdStr)
     if (userClients) {
@@ -44,9 +40,9 @@ class WebSocketManager {
     }
   }
 
-  sendToClient (connection: WebSocketConnection, data: WSMessage): void {
+  sendToClient (connection: WebSocket, data: WSMessage): void {
     try {
-      connection.socket.send(JSON.stringify(data))
+      connection.send(JSON.stringify(data))
     } catch (error) {
       console.error('Failed to send WebSocket message:', error)
     }
@@ -67,6 +63,14 @@ class WebSocketManager {
       type: 'task_event',
       event,
       data: taskData,
+    })
+  }
+
+  broadcastWorkflowEvent (userId: bigint | string, event: string, workflowData: unknown): void {
+    this.broadcastToUser(userId, {
+      type: 'workflow_event',
+      event,
+      data: workflowData,
     })
   }
 

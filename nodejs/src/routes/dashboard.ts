@@ -49,17 +49,20 @@ export async function dashboardRoutes (
   // GET /api/v1/dashboard - Aggregated dashboard data
   fastify.get('/', async (request, reply) => {
     const userId = BigInt(request.user.id)
+    const isAdmin = request.user.admin
 
     const [boards, agents, tasks] = await Promise.all([
       prisma.board.findMany({
-        where: { userId },
+        where: isAdmin ? undefined : { userId },
         orderBy: { createdAt: 'asc' },
       }),
       prisma.agent.findMany({
         orderBy: { name: 'asc' },
       }),
       prisma.task.findMany({
-        where: { userId, archived: false },
+        where: isAdmin
+          ? { archived: false }
+          : { archived: false, userId },
         select: {
           id: true,
           status: true,

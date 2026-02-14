@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { createRunService, type RunStatus } from '../services/run.service.js'
+import { wsManager } from '../websocket/manager.js'
 import type { Run, Step, Story } from '@prisma/client'
 
 interface StepJson {
@@ -206,6 +207,14 @@ export async function runsRoutes(
         notifyUrl: notify_url,
       })
 
+      // Broadcast workflow event
+      wsManager.broadcastWorkflowEvent(request.user.id, 'run.created', {
+        run_id: run.id,
+        workflow_id: run.workflowId.toString(),
+        task: run.task,
+        status: run.status,
+      })
+
       return reply.code(201).send({
         success: true,
         data: runToJson(run as RunWithRelations),
@@ -229,6 +238,15 @@ export async function runsRoutes(
 
     try {
       const run = await runService.updateRunStatus(params.id, status as RunStatus)
+
+      // Broadcast workflow event for status changes
+      if (status === 'completed' || status === 'failed') {
+        wsManager.broadcastWorkflowEvent(request.user.id, `run.${status}`, {
+          run_id: run.id,
+          workflow_id: run.workflowId.toString(),
+          status: run.status,
+        })
+      }
 
       return {
         success: true,

@@ -51,7 +51,7 @@ export default async function app (
       const token = (req.query as { token?: string }).token
 
       if (!token) {
-        connection.socket.close(1008, 'No token provided')
+        connection.close(1008, 'No token provided')
         return
       }
 
@@ -62,7 +62,7 @@ export default async function app (
         })
 
         if (!apiToken) {
-          connection.socket.close(1008, 'Invalid token')
+          connection.close(1008, 'Invalid token')
           return
         }
 
@@ -78,7 +78,7 @@ export default async function app (
         console.log(`WebSocket client connected for user ${userId}`)
       } catch (error) {
         console.error('WebSocket authentication failed:', error)
-        connection.socket.close(1008, 'Authentication failed')
+        connection.close(1008, 'Authentication failed')
       }
     })
   })

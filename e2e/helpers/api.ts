@@ -88,6 +88,27 @@ export async function login (
 }
 
 /**
+ * Create an API token for WebSocket authentication
+ */
+export async function createApiToken (
+  request: APIRequestContext,
+  token: string,
+  name?: string
+): Promise<string> {
+  const response = await request.post(`${API_URL}/api/v1/settings/regenerate_token`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: { name: name || 'E2E Test API Token' },
+  })
+
+  if (!response.ok()) {
+    throw new Error(`Create API token failed: ${response.status()} ${await response.text()}`)
+  }
+
+  const result = await response.json()
+  return result.data.token
+}
+
+/**
  * Create a workflow via API
  */
 export async function createWorkflow (

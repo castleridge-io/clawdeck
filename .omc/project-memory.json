@@ -182,28 +182,70 @@
   },
   "hotPaths": [
     {
-      "path": "nodejs/prisma/schema.prisma",
-      "accessCount": 22,
-      "lastAccessed": 1771056120273,
-      "type": "file"
-    },
-    {
       "path": "nodejs/src/routes/boards.ts",
-      "accessCount": 19,
-      "lastAccessed": 1771054665211,
+      "accessCount": 43,
+      "lastAccessed": 1771081211666,
       "type": "file"
     },
     {
-      "path": "e2e/tests/boards.spec.ts",
-      "accessCount": 15,
-      "lastAccessed": 1771052851538,
+      "path": "nodejs/src",
+      "accessCount": 34,
+      "lastAccessed": 1771108484492,
+      "type": "directory"
+    },
+    {
+      "path": "nodejs/prisma/schema.prisma",
+      "accessCount": 29,
+      "lastAccessed": 1771107684439,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 21,
+      "lastAccessed": 1771083719119,
+      "type": "directory"
+    },
+    {
+      "path": "nodejs/src/services/step.service.ts",
+      "accessCount": 20,
+      "lastAccessed": 1771083140713,
       "type": "file"
     },
     {
       "path": "nodejs/src/routes/index.ts",
-      "accessCount": 15,
-      "lastAccessed": 1771063190776,
+      "accessCount": 19,
+      "lastAccessed": 1771086106894,
       "type": "file"
+    },
+    {
+      "path": "e2e/helpers/api.ts",
+      "accessCount": 18,
+      "lastAccessed": 1771108404329,
+      "type": "file"
+    },
+    {
+      "path": "frontend/src/lib/api.ts",
+      "accessCount": 16,
+      "lastAccessed": 1771080721475,
+      "type": "file"
+    },
+    {
+      "path": "e2e/tests/boards.spec.ts",
+      "accessCount": 16,
+      "lastAccessed": 1771083730594,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/app.ts",
+      "accessCount": 15,
+      "lastAccessed": 1771108821940,
+      "type": "file"
+    },
+    {
+      "path": "frontend/src",
+      "accessCount": 14,
+      "lastAccessed": 1771080816503,
+      "type": "directory"
     },
     {
       "path": "nodejs/src/db/seed.ts",
@@ -212,58 +254,52 @@
       "type": "file"
     },
     {
-      "path": "nodejs/src/services/step.service.ts",
-      "accessCount": 13,
-      "lastAccessed": 1771055214060,
-      "type": "file"
-    },
-    {
-      "path": "nodejs/src",
+      "path": "nodejs/src/routes",
       "accessCount": 12,
-      "lastAccessed": 1771062598763,
+      "lastAccessed": 1771080554845,
       "type": "directory"
     },
     {
       "path": "nodejs/src/routes/agents.ts",
-      "accessCount": 9,
-      "lastAccessed": 1771062575055,
+      "accessCount": 11,
+      "lastAccessed": 1771067006268,
       "type": "file"
-    },
-    {
-      "path": "nodejs/src/app.ts",
-      "accessCount": 8,
-      "lastAccessed": 1771063193602,
-      "type": "file"
-    },
-    {
-      "path": "e2e/helpers/api.ts",
-      "accessCount": 6,
-      "lastAccessed": 1771052323479,
-      "type": "file"
-    },
-    {
-      "path": "frontend/src",
-      "accessCount": 6,
-      "lastAccessed": 1771054425723,
-      "type": "directory"
     },
     {
       "path": "nodejs/src/routes/admin.routes.ts",
-      "accessCount": 5,
-      "lastAccessed": 1771054624980,
+      "accessCount": 8,
+      "lastAccessed": 1771079837773,
       "type": "file"
+    },
+    {
+      "path": "nodejs/Dockerfile",
+      "accessCount": 7,
+      "lastAccessed": 1771065555772,
+      "type": "file"
+    },
+    {
+      "path": "nodejs",
+      "accessCount": 7,
+      "lastAccessed": 1771107543318,
+      "type": "directory"
+    },
+    {
+      "path": "nodejs/src/services/agent.service.ts",
+      "accessCount": 5,
+      "lastAccessed": 1771067006242,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/tests",
+      "accessCount": 5,
+      "lastAccessed": 1771068624399,
+      "type": "directory"
     },
     {
       "path": "nodejs/package.json",
       "accessCount": 4,
       "lastAccessed": 1771050230133,
       "type": "file"
-    },
-    {
-      "path": "nodejs",
-      "accessCount": 4,
-      "lastAccessed": 1771050815718,
-      "type": "directory"
     },
     {
       "path": "nodejs/src/services/storage.service.ts",
@@ -284,18 +320,6 @@
       "type": "file"
     },
     {
-      "path": "nodejs/Dockerfile",
-      "accessCount": 4,
-      "lastAccessed": 1771062780716,
-      "type": "file"
-    },
-    {
-      "path": "nodejs/tests",
-      "accessCount": 3,
-      "lastAccessed": 1771050546571,
-      "type": "directory"
-    },
-    {
       "path": ".env",
       "accessCount": 3,
       "lastAccessed": 1771053019303,
@@ -314,21 +338,9 @@
       "type": "file"
     },
     {
-      "path": "frontend/src/lib/api.ts",
+      "path": "nodejs/src/db",
       "accessCount": 3,
-      "lastAccessed": 1771054432966,
-      "type": "file"
-    },
-    {
-      "path": "nodejs/src/services/agent.service.ts",
-      "accessCount": 3,
-      "lastAccessed": 1771055483716,
-      "type": "file"
-    },
-    {
-      "path": "nodejs/src/routes",
-      "accessCount": 3,
-      "lastAccessed": 1771062511036,
+      "lastAccessed": 1771068326318,
       "type": "directory"
     },
     {
@@ -339,8 +351,44 @@
     },
     {
       "path": "package.json",
-      "accessCount": 1,
-      "lastAccessed": 1771050173322,
+      "accessCount": 2,
+      "lastAccessed": 1771064126447,
+      "type": "file"
+    },
+    {
+      "path": "frontend",
+      "accessCount": 2,
+      "lastAccessed": 1771064919679,
+      "type": "directory"
+    },
+    {
+      "path": "docs/QUICKSTART.md",
+      "accessCount": 2,
+      "lastAccessed": 1771067019304,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/middleware/organization.middleware.ts",
+      "accessCount": 2,
+      "lastAccessed": 1771079753217,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/services/story.service.ts",
+      "accessCount": 2,
+      "lastAccessed": 1771080621413,
+      "type": "file"
+    },
+    {
+      "path": "nodejs/src/db/prisma.ts",
+      "accessCount": 2,
+      "lastAccessed": 1771080956043,
+      "type": "file"
+    },
+    {
+      "path": "e2e/tests/workflows.spec.ts",
+      "accessCount": 2,
+      "lastAccessed": 1771081257962,
       "type": "file"
     },
     {
@@ -353,12 +401,6 @@
       "path": "nodejs/tests/integration/workflows.test.js",
       "accessCount": 1,
       "lastAccessed": 1771050191582,
-      "type": "file"
-    },
-    {
-      "path": "nodejs/src/db/prisma.ts",
-      "accessCount": 1,
-      "lastAccessed": 1771050198770,
       "type": "file"
     },
     {
@@ -410,24 +452,6 @@
       "type": "file"
     },
     {
-      "path": "e2e/tests/workflows.spec.ts",
-      "accessCount": 1,
-      "lastAccessed": 1771050714266,
-      "type": "file"
-    },
-    {
-      "path": "nodejs/src/middleware/organization.middleware.ts",
-      "accessCount": 1,
-      "lastAccessed": 1771050826573,
-      "type": "file"
-    },
-    {
-      "path": "nodejs/src/db",
-      "accessCount": 1,
-      "lastAccessed": 1771050831759,
-      "type": "directory"
-    },
-    {
       "path": "e2e/tests",
       "accessCount": 1,
       "lastAccessed": 1771051031909,
@@ -440,28 +464,10 @@
       "type": "file"
     },
     {
-      "path": "docs/QUICKSTART.md",
-      "accessCount": 1,
-      "lastAccessed": 1771053012340,
-      "type": "file"
-    },
-    {
       "path": "nodejs/scripts/create-openclaw-user.js",
       "accessCount": 1,
       "lastAccessed": 1771053016096,
       "type": "file"
-    },
-    {
-      "path": "",
-      "accessCount": 1,
-      "lastAccessed": 1771053016605,
-      "type": "directory"
-    },
-    {
-      "path": "frontend",
-      "accessCount": 1,
-      "lastAccessed": 1771053692783,
-      "type": "directory"
     },
     {
       "path": "frontend/.env.local",
@@ -473,12 +479,6 @@
       "path": "frontend/src/pages/AgentsPage.tsx",
       "accessCount": 1,
       "lastAccessed": 1771054422985,
-      "type": "file"
-    },
-    {
-      "path": "nodejs/src/services/story.service.ts",
-      "accessCount": 1,
-      "lastAccessed": 1771054551896,
       "type": "file"
     }
   ],

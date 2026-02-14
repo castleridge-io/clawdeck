@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { createStepService } from '../services/step.service.js'
 import { createRunService } from '../services/run.service.js'
+import { wsManager } from '../websocket/manager.js'
 import type { Step, Run, Story, Prisma } from '@prisma/client'
 
 // JSON Schema for validation
@@ -278,6 +279,15 @@ export async function stepsRoutes(
       try {
         // Use transactional method to ensure atomicity
         const result = await stepService.completeStepWithRunUpdate(stepId, output)
+
+        // Broadcast step status change event
+        wsManager.broadcastWorkflowEvent(request.user.id, 'step.status.changed', {
+          step_id: result.step.id,
+          run_id: result.step.runId,
+          step_id_field: result.step.stepId,
+          status: 'completed',
+          run_completed: result.runCompleted,
+        })
 
         return {
           success: true,
