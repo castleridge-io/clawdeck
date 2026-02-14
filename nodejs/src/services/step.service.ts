@@ -111,7 +111,7 @@ export function createStepService() {
         throw new Error(`Invalid status transition: ${step.status} → ${status}`)
       }
 
-      const updateData: { status }
+      const updateData: Record<string, unknown> = { status }
       if (output !== undefined) {
         updateData.output = typeof output === 'string' ? output : JSON.stringify(output)
       }

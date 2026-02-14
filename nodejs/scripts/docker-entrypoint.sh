@@ -29,19 +29,18 @@ if [ -n "$DATABASE_URL" ]; then
   if [ "${AUTO_MIGRATE:-true}" = "true" ]; then
     echo "Running database migrations with Prisma..."
 
-    # Generate Prisma client first (needed for migrations)
+    # Generate Prisma client first
     echo "Generating Prisma client..."
     npx prisma generate
 
-    # Apply pending Prisma migrations
-    echo "Applying Prisma migrations..."
-    npx prisma migrate deploy || {
-      echo "Warning: Prisma migrate deploy failed, attempting to continue..."
-      # Try to create schema if it doesn't exist
-      npx prisma db push --accept-data-loss || echo "Could not push schema"
+    # Push schema to database (creates/updates tables to match schema.prisma)
+    echo "Pushing Prisma schema to database..."
+    npx prisma db push --accept-data-loss || {
+      echo "Warning: Prisma db push failed, attempting migrate deploy..."
+      npx prisma migrate deploy || echo "Could not apply migrations"
     }
 
-    echo "Database migrations completed"
+    echo "Database schema sync completed"
   fi
 
   # Seed database if AUTO_SEED is true
@@ -51,6 +50,6 @@ if [ -n "$DATABASE_URL" ]; then
   fi
 fi
 
-# Start the application
-echo "Starting API server..."
-exec node src/server.js
+# Start the application (runs CMD or whatever command was passed)
+echo "Starting: $@"
+exec "$@"

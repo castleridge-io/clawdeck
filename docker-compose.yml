@@ -47,9 +47,7 @@ services:
         condition: service_healthy
     ports:
       - '${API_PORT:-3000}:3000'
-    volumes:
-      - ./nodejs:/app/nodejs
-      - api_node_modules:/app/node_modules
+    command: ['npx', 'tsx', 'watch', 'src/server.ts']
     networks:
       - clawdeck-network
     healthcheck:
@@ -93,9 +91,6 @@ services:
       - api
     ports:
       - '0.0.0.0:${FRONTEND_PORT:-3002}:3002'
-    volumes:
-      - ./frontend:/app/frontend
-      - frontend_node_modules:/app/node_modules
     networks:
       - clawdeck-network
 
@@ -121,10 +116,6 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
-    driver: local
-  api_node_modules:
-    driver: local
-  frontend_node_modules:
     driver: local
 
 networks:

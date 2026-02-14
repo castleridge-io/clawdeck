@@ -1,6 +1,6 @@
 # Docker Compose override for testing
 # Uses separate network and containers to avoid affecting running instances
-version: '3.8'
+# Run from project root: docker compose -f nodejs/docker-compose.test.yml up --build --abort-on-container-exit
 
 services:
   # Test database (separate from development)
@@ -25,8 +25,8 @@ services:
   # Test API runner (runs tests and exits)
   api-test:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: nodejs/Dockerfile
     container_name: clawdeck-api-test
     environment:
       NODE_ENV: test
@@ -38,17 +38,30 @@ services:
         condition: service_healthy
     networks:
       - clawdeck-test-network
-    command: npm test
-    volumes:
-      - ./tests:/app/tests:ro
-      - ./src:/app/src:ro
-      - ./prisma:/app/prisma:ro
+    entrypoint: ['sh', '-c']
+    command:
+      - |
+        cd /app/nodejs &&
+        npx prisma generate &&
+        npx prisma db push --accept-data-loss &&
+        npx tsx src/server.ts &
+        SERVER_PID=$$!
+        echo "Waiting for API server to start..." &&
+        until wget -q -T 2 -t 1 -O /dev/null http://127.0.0.1:3000/up 2>/dev/null; do sleep 1; done &&
+        echo "API server is ready, running tests..." &&
+        FAIL=0;
+        for f in tests/integration/workflows.test.js tests/integration/tasks.test.js tests/integration/boards.test.js tests/integration/settings.test.js tests/integration/auth.test.js tests/integration/archives.test.js tests/unit/archiveScheduler.test.js; do
+          echo "--- Running $$f ---";
+          node --import tsx/esm --test "$$f" || FAIL=1;
+        done;
+        kill $$SERVER_PID 2>/dev/null;
+        exit $$FAIL
 
   # E2E test runner
   e2e-test:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: nodejs/Dockerfile
     container_name: clawdeck-e2e-test
     environment:
       NODE_ENV: test
@@ -64,17 +77,14 @@ services:
         condition: service_started
     networks:
       - clawdeck-test-network
-    command: npm run test:e2e
-    volumes:
-      - ./tests:/app/tests:ro
-      - ./src:/app/src:ro
-      - ./prisma:/app/prisma:ro
+    entrypoint: ['sh', '-c']
+    command: ['cd /app/nodejs && yarn test:e2e']
 
   # Archive E2E test runner
   e2e-archive-test:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: nodejs/Dockerfile
     container_name: clawdeck-e2e-archive-test
     environment:
       NODE_ENV: test
@@ -89,11 +99,8 @@ services:
         condition: service_started
     networks:
       - clawdeck-test-network
-    entrypoint: ['sh', '-c', 'npx prisma generate && node --test tests/e2e/archive-e2e.test.js']
-    volumes:
-      - ./tests:/app/tests:ro
-      - ./src:/app/src:ro
-      - ./prisma:/app/prisma:ro
+    entrypoint: ['sh', '-c']
+    command: ['cd /app/nodejs && npx prisma generate && node --test tests/e2e/archive-e2e.test.js']
 
 networks:
   clawdeck-test-network:

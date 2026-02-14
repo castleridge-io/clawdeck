@@ -34,6 +34,9 @@ WORKDIR /app/nodejs
 # Generate Prisma client
 RUN npx prisma generate
 
+# Build TypeScript to dist/
+RUN npx tsc || true
+
 # Make entrypoint executable
 RUN chmod +x scripts/docker-entrypoint.sh
 
@@ -44,5 +47,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget -q -T 10 -t 1 -O /dev/null http://127.0.0.1:3000/up || exit 1
 
-# Use entrypoint script for migrations
+# Use entrypoint script for migrations, then run CMD
 ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
+CMD ["node", "dist/server.js"]

@@ -1,18 +1,15 @@
-import type { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, CreateBucketCommand } from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import crypto from 'crypto'
-import type { Prisma } from '@prisma/client'
+import yaml from 'yaml'
 
-export function parseWorkflowYaml(yamlString: string): WorkflowData {
+export function parseWorkflowYaml (yamlString: string): WorkflowData {
   if (!yamlString || typeof yamlString !== 'string') {
     throw new Error('YAML string is required')
   }
 
-  let parsed: unknown
+  let parsed: Record<string, unknown>
 
   try {
-    parsed = yaml.parse(yamlString)
-  } catch {
+    parsed = yaml.parse(yamlString) as Record<string, unknown>
+  } catch (error) {
     throw new Error(`YAML parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 
@@ -27,14 +24,14 @@ export function parseWorkflowYaml(yamlString: string): WorkflowData {
 
   // Extract workflow data
   const workflowData: WorkflowData = {
-    name: parsed.name,
-    description: parsed.description || null,
+    name: parsed.name as string,
+    description: (parsed.description as string) || null,
     steps: [],
   }
 
   // Parse steps
   if (parsed.steps && Array.isArray(parsed.steps)) {
-    workflowData.steps = parsed.steps.map((step: unknown, index: number) => {
+    workflowData.steps = parsed.steps.map((step: Record<string, unknown>, index: number) => {
       if (!step.step_id && !step.agentId) {
         throw new Error(`Step at index ${index} is missing step_id`)
       }
@@ -44,12 +41,12 @@ export function parseWorkflowYaml(yamlString: string): WorkflowData {
       }
 
       return {
-        step_id: step.step_id || step.agentId,
-        name: step.name || null,
-        agent_id: step.agent_id || null,
-        input_template: step.input_template || null,
-        expects: step.expects || null,
-        type: step.type || 'single',
+        step_id: (step.step_id || step.agentId) as string,
+        name: (step.name as string) || null,
+        agent_id: (step.agent_id as string) || null,
+        input_template: (step.input_template as string) || null,
+        expects: (step.expects as string) || null,
+        type: (step.type as string) || 'single',
         position: index,
       }
     })

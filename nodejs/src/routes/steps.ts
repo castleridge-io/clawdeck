@@ -361,18 +361,15 @@ export async function stepsRoutes(
   // PATCH /api/v1/runs/:runId/steps/:stepId - Update step (for approval steps and loop steps)
   fastify.patch(
     '/:stepId',
-    {
-      schema: {
-        body: patchBodySchema,
-      },
-    },
+    { schema: { body: patchBodySchema } },
     async (request, reply) => {
-      const { runId, stepId } = request.params
-      const { status, output, current_story_id } = request.body as {
-        status?: string
-        output?: unknown
-        current_story_id?: string | null
-      }
+      const params = request.params as Record<string, string>
+      const body = request.body as Record<string, unknown>
+      const runId = params.runId
+      const stepId = params.stepId
+      const status = body.status as string | undefined
+      const output = body.output
+      const current_story_id = body.current_story_id as string | null | undefined
 
       const step = await stepService.getStep(stepId)
 
@@ -386,11 +383,7 @@ export async function stepsRoutes(
           output,
           currentStoryId: current_story_id,
         })
-
-        return {
-          success: true,
-          data: stepToJson(updatedStep),
-        }
+        return { success: true, data: stepToJson(updatedStep) }
       } catch (error) {
         if (error instanceof Error && error.message.includes('not found')) {
           return reply.code(404).send({ error: error.message })
@@ -401,5 +394,5 @@ export async function stepsRoutes(
         throw error
       }
     }
-  })
+  )
 }

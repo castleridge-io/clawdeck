@@ -109,7 +109,7 @@ export async function archivesRoutes(
     const skip = (parseInt(page) - 1) * parseInt(limit)
     const take = parseInt(limit)
 
-    const where: {
+    const where: Record<string, unknown> = {
       userId: BigInt(request.user.id),
       archived: true,
     }

@@ -87,7 +87,6 @@ services:
       frontend-e2e:
         condition: service_started
     volumes:
-      - ./e2e:/app/e2e
       - ./e2e-results:/app/e2e-results
     networks:
       - clawdeck-e2e-network

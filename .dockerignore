@@ -1,52 +1,45 @@
-# See https://docs.docker.com/engine/reference/builder/#dockerignore-file for more about ignoring files.
+# Git
+.git/
+.gitignore
 
-# Ignore git directory.
-/.git/
-/.gitignore
+# Dependencies (installed inside container)
+**/node_modules
 
-# Ignore bundler config.
-/.bundle
+# Build outputs
+**/dist
+**/build
 
-# Ignore all environment files (except .env.docker.example)
-/.env*
-!/.env.docker.example
+# Environment files
+.env*
+!.env.example
+!.env.docker.example
+!nodejs/.env.example
+!nodejs/.env.docker.example
 
-# Ignore all default key files.
-/config/master.key
-/config/credentials/*.key
+# Logs
+**/*.log
+logs/
 
-# Ignore all logfiles and tempfiles.
-/log/*
-/tmp/*
-!/log/.keep
-!/tmp/.keep
+# IDE
+.vscode/
+.idea/
 
-# Ignore pidfiles, but keep the directory.
-/tmp/pids/*
-!/tmp/pids/.keep
+# OS
+.DS_Store
+Thumbs.db
 
-# Ignore storage (uploaded files in development and any SQLite databases).
-/storage/*
-!/storage/.keep
-/tmp/storage/*
-!/tmp/storage/.keep
+# Testing artifacts
+coverage/
+.nyc_output/
+e2e-results/
+.eslintcache
 
-# Ignore assets.
-/node_modules/
-/app/assets/builds/*
-!/app/assets/builds/.keep
-/public/assets
+# CI/CD
+.github/
 
-# Ignore CI service files.
-/.github
+# Docker meta (don't copy into context)
+.dockerignore
+docker-compose*.yml
 
-# Ignore Kamal files.
-/config/deploy*.yml
-/.kamal
-
-# Ignore development files
-/.devcontainer
-
-# Ignore Docker-related files
-/.dockerignore
-# Dockerfile is now included
+# Misc
+.omc/

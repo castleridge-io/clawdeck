@@ -5,7 +5,8 @@
   "packageManager": "yarn@4.9.1",
   "workspaces": [
     "nodejs",
-    "frontend"
+    "frontend",
+    "e2e"
   ],
   "scripts": {
     "dev": "yarn workspace clawdeck dev",
@@ -13,6 +14,7 @@
     "build": "yarn workspaces foreach -Wt run build",
     "test": "yarn workspace clawdeck test",
     "test:frontend": "yarn workspace clawdeck-frontend test",
+    "test:e2e": "yarn workspace clawdeck-e2e test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -20,19 +22,7 @@
     "typecheck": "yarn workspaces foreach -Wt run typecheck",
     "prepare": "husky"
   },
-  "dependencies": {
-    "@fastify/cookie": "^11.0.2",
-    "@playwright/test": "^1.58.2",
-    "passport": "^0.7.0",
-    "passport-github2": "^0.1.12",
-    "passport-google-oauth20": "^2.0.0",
-    "yaml": "^2.8.2",
-    "zod": "^4.3.6"
-  },
   "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
-    "@types/node": "^25.2.3",
-    "@types/pg": "^8.16.0",
     "eslint": "^9.17.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",

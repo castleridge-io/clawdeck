@@ -1,14 +1,18 @@
 # Playwright E2E Test Runner
+# Build context should be monorepo root
 FROM mcr.microsoft.com/playwright:v1.42.0-jammy
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json yarn.lock ./
+# Enable Corepack for Yarn 4 support
+RUN corepack enable && corepack prepare yarn@4.9.1 --activate
+
+# Copy workspace root files
+COPY package.json yarn.lock .yarnrc.yml ./
 COPY e2e/package.json ./e2e/
 
-# Install dependencies
-RUN yarn install --frozen-lockfile
+# Install all workspaces
+RUN yarn install
 
 # Copy E2E test files
 COPY e2e/ ./e2e/

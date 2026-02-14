@@ -187,7 +187,7 @@ export async function tasksRoutes(
   )
 
   // GET /api/v1/tasks/next - Get next task for agent (auto-mode)
-  fastify.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/next', async (request: FastifyRequest, reply: FastifyReply) => {
     // Check if user has agent auto mode enabled
     if (!request.user.agentAutoMode) {
       return reply.code(204).send()
@@ -211,7 +211,7 @@ export async function tasksRoutes(
   })
 
   // GET /api/v1/tasks/pending_attention - Tasks needing agent attention
-  fastify.get('/', async (request: FastifyRequest) => {
+  fastify.get('/pending_attention', async (request: FastifyRequest) => {
     if (!request.user.agentAutoMode) {
       return []
     }
