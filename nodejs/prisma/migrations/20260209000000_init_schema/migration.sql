@@ -1,9 +1,6 @@
 -- Migration: Initialize complete schema matching Rails
 -- This ensures all tables exist for the Node.js backend
 
--- Extensions
-CREATE EXTENSION IF NOT EXISTS "pg_catalog.plpgsql";
-
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
   id BIGSERIAL PRIMARY KEY,

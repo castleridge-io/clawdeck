@@ -72,9 +72,9 @@ test.describe('Boards / Kanban', () => {
     await page.reload()
     await page.waitForLoadState('networkidle')
 
-    // Select the newly created board
+    // Select the newly created board by value (id)
     const boardSelector = page.locator('select').or(page.getByRole('combobox'))
-    await boardSelector.selectOption({ label: new RegExp(boardName) })
+    await boardSelector.selectOption(board.id)
 
     // Search for first task
     await page.getByPlaceholder(/search tasks/i).fill('Alpha')
@@ -93,9 +93,9 @@ test.describe('Boards / Kanban', () => {
     await page.reload()
     await page.waitForLoadState('networkidle')
 
-    // Select the newly created board
+    // Select the newly created board by value (id)
     const boardSelector = page.locator('select').or(page.getByRole('combobox'))
-    await boardSelector.selectOption({ label: new RegExp(boardName) })
+    await boardSelector.selectOption(board.id)
 
     // Click new task
     await page.getByRole('button', { name: /new task/i }).click()
@@ -134,10 +134,10 @@ test.describe('Boards / Kanban', () => {
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle')
 
-    // Select the newly created board explicitly
+    // Select the newly created board by value (id)
     const boardSelector = page.locator('select').or(page.getByRole('combobox'))
     await expect(boardSelector).toBeVisible({ timeout: 5000 })
-    await boardSelector.selectOption({ label: new RegExp(boardName) })
+    await boardSelector.selectOption(board.id)
 
     // Task should be visible
     await expect(page.getByText(taskName)).toBeVisible({ timeout: 5000 })
@@ -155,9 +155,9 @@ test.describe('Boards / Kanban', () => {
     await page.reload()
     await page.waitForLoadState('networkidle')
 
-    // Select the newly created board
+    // Select the newly created board by value (id)
     const boardSelector = page.locator('select').or(page.getByRole('combobox'))
-    await boardSelector.selectOption({ label: new RegExp(boardName) })
+    await boardSelector.selectOption(board.id)
 
     await expect(page.getByText(task.name)).toBeVisible({ timeout: 5000 })
 
@@ -193,9 +193,9 @@ test.describe('Boards / Kanban', () => {
     await page.reload()
     await page.waitForLoadState('networkidle')
 
-    // Select the newly created board
+    // Select the newly created board by value (id)
     const boardSelector = page.locator('select').or(page.getByRole('combobox'))
-    await boardSelector.selectOption({ label: new RegExp(boardName) })
+    await boardSelector.selectOption(board.id)
 
     // Open status filter
     await page.getByRole('button', { name: /^status$/i }).click()
