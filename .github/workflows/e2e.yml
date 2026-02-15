@@ -50,7 +50,7 @@ jobs:
         working-directory: nodejs
         env:
           DATABASE_URL: postgresql://clawdeck_e2e:e2e_test_password@localhost:5432/clawdeck_e2e
-        run: npx prisma migrate deploy
+        run: npx prisma db push --accept-data-loss
 
       - name: Seed database
         working-directory: nodejs
