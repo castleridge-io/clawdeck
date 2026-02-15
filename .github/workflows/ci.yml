@@ -99,11 +99,10 @@ jobs:
         run: yarn workspace clawdeck prisma generate
 
       - name: Run unit tests
-        working-directory: nodejs
         env:
           NODE_ENV: test
           JWT_SECRET: test-jwt-secret
-        run: node --import tsx/esm --test-global-setup tests/setup.js --test tests/unit/*.test.js
+        run: yarn workspace clawdeck test:unit
 
   # ============================================
   # Backend Integration Tests
@@ -152,13 +151,12 @@ jobs:
         run: npx prisma migrate deploy
 
       - name: Run integration tests
-        working-directory: nodejs
         env:
           NODE_ENV: test
           DOTENV_CONFIG_PATH: .env.integration
           DATABASE_URL: postgresql://clawdeck:clawdeck_integration@localhost:5432/clawdeck_integration_test
           JWT_SECRET: test-jwt-secret
-        run: node --import tsx/esm --test-global-setup tests/setup.js --test tests/integration/*.test.js
+        run: yarn workspace clawdeck test:integration
 
   # ============================================
   # Frontend Unit Tests

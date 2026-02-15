@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "node --import tsx/esm --test-global-setup tests/setup.js --test tests/integration/workflows.test.js && node --import tsx/esm --test-global-setup tests/setup.js --test tests/integration/tasks.test.js && node --import tsx/esm --test-global-setup tests/setup.js --test tests/integration/boards.test.js && node --import tsx/esm --test-global-setup tests/setup.js --test tests/integration/settings.test.js && node --import tsx/esm --test-global-setup tests/setup.js --test tests/integration/auth.test.js && node --import tsx/esm --test-global-setup tests/setup.js --test tests/integration/archives.test.js && node --import tsx/esm --test-global-setup tests/setup.js --test tests/unit/archiveScheduler.test.js",
-    "test:integration": "DOTENV_CONFIG_PATH=.env.integration node --import tsx/esm --test-global-setup tests/setup.js --test tests/integration/*.test.ts",
+    "test:integration": "DOTENV_CONFIG_PATH=.env.integration node --import tsx/esm --test-global-setup tests/setup.js --test tests/integration/*.test.js",
     "test:unit": "node --import tsx/esm --test-global-setup tests/setup.js --test tests/unit/*.test.js",
     "test:tasks": "node --import tsx/esm --test-global-setup tests/setup.js --test tests/integration/tasks.test.js",
     "test:boards": "node --import tsx/esm --test-global-setup tests/setup.js --test tests/integration/boards.test.js",
