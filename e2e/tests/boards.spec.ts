@@ -99,8 +99,13 @@ test.describe('Boards / Kanban', () => {
     const boardSelector = page.locator('select').nth(1)
     await boardSelector.selectOption(board.id)
 
-    // Click new task
-    await page.getByRole('button', { name: /new task/i }).click()
+    // Wait a moment for the board selection to take effect
+    await page.waitForTimeout(500)
+
+    // Click new task - ensure button is enabled
+    const newTaskButton = page.getByRole('button', { name: /new task/i })
+    await expect(newTaskButton).toBeEnabled()
+    await newTaskButton.click()
 
     // Wait for modal and fill task form
     await expect(page.getByRole('heading', { name: /new task|create task/i })).toBeVisible()

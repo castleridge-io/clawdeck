@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import { login, createWorkflow, createApiToken } from '../helpers/api'
 
 const WS_URL = process.env.WS_URL || 'ws://localhost:4333'
+const API_URL = process.env.API_URL || 'http://localhost:4333'
 
 test.describe('WebSocket Workflow Events (Phase 5)', () => {
   let token: string
@@ -18,13 +19,13 @@ test.describe('WebSocket Workflow Events (Phase 5)', () => {
   test.afterAll(async ({ request }) => {
     // Cleanup
     for (const runId of createdRunIds) {
-      await request.delete(`http://localhost:4333/api/v1/runs/${runId}`, {
+      await request.delete(`${API_URL}/api/v1/runs/${runId}`, {
         headers: { Authorization: `Bearer ${token}` },
         ignoreHTTPStatusCodes: true,
       })
     }
     for (const workflowId of createdWorkflowIds) {
-      await request.delete(`http://localhost:4333/api/v1/workflows/${workflowId}`, {
+      await request.delete(`${API_URL}/api/v1/workflows/${workflowId}`, {
         headers: { Authorization: `Bearer ${token}` },
         ignoreHTTPCodes: true,
       })

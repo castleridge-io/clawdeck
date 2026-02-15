@@ -68,18 +68,29 @@ test.describe('Workflows', () => {
     await page.getByRole('button', { name: /create workflow/i }).click()
     await expect(page.getByRole('heading', { name: /create workflow/i })).toBeVisible()
 
-    // Fill name
-    await page.locator('input').filter({ hasText: '' }).first().fill(workflowName)
+    // Fill name - use placeholder to find input
+    await page.getByPlaceholder('Workflow name').fill(workflowName)
 
-    // Add a step
-    await page.getByRole('button', { name: /add step/i }).click()
+    // Add a step - the button is labeled "+ Add Step"
+    await page.getByRole('button', { name: /\+ Add Step/i }).click()
 
-    // Fill step details (the step should be expanded by default)
-    await page.getByLabel('Step ID').fill('step-1')
-    await page.getByLabel('Name').fill('First Step')
-    await page.getByLabel('Agent ID').fill('test-agent')
-    await page.getByLabel('Input Template').fill('Process this: {{task}}')
-    await page.getByLabel('Expects').fill('result')
+    // The step form should now be visible - fill in the step fields
+    // The StepEditor component doesn't have proper labels, so we use placeholder/text-based selectors
+
+    // Fill step ID (first input in step)
+    await page.locator('.bg-slate-700 input').first().fill('step-1')
+
+    // Fill step name - second input
+    await page.locator('.bg-slate-700 input').nth(1).fill('First Step')
+
+    // Fill agent_id - third input
+    await page.locator('.bg-slate-700 input').nth(2).fill('test-agent')
+
+    // Fill input_template (first textarea)
+    await page.locator('.bg-slate-700 textarea').first().fill('Process this: {{task}}')
+
+    // Fill expects (second textarea)
+    await page.locator('.bg-slate-700 textarea').nth(1).fill('result')
 
     // Save
     await page.getByRole('button', { name: /^create$/i }).click()
@@ -199,8 +210,8 @@ steps:
 
     await page.locator('textarea').fill(yamlInput)
 
-    // Import - use more specific selector to avoid strict mode violation
-    await page.getByRole('button', { name: 'Import YAML' }).click()
+    // Import - use the blue Import button inside the modal
+    await page.getByRole('button', { name: 'Import' }).filter({ hasText: /^Import$/ }).click()
 
     // Should show the workflow
     await expect(page.getByText(workflowName)).toBeVisible({ timeout: 5000 })

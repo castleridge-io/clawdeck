@@ -16,15 +16,17 @@ test.describe('Settings', () => {
   })
 
   test('shows user profile section', async ({ page }) => {
-    // Should show user email or admin somewhere
-    await expect(page.getByText(/admin/i).or(page.getByText(/email/i))).toBeVisible({
+    // Should show the Profile section
+    await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible({
       timeout: 5000,
     })
+    // Should show the email label
+    await expect(page.getByText('Email')).toBeVisible()
   })
 
   test('shows API token section', async ({ page }) => {
     // Should have API token management
-    await expect(page.getByText(/api token|api key/i)).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { name: 'API Token' })).toBeVisible({ timeout: 5000 })
   })
 
   test('can regenerate API token', async ({ page }) => {
