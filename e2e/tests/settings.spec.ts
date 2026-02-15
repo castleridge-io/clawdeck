@@ -17,14 +17,14 @@ test.describe('Settings', () => {
 
   test('shows user profile section', async ({ page }) => {
     // Should show user email or admin somewhere
-    await expect(page.getByText(/admin/i).or(page.getByText(/email/i))).toBeVisible({
+    await expect(page.getByText(/admin/i).or(page.getByText(/email/i))).first().toBeVisible({
       timeout: 5000,
     })
   })
 
   test('shows API token section', async ({ page }) => {
     // Should have API token management
-    await expect(page.getByText(/api token|api key/i)).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/api token|api key/i)).first().toBeVisible({ timeout: 5000 })
   })
 
   test('can regenerate API token', async ({ page }) => {

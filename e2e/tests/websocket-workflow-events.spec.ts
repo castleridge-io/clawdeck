@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test'
 import { login, createWorkflow, createApiToken } from '../helpers/api'
 
+const WS_URL = process.env.WS_URL || 'ws://localhost:4333'
+
 test.describe('WebSocket Workflow Events (Phase 5)', () => {
   let token: string
   let apiToken: string
@@ -36,7 +38,7 @@ test.describe('WebSocket Workflow Events (Phase 5)', () => {
     // #when: Connect to WebSocket
     const wsConnected = await page.evaluate(async ({ apiToken }) => {
       return new Promise((resolve) => {
-        const ws = new WebSocket(`ws://localhost:4333/ws?token=${apiToken}`)
+        const ws = new WebSocket(`${WS_URL}/ws?token=${apiToken}`)
 
         ws.onopen = () => {
           ws.close()
@@ -79,7 +81,7 @@ test.describe('WebSocket Workflow Events (Phase 5)', () => {
     // Set up WebSocket listener before creating run
     const eventReceived = await page.evaluate(async ({ token, apiToken, workflowId }) => {
       return new Promise((resolve) => {
-        const ws = new WebSocket(`ws://localhost:4333/ws?token=${apiToken}`)
+        const ws = new WebSocket(`${WS_URL}/ws?token=${apiToken}`)
 
         let receivedEvent = false
 

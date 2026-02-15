@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:debug": "playwright test --debug",
+    "test": "dotenv -e ../.env.e2e -- playwright test",
+    "test:headed": "dotenv -e ../.env.e2e -- playwright test --headed",
+    "test:debug": "dotenv -e ../.env.e2e -- playwright test --debug",
     "report": "playwright show-report"
   },
   "devDependencies": {
-    "@playwright/test": "1.58.2"
+    "@playwright/test": "1.58.2",
+    "dotenv-cli": "^8.0.0"
   }
 }
