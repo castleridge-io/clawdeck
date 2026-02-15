@@ -1,6 +1,40 @@
 -- Migration: Initialize complete schema matching Rails
 -- This ensures all tables exist for the Node.js backend
 
+-- Prisma Migrations table (required for prisma migrate deploy)
+CREATE TABLE IF NOT EXISTS _prisma_migrations (
+  id SERIAL PRIMARY KEY,
+  checksum VARCHAR(255) NOT NULL,
+  finished_at TIMESTAMP,
+  migration_name VARCHAR(255) NOT NULL UNIQUE,
+  logs TEXT,
+  rolled_back_at TIMESTAMP,
+  started_at TIMESTAMP,
+  applied_steps_count INTEGER DEFAULT 0 NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS _prisma_migrations_idx ON _prisma_migrations(migration_name);
+
+-- Enums matching Rails enums
+CREATE TYPE "TaskStatus" AS ENUM ('inbox', 'up_next', 'in_progress', 'in_review', 'done');
+CREATE TYPE "Priority" AS ENUM ('none', 'low', 'medium', 'high');
+CREATE TYPE "MembershipRole" AS ENUM ('owner', 'admin', 'member', 'viewer');
+
+-- Organizations table (must be first, referenced by users)
+CREATE TABLE IF NOT EXISTS organizations (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) NOT NULL UNIQUE,
+  avatar_url VARCHAR(255),
+  plan VARCHAR(255) DEFAULT 'free' NOT NULL,
+  max_members INTEGER DEFAULT 5 NOT NULL,
+  settings JSONB DEFAULT '{}' NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS organizations_slug_idx ON organizations(slug);
+
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
   id BIGSERIAL PRIMARY KEY,
@@ -14,12 +48,31 @@ CREATE TABLE IF NOT EXISTS users (
   agent_emoji VARCHAR(255),
   agent_last_active_at TIMESTAMP,
   avatar_url VARCHAR(255),
+  current_organization_id BIGINT REFERENCES organizations(id) ON DELETE SET NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS index_users_on_email_address ON users(email_address);
 CREATE UNIQUE INDEX IF NOT EXISTS index_users_on_provider_and_uid ON users(provider, uid) WHERE provider IS NOT NULL;
+CREATE INDEX IF NOT EXISTS index_users_on_current_organization_id ON users(current_organization_id);
+
+-- Memberships table (joins users and organizations)
+CREATE TABLE IF NOT EXISTS memberships (
+  id BIGSERIAL PRIMARY KEY,
+  organization_id BIGINT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role INTEGER DEFAULT 2 NOT NULL,
+  invited_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  invited_at TIMESTAMP,
+  joined_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE(organization_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS memberships_organization_id_idx ON memberships(organization_id);
+CREATE INDEX IF NOT EXISTS memberships_user_id_idx ON memberships(user_id);
 
 -- API Tokens table
 CREATE TABLE IF NOT EXISTS api_tokens (
@@ -35,6 +88,53 @@ CREATE TABLE IF NOT EXISTS api_tokens (
 CREATE INDEX IF NOT EXISTS index_api_tokens_on_user_id ON api_tokens(user_id);
 CREATE INDEX IF NOT EXISTS index_api_tokens_on_token ON api_tokens(token);
 
+-- OAuth Accounts table
+CREATE TABLE IF NOT EXISTS oauth_accounts (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  provider VARCHAR(255) NOT NULL,
+  provider_id VARCHAR(255) NOT NULL,
+  access_token VARCHAR(255) NOT NULL,
+  refresh_token VARCHAR(255),
+  token_expires_at TIMESTAMP,
+  profile_data JSONB,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE(provider, provider_id)
+);
+
+CREATE INDEX IF NOT EXISTS index_oauth_accounts_on_user_id ON oauth_accounts(user_id);
+
+-- System Settings table
+CREATE TABLE IF NOT EXISTS system_settings (
+  id BIGSERIAL PRIMARY KEY,
+  key VARCHAR(255) NOT NULL UNIQUE,
+  value JSONB NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Agents table
+CREATE TABLE IF NOT EXISTS agents (
+  id BIGSERIAL PRIMARY KEY,
+  uuid VARCHAR(255) NOT NULL UNIQUE DEFAULT (GEN_RANDOM_UUID()::TEXT),
+  name VARCHAR(255) NOT NULL UNIQUE,
+  slug VARCHAR(255) NOT NULL UNIQUE,
+  emoji VARCHAR(255) DEFAULT '🤖' NOT NULL,
+  color VARCHAR(255) DEFAULT 'gray' NOT NULL,
+  description TEXT,
+  is_active BOOLEAN DEFAULT TRUE NOT NULL,
+  last_active_at TIMESTAMP,
+  position INTEGER DEFAULT 0 NOT NULL,
+  organization_id BIGINT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS index_agents_on_uuid ON agents(uuid);
+CREATE INDEX IF NOT EXISTS index_agents_on_slug ON agents(slug);
+CREATE INDEX IF NOT EXISTS index_agents_on_is_active ON agents(is_active);
+
 -- Boards table
 CREATE TABLE IF NOT EXISTS boards (
   id BIGSERIAL PRIMARY KEY,
@@ -43,81 +143,16 @@ CREATE TABLE IF NOT EXISTS boards (
   color VARCHAR(255) DEFAULT 'gray',
   position INTEGER DEFAULT 0 NOT NULL,
   user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  agent_id BIGINT REFERENCES agents(id) ON DELETE SET NULL,
+  organization_id BIGINT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS index_boards_on_user_id ON boards(user_id);
 CREATE INDEX IF NOT EXISTS index_boards_on_user_id_and_position ON boards(user_id, position);
-
--- Tasks table
-CREATE TABLE IF NOT EXISTS tasks (
-  id BIGSERIAL PRIMARY KEY,
-  name VARCHAR(255),
-  description TEXT,
-  status INTEGER DEFAULT 0 NOT NULL,
-  priority INTEGER DEFAULT 0 NOT NULL,
-  position INTEGER,
-  original_position INTEGER,
-  board_id BIGINT NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
-  user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
-  completed BOOLEAN DEFAULT FALSE NOT NULL,
-  completed_at TIMESTAMP,
-  due_date DATE,
-  tags VARCHAR(255)[] DEFAULT '{}' NOT NULL,
-  blocked BOOLEAN DEFAULT FALSE NOT NULL,
-  assigned_to_agent BOOLEAN DEFAULT FALSE NOT NULL,
-  assigned_at TIMESTAMP,
-  agent_claimed_at TIMESTAMP,
-  confidence INTEGER DEFAULT 0 NOT NULL,
-  effort INTEGER DEFAULT 0 NOT NULL,
-  impact INTEGER DEFAULT 0 NOT NULL,
-  reach INTEGER DEFAULT 0 NOT NULL,
-  task_list_id BIGINT,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS index_tasks_on_board_id ON tasks(board_id);
-CREATE INDEX IF NOT EXISTS index_tasks_on_user_id ON tasks(user_id);
-CREATE INDEX IF NOT EXISTS index_tasks_on_status ON tasks(status);
-CREATE INDEX IF NOT EXISTS index_tasks_on_position ON tasks(position);
-CREATE INDEX IF NOT EXISTS index_tasks_on_assigned_to_agent ON tasks(assigned_to_agent);
-CREATE INDEX IF NOT EXISTS index_tasks_on_blocked ON tasks(blocked);
-
--- Task Activities table
-CREATE TABLE IF NOT EXISTS task_activities (
-  id BIGSERIAL PRIMARY KEY,
-  task_id BIGINT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-  user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
-  action VARCHAR(255) NOT NULL,
-  actor_type VARCHAR(255),
-  actor_name VARCHAR(255),
-  actor_emoji VARCHAR(255),
-  field_name VARCHAR(255),
-  old_value VARCHAR(255),
-  new_value VARCHAR(255),
-  note TEXT,
-  source VARCHAR(255) DEFAULT 'web',
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS index_task_activities_on_task_id ON task_activities(task_id);
-CREATE INDEX IF NOT EXISTS index_task_activities_on_task_id_and_created_at ON task_activities(task_id, created_at);
-CREATE INDEX IF NOT EXISTS index_task_activities_on_user_id ON task_activities(user_id);
-
--- Sessions table
-CREATE TABLE IF NOT EXISTS sessions (
-  id BIGSERIAL PRIMARY KEY,
-  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  ip_address VARCHAR(255),
-  user_agent TEXT,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS index_sessions_on_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS index_boards_on_agent_id ON boards(agent_id);
+CREATE INDEX IF NOT EXISTS index_boards_on_organization_id ON boards(organization_id);
 
 -- Projects table (legacy, kept for compatibility)
 CREATE TABLE IF NOT EXISTS projects (
@@ -168,6 +203,55 @@ CREATE INDEX IF NOT EXISTS index_tags_on_project_id ON tags(project_id);
 CREATE INDEX IF NOT EXISTS index_tags_on_user_id ON tags(user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS index_tags_on_project_id_and_name ON tags(project_id, name);
 
+-- Tasks table
+CREATE TABLE IF NOT EXISTS tasks (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(255),
+  description TEXT,
+  status INTEGER DEFAULT 0 NOT NULL,
+  priority INTEGER DEFAULT 0 NOT NULL,
+  position INTEGER,
+  original_position INTEGER,
+  board_id BIGINT NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  project_id BIGINT,
+  completed BOOLEAN DEFAULT FALSE NOT NULL,
+  completed_at TIMESTAMP,
+  due_date DATE,
+  tags VARCHAR(255)[] DEFAULT '{}' NOT NULL,
+  blocked BOOLEAN DEFAULT FALSE NOT NULL,
+  assigned_to_agent BOOLEAN DEFAULT FALSE NOT NULL,
+  assigned_at TIMESTAMP,
+  agent_claimed_at TIMESTAMP,
+  confidence INTEGER DEFAULT 0 NOT NULL,
+  effort INTEGER DEFAULT 0 NOT NULL,
+  impact INTEGER DEFAULT 0 NOT NULL,
+  reach INTEGER DEFAULT 0 NOT NULL,
+  task_list_id BIGINT,
+  archived BOOLEAN DEFAULT FALSE NOT NULL,
+  archived_at TIMESTAMP,
+  archive_scheduled BOOLEAN DEFAULT FALSE NOT NULL,
+  archive_scheduled_at TIMESTAMP,
+  workflow_type VARCHAR(255),
+  workflow_run_id VARCHAR(255),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS index_tasks_on_board_id ON tasks(board_id);
+CREATE INDEX IF NOT EXISTS index_tasks_on_user_id ON tasks(user_id);
+CREATE INDEX IF NOT EXISTS index_tasks_on_project_id ON tasks(project_id);
+CREATE INDEX IF NOT EXISTS index_tasks_on_status ON tasks(status);
+CREATE INDEX IF NOT EXISTS index_tasks_on_position ON tasks(position);
+CREATE INDEX IF NOT EXISTS index_tasks_on_assigned_to_agent ON tasks(assigned_to_agent);
+CREATE INDEX IF NOT EXISTS index_tasks_on_blocked ON tasks(blocked);
+CREATE INDEX IF NOT EXISTS index_tasks_on_archived_and_board ON tasks(archived, board_id, completed_at);
+CREATE INDEX IF NOT EXISTS index_tasks_on_workflow_run_id ON tasks(workflow_run_id);
+
+-- Add foreign key constraint for projects table
+ALTER TABLE tasks ADD CONSTRAINT tasks_project_id_fkey
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL;
+
 -- Task Tags join table (legacy)
 CREATE TABLE IF NOT EXISTS task_tags (
   id BIGSERIAL PRIMARY KEY,
@@ -181,6 +265,40 @@ CREATE TABLE IF NOT EXISTS task_tags (
 CREATE INDEX IF NOT EXISTS index_task_tags_on_task_id ON task_tags(task_id);
 CREATE INDEX IF NOT EXISTS index_task_tags_on_tag_id ON task_tags(tag_id);
 CREATE UNIQUE INDEX IF NOT EXISTS index_task_tags_on_task_id_and_tag_id ON task_tags(task_id, tag_id);
+
+-- Task Activities table
+CREATE TABLE IF NOT EXISTS task_activities (
+  id BIGSERIAL PRIMARY KEY,
+  task_id BIGINT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  action VARCHAR(255) NOT NULL,
+  actor_type VARCHAR(255),
+  actor_name VARCHAR(255),
+  actor_emoji VARCHAR(255),
+  field_name VARCHAR(255),
+  old_value VARCHAR(255),
+  new_value VARCHAR(255),
+  note TEXT,
+  source VARCHAR(255) DEFAULT 'web',
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS index_task_activities_on_task_id ON task_activities(task_id);
+CREATE INDEX IF NOT EXISTS index_task_activities_on_task_id_and_created_at ON task_activities(task_id, created_at);
+CREATE INDEX IF NOT EXISTS index_task_activities_on_user_id ON task_activities(user_id);
+
+-- Sessions table
+CREATE TABLE IF NOT EXISTS sessions (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  ip_address VARCHAR(255),
+  user_agent TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS index_sessions_on_user_id ON sessions(user_id);
 
 -- Active Storage Blobs table
 CREATE TABLE IF NOT EXISTS active_storage_blobs (

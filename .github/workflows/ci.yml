@@ -148,7 +148,7 @@ jobs:
         working-directory: nodejs
         env:
           DATABASE_URL: postgresql://clawdeck:clawdeck_integration@localhost:5432/clawdeck_integration_test
-        run: npx prisma db push --accept-data-loss
+        run: npx prisma migrate deploy
 
       - name: Run integration tests
         env:
