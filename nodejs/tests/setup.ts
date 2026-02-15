@@ -1,5 +1,4 @@
 import dotenv from 'dotenv'
-import { pathToFileURL } from 'node:url'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 

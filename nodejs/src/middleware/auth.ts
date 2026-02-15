@@ -1,7 +1,6 @@
 import type {
   FastifyRequest,
   FastifyReply,
-  HookHandlerDoneFunction,
   FastifyInstance,
 } from 'fastify'
 import { prisma } from '../db/prisma.js'

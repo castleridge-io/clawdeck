@@ -56,12 +56,12 @@ export default function ArchivePage ({ boards, onUnarchive }) {
         onUnarchive()
       }
     } catch (error) {
-      alert(`Failed to unarchive task: ${error.message}`)
+      window.alert(`Failed to unarchive task: ${error.message}`)
     }
   }
 
   async function handleDelete (taskId) {
-    if (!confirm('Are you sure you want to permanently delete this task? This cannot be undone.')) {
+    if (!window.confirm('Are you sure you want to permanently delete this task? This cannot be undone.')) {
       return
     }
 
@@ -69,7 +69,7 @@ export default function ArchivePage ({ boards, onUnarchive }) {
       await deleteArchivedTask(taskId)
       await loadArchivedTasks()
     } catch (error) {
-      alert(`Failed to delete task: ${error.message}`)
+      window.alert(`Failed to delete task: ${error.message}`)
     }
   }
 
@@ -163,28 +163,28 @@ export default function ArchivePage ({ boards, onUnarchive }) {
                     <div className='archive-task-footer'>
                       <div className='archive-task-dates'>
                         <span className='archive-date'>
-                  <span className='archive-date-label'>Completed:</span>
-                  {formatDate(task.completed_at)}
-                </span>
+                          <span className='archive-date-label'>Completed:</span>
+                          {formatDate(task.completed_at)}
+                        </span>
                         <span className='archive-date'>
-                  <span className='archive-date-label'>Archived:</span>
-                  {formatDate(task.archived_at)}
-                </span>
+                          <span className='archive-date-label'>Archived:</span>
+                          {formatDate(task.archived_at)}
+                        </span>
                       </div>
 
                       <div className='archive-task-actions'>
                         <button
-                  onClick={() => handleUnarchive(task.id)}
-                  className='archive-action-btn unarchive'
-                >
-                        ↩️ Restore
-                </button>
+                          onClick={() => handleUnarchive(task.id)}
+                          className='archive-action-btn unarchive'
+                        >
+                          ↩️ Restore
+                        </button>
                         <button
-                  onClick={() => handleDelete(task.id)}
-                  className='archive-action-btn delete'
-                >
-                        🗑️ Delete
-                </button>
+                          onClick={() => handleDelete(task.id)}
+                          className='archive-action-btn delete'
+                        >
+                          🗑️ Delete
+                        </button>
                       </div>
                     </div>
                   </div>

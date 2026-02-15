@@ -3,7 +3,7 @@
 
 import { prisma } from '../db/prisma.js'
 import { wsManager } from '../websocket/manager.js'
-import type { Task, Board, Prisma } from '@prisma/client'
+import type { Task } from '@prisma/client'
 
 const ARCHIVE_DELAY_HOURS = parseInt(process.env.ARCHIVE_DELAY_HOURS || '24', 10)
 const SCHEDULER_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes

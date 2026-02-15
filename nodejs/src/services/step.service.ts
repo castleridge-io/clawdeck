@@ -3,8 +3,6 @@ import type { Step, Prisma } from '@prisma/client'
 const VALID_STATUSES = ['pending', 'running', 'completed', 'failed', 'awaiting_approval'] as const
 type StepStatus = typeof VALID_STATUSES[number]
 
-const VALID_TYPES = ['single', 'loop', 'approval'] as const
-
 // Valid status transitions: key = current status, value = allowed next statuses
 const VALID_TRANSITIONS: Record<string, string[]> = {
   waiting: ['running', 'awaiting_approval'],
@@ -15,12 +13,12 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   failed: [], // Terminal state
 }
 
-export function createStepService() {
+export function createStepService () {
   return {
     /**
      * Create a new step
      */
-    async createStep(data: {
+    async createStep (data: {
       runId: string
       stepId?: string
       agentId?: string
@@ -67,7 +65,7 @@ export function createStepService() {
     /**
      * Get step by ID
      */
-    async getStep(id: string): Promise<Step | null> {
+    async getStep (id: string): Promise<Step | null> {
       const prisma = (await import('../db/prisma.js')).prisma
 
       return await prisma.step.findUnique({
@@ -78,11 +76,11 @@ export function createStepService() {
     /**
      * List steps by run ID
      */
-    async listStepsByRunId(runId: string): Promise<Step[]> {
+    async listStepsByRunId (runId: string): Promise<Step[]> {
       const prisma = (await import('../db/prisma.js')).prisma
 
       return await prisma.step.findMany({
-        where: { runId: runId },
+        where: { runId },
         orderBy: { stepIndex: 'asc' },
       })
     },
@@ -90,12 +88,12 @@ export function createStepService() {
     /**
      * Get next pending step for a run
      */
-    async getNextPendingStep(runId: string): Promise<Step | null> {
+    async getNextPendingStep (runId: string): Promise<Step | null> {
       const prisma = (await import('../db/prisma.js')).prisma
 
       return await prisma.step.findFirst({
         where: {
-          runId: runId,
+          runId,
           status: 'pending',
         },
         orderBy: { stepIndex: 'asc' },
@@ -105,7 +103,7 @@ export function createStepService() {
     /**
      * Claim a step (atomic operation to prevent race conditions)
      */
-    async claimStep(stepId: string, agentId: string | string[]): Promise<Step | null> {
+    async claimStep (stepId: string, agentId: string | string[]): Promise<Step | null> {
       const prisma = (await import('../db/prisma.js')).prisma
       const agentIdStr = typeof agentId === 'string' ? agentId : agentId[0]
 
@@ -134,7 +132,7 @@ export function createStepService() {
      * Complete a step and optionally update run status
      * Also advances pipeline by setting next waiting step to pending
      */
-    async completeStepWithRunUpdate(stepId: string, output: unknown): Promise<{ step: Step; runCompleted: boolean }> {
+    async completeStepWithRunUpdate (stepId: string, output: unknown): Promise<{ step: Step; runCompleted: boolean }> {
       const prisma = (await import('../db/prisma.js')).prisma
 
       const step = await prisma.step.findUnique({
@@ -192,10 +190,10 @@ export function createStepService() {
     /**
      * Update step status
      */
-    async updateStepStatus(
+    async updateStepStatus (
       id: string,
       status: StepStatus,
-      output?: unknown,
+      output?: unknown
     ): Promise<Step> {
       const prisma = (await import('../db/prisma.js')).prisma
 
@@ -226,13 +224,13 @@ export function createStepService() {
     /**
      * Update step fields (for current_story_id and other optional fields)
      */
-    async updateStep(
+    async updateStep (
       id: string,
       data: {
         status?: string
         output?: unknown
         currentStoryId?: string | null
-      },
+      }
     ): Promise<Step> {
       const prisma = (await import('../db/prisma.js')).prisma
 
@@ -272,7 +270,7 @@ export function createStepService() {
     /**
      * Increment step retry count
      */
-    async incrementStepRetry(id: string): Promise<Step> {
+    async incrementStepRetry (id: string): Promise<Step> {
       const prisma = (await import('../db/prisma.js')).prisma
 
       const step = await prisma.step.findUnique({
@@ -302,7 +300,7 @@ export type CreateStepData = Parameters<ReturnType<typeof createStepService>['cr
 /**
  * Validate status transition
  */
-function isValidTransition(currentStatus: string, newStatus: string): boolean {
+function isValidTransition (currentStatus: string, newStatus: string): boolean {
   const allowedTransitions = VALID_TRANSITIONS[currentStatus]
   return allowedTransitions && allowedTransitions.includes(newStatus)
 }

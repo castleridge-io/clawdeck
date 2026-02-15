@@ -1,7 +1,6 @@
 import { APIRequestContext } from '@playwright/test'
 
 const API_URL = process.env.API_URL || 'http://localhost:4333'
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
 export interface TestUser {
   email: string

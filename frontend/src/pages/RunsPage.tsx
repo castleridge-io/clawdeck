@@ -12,7 +12,7 @@ const STATUS_OPTIONS: { value: RunStatus | ''; label: string }[] = [
   { value: 'cancelled', label: 'Cancelled' },
 ]
 
-export default function RunsPage() {
+export default function RunsPage () {
   const [statusFilter, setStatusFilter] = useState<RunStatus | ''>('')
 
   // Fetch runs and workflows in parallel
@@ -25,7 +25,7 @@ export default function RunsPage() {
   const triggerRunMutation = useTriggerRun()
   const cancelRunMutation = useCancelRun()
 
-  async function handleTrigger(workflowId: string) {
+  async function handleTrigger (workflowId: string) {
     try {
       await triggerRunMutation.mutateAsync(workflowId)
     } catch (error) {
@@ -33,7 +33,7 @@ export default function RunsPage() {
     }
   }
 
-  async function handleCancel(runId: string) {
+  async function handleCancel (runId: string) {
     try {
       await cancelRunMutation.mutateAsync(runId)
     } catch (error) {
@@ -41,12 +41,12 @@ export default function RunsPage() {
     }
   }
 
-  function getWorkflowName(workflowId: string) {
+  function getWorkflowName (workflowId: string) {
     const workflow = workflows.find((w) => w.id === workflowId)
     return workflow?.name || 'Unknown'
   }
 
-  function formatDate(dateString?: string) {
+  function formatDate (dateString?: string) {
     if (!dateString) return 'N/A'
     return new Date(dateString).toLocaleString()
   }
@@ -94,28 +94,30 @@ export default function RunsPage() {
 
       {/* Runs List */}
       <div className='bg-slate-800 rounded-lg overflow-hidden'>
-        {runs.length === 0 ? (
-          <div className='text-center py-12 text-slate-400'>No runs found</div>
-        ) : (
-          <table className='w-full'>
-            <thead className='bg-slate-700'>
-              <tr>
-                <th className='text-left px-4 py-3 text-slate-300 font-medium'>Workflow</th>
-                <th className='text-left px-4 py-3 text-slate-300 font-medium'>Status</th>
-                <th className='text-left px-4 py-3 text-slate-300 font-medium'>Started</th>
-                <th className='text-left px-4 py-3 text-slate-300 font-medium'>Completed</th>
-                <th className='text-right px-4 py-3 text-slate-300 font-medium'>Actions</th>
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-slate-700'>
-              {runs.map((run) => (
-                <tr key={run.id} className='hover:bg-slate-700/50'>
-                  <td className='px-4 py-3 text-white'>
-                    {run.workflow?.name || getWorkflowName(run.workflow_id)}
-                  </td>
-                  <td className='px-4 py-3'>
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
+        {runs.length === 0
+          ? (
+            <div className='text-center py-12 text-slate-400'>No runs found</div>
+            )
+          : (
+            <table className='w-full'>
+              <thead className='bg-slate-700'>
+                <tr>
+                  <th className='text-left px-4 py-3 text-slate-300 font-medium'>Workflow</th>
+                  <th className='text-left px-4 py-3 text-slate-300 font-medium'>Status</th>
+                  <th className='text-left px-4 py-3 text-slate-300 font-medium'>Started</th>
+                  <th className='text-left px-4 py-3 text-slate-300 font-medium'>Completed</th>
+                  <th className='text-right px-4 py-3 text-slate-300 font-medium'>Actions</th>
+                </tr>
+              </thead>
+              <tbody className='divide-y divide-slate-700'>
+                {runs.map((run) => (
+                  <tr key={run.id} className='hover:bg-slate-700/50'>
+                    <td className='px-4 py-3 text-white'>
+                      {run.workflow?.name || getWorkflowName(run.workflow_id)}
+                    </td>
+                    <td className='px-4 py-3'>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${
                         run.status === 'completed'
                           ? 'bg-green-500/20 text-green-400'
                           : run.status === 'running'
@@ -126,27 +128,27 @@ export default function RunsPage() {
                                 ? 'bg-slate-500/20 text-slate-400'
                                 : 'bg-amber-500/20 text-amber-400'
                       }`}
-                    >
-                      {run.status}
-                    </span>
-                  </td>
-                  <td className='px-4 py-3 text-slate-300'>{formatDate(run.started_at)}</td>
-                  <td className='px-4 py-3 text-slate-300'>{formatDate(run.completed_at)}</td>
-                  <td className='px-4 py-3 text-right'>
-                    {run.status === 'running' && (
-                      <button
-                        onClick={() => handleCancel(run.id)}
-                        className='text-red-400 hover:text-red-300 text-sm'
                       >
-                        Cancel
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+                        {run.status}
+                      </span>
+                    </td>
+                    <td className='px-4 py-3 text-slate-300'>{formatDate(run.started_at)}</td>
+                    <td className='px-4 py-3 text-slate-300'>{formatDate(run.completed_at)}</td>
+                    <td className='px-4 py-3 text-right'>
+                      {run.status === 'running' && (
+                        <button
+                          onClick={() => handleCancel(run.id)}
+                          className='text-red-400 hover:text-red-300 text-sm'
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            )}
       </div>
     </div>
   )

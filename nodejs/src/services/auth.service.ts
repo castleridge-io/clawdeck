@@ -12,14 +12,6 @@ interface JWTPayload {
   sessionId: string
 }
 
-interface RegisterData {
-  emailAddress: string
-  password?: string
-  agentAutoMode?: boolean
-  agentName?: string | null
-  agentEmoji?: string | null
-}
-
 interface UpdateProfileData {
   emailAddress?: string
   agentAutoMode?: boolean

@@ -15,4 +15,10 @@ export default [
   ...neostandard({
     ts: true,
   }),
+  {
+    rules: {
+      // Disable camelCase for API routes - Prisma uses snake_case (PostgreSQL standard)
+      camelcase: 'off',
+    }
+  }
 ]

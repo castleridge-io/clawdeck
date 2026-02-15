@@ -1,5 +1,4 @@
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
-import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import websocket from '@fastify/websocket'
 import jwt from '@fastify/jwt'

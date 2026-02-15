@@ -4,7 +4,6 @@ import { prisma } from '../../src/db/prisma.js'
 
 // Test utilities
 let testUser
-let testBoard
 let testToken
 
 async function setupTestEnvironment () {
@@ -29,7 +28,7 @@ async function setupTestEnvironment () {
   })
 
   // Create test board
-  testBoard = await prisma.board.create({
+  await prisma.board.create({
     data: {
       name: 'Test Board',
       userId: testUser.id,

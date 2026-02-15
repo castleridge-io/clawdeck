@@ -37,7 +37,7 @@ const DEFAULT_CONFIG: SchedulerConfig = {
   runTimeoutMinutes: 60,
 }
 
-export function createSchedulerService(
+export function createSchedulerService (
   config: Partial<SchedulerConfig> = {},
   options?: { prisma?: PrismaClient }
 ) {
@@ -51,7 +51,7 @@ export function createSchedulerService(
      *
      * @returns Number of steps cleaned up
      */
-    async cleanupAbandonedSteps(): Promise<number> {
+    async cleanupAbandonedSteps (): Promise<number> {
       const cutoffTime = new Date(Date.now() - cfg.abandonedStepAgeMinutes * 60 * 1000)
 
       const abandonedSteps = await prisma.step.findMany({
@@ -80,7 +80,7 @@ export function createSchedulerService(
      *
      * @returns Number of steps queued for retry
      */
-    async retryFailedSteps(): Promise<number> {
+    async retryFailedSteps (): Promise<number> {
       const cutoffTime = new Date(Date.now() - cfg.retryCooldownMinutes * 60 * 1000)
 
       // Find failed steps with remaining retries
@@ -112,7 +112,7 @@ export function createSchedulerService(
      *
      * @returns Number of runs timed out
      */
-    async timeoutStuckRuns(): Promise<number> {
+    async timeoutStuckRuns (): Promise<number> {
       const cutoffTime = new Date(Date.now() - cfg.runTimeoutMinutes * 60 * 1000)
 
       // Find runs that have been running too long
@@ -152,7 +152,7 @@ export function createSchedulerService(
      *
      * @returns Summary of cleanup results
      */
-    async runAllScheduled(): Promise<{
+    async runAllScheduled (): Promise<{
       abandonedSteps: number
       retriedSteps: number
       timedOutRuns: number
@@ -169,7 +169,7 @@ export function createSchedulerService(
     /**
      * Get scheduler configuration
      */
-    getConfig(): SchedulerConfig {
+    getConfig (): SchedulerConfig {
       return { ...cfg }
     },
   }

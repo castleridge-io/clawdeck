@@ -90,6 +90,7 @@ services:
       # Internal Docker network URLs (for container-to-container communication)
       - API_URL=http://api-e2e:3000
       - FRONTEND_URL=http://frontend-e2e:3002
+      - WS_URL=ws://api-e2e:3000
     depends_on:
       api-e2e:
         condition: service_healthy

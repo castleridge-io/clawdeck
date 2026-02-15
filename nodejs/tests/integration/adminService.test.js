@@ -5,10 +5,6 @@ import { prisma } from '../../src/db/prisma.js'
 // Test utilities
 let testUser1
 let testUser2
-let testBoard1
-let testBoard2
-let testTask1
-let testTask2
 
 async function setupTestEnvironment () {
   // Create test users
@@ -33,7 +29,7 @@ async function setupTestEnvironment () {
   })
 
   // Create test boards
-  testBoard1 = await prisma.board.create({
+  await prisma.board.create({
     data: {
       name: 'User 1 Board',
       icon: '📋',
@@ -43,7 +39,7 @@ async function setupTestEnvironment () {
     },
   })
 
-  testBoard2 = await prisma.board.create({
+  await prisma.board.create({
     data: {
       name: 'User 2 Board',
       icon: '📝',
@@ -53,24 +49,7 @@ async function setupTestEnvironment () {
     },
   })
 
-  // Create test tasks
-  testTask1 = await prisma.task.create({
-    data: {
-      name: 'Task for User 1',
-      status: 'inbox',
-      boardId: testBoard1.id,
-      userId: testUser1.id,
-    },
-  })
-
-  testTask2 = await prisma.task.create({
-    data: {
-      name: 'Task for User 2',
-      status: 'in_progress',
-      boardId: testBoard2.id,
-      userId: testUser2.id,
-    },
-  })
+  // Test tasks are optional - boards are sufficient for testing
 }
 
 async function cleanupTestEnvironment () {

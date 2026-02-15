@@ -1,5 +1,4 @@
-import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
-import type { FastifyRequest, FastifyReply } from 'fastify'
+import type { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
 import type { Task, User, TaskStatus, Priority } from '@prisma/client'
@@ -38,7 +37,7 @@ interface TaskJsonResponse {
 }
 
 // Helper function to create task JSON response
-function taskToJson(task: Task): TaskJsonResponse {
+function taskToJson (task: Task): TaskJsonResponse {
   return {
     id: task.id.toString(),
     name: task.name,
@@ -78,7 +77,7 @@ interface ActivityData {
 }
 
 // Helper function to record task activity
-async function recordActivity(
+async function recordActivity (
   task: Task,
   user: User | undefined,
   action: string,
@@ -130,7 +129,7 @@ interface UpdateTaskBody {
   activity_note?: string
 }
 
-export async function tasksRoutes(
+export async function tasksRoutes (
   fastify: FastifyInstance,
   opts: FastifyPluginOptions
 ): Promise<void> {

@@ -4,10 +4,10 @@ import { createStoryService } from '../services/story.service.js'
 import { createRunService } from '../services/run.service.js'
 import { createStepService } from '../services/step.service.js'
 import { prisma } from '../db/prisma.js'
-import type { Story, Step, Run, Prisma } from '@prisma/client'
+import type { Story } from '@prisma/client'
 
 // Helper to safely parse JSON (prevents crashes from invalid JSON in DB)
-function safeJsonParse(str: string | null): unknown | null {
+function safeJsonParse (str: string | null): unknown | null {
   if (!str) return null
   try {
     return JSON.parse(str)
@@ -17,7 +17,7 @@ function safeJsonParse(str: string | null): unknown | null {
 }
 
 // Helper function to convert story to JSON response
-function storyToJson(story: Story): StoryJson {
+function storyToJson (story: Story): StoryJson {
   return {
     id: story.id,
     run_id: story.runId,
@@ -51,7 +51,7 @@ interface StoryJson {
   updated_at: string
 }
 
-export async function storiesRoutes(
+export async function storiesRoutes (
   fastify: FastifyInstance,
   opts: FastifyPluginOptions
 ): Promise<void> {

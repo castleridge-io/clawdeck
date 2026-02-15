@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test'
 import { login, createWorkflow, createRun } from '../helpers/api'
 
+const API_URL = process.env.API_URL || 'http://localhost:4333'
+
 test.describe('Loop Steps (Phase 6)', () => {
   let token: string
   const createdWorkflowIds: string[] = []
@@ -13,13 +15,13 @@ test.describe('Loop Steps (Phase 6)', () => {
   test.afterAll(async ({ request }) => {
     // Cleanup
     for (const runId of createdRunIds) {
-      await request.delete(`http://localhost:4333/api/v1/runs/${runId}`, {
+      await request.delete(`${API_URL}/api/v1/runs/${runId}`, {
         headers: { Authorization: `Bearer ${token}` },
         ignoreHTTPStatusCodes: true,
       })
     }
     for (const workflowId of createdWorkflowIds) {
-      await request.delete(`http://localhost:4333/api/v1/workflows/${workflowId}`, {
+      await request.delete(`${API_URL}/api/v1/workflows/${workflowId}`, {
         headers: { Authorization: `Bearer ${token}` },
         ignoreHTTPCodes: true,
       })
@@ -56,7 +58,7 @@ test.describe('Loop Steps (Phase 6)', () => {
     createdWorkflowIds.push(workflow.id)
 
     // #then: Workflow should be created with loop step
-    const getResponse = await request.get(`http://localhost:4333/api/v1/workflows/${workflow.id}`, {
+    const getResponse = await request.get(`${API_URL}/api/v1/workflows/${workflow.id}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -93,7 +95,7 @@ test.describe('Loop Steps (Phase 6)', () => {
     createdWorkflowIds.push(workflow.id)
 
     // #when: Creating a run
-    const runResponse = await request.post(`http://localhost:4333/api/v1/runs`, {
+    const runResponse = await request.post(`${API_URL}/api/v1/runs`, {
       headers: { Authorization: `Bearer ${token}` },
       data: {
         workflow_id: workflow.id,
@@ -107,7 +109,7 @@ test.describe('Loop Steps (Phase 6)', () => {
     createdRunIds.push(runId)
 
     // #when: Creating stories for the loop
-    const story1 = await request.post(`http://localhost:4333/api/v1/runs/${runId}/stories`, {
+    const story1 = await request.post(`${API_URL}/api/v1/runs/${runId}/stories`, {
       headers: { Authorization: `Bearer ${token}` },
       data: {
         story_index: 0,
@@ -118,7 +120,7 @@ test.describe('Loop Steps (Phase 6)', () => {
       },
     })
 
-    const story2 = await request.post(`http://localhost:4333/api/v1/runs/${runId}/stories`, {
+    const story2 = await request.post(`${API_URL}/api/v1/runs/${runId}/stories`, {
       headers: { Authorization: `Bearer ${token}` },
       data: {
         story_index: 1,
@@ -133,7 +135,7 @@ test.describe('Loop Steps (Phase 6)', () => {
     expect(story2.ok()).toBeTruthy()
 
     // #then: Stories should be retrievable
-    const stepsResponse = await request.get(`http://localhost:4333/api/v1/runs/${runId}/steps`, {
+    const stepsResponse = await request.get(`${API_URL}/api/v1/runs/${runId}/steps`, {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -173,7 +175,7 @@ test.describe('Loop Steps (Phase 6)', () => {
     createdRunIds.push(run.id)
 
     // Create stories
-    await request.post(`http://localhost:4333/api/v1/runs/${run.id}/stories`, {
+    await request.post(`${API_URL}/api/v1/runs/${run.id}/stories`, {
       headers: { Authorization: `Bearer ${token}` },
       data: {
         story_index: 0,
@@ -185,13 +187,13 @@ test.describe('Loop Steps (Phase 6)', () => {
     })
 
     // Start the run
-    await request.patch(`http://localhost:4333/api/v1/runs/${run.id}/status`, {
+    await request.patch(`${API_URL}/api/v1/runs/${run.id}/status`, {
       headers: { Authorization: `Bearer ${token}` },
       data: { status: 'running' },
     })
 
     // #when: Agent polls for work
-    const claimResponse = await request.post(`http://localhost:4333/api/v1/steps/claim-by-agent`, {
+    const claimResponse = await request.post(`${API_URL}/api/v1/steps/claim-by-agent`, {
       headers: { Authorization: `Bearer ${token}` },
       data: { agent_id: uniqueAgentId },
     })

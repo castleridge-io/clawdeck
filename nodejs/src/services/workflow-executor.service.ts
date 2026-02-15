@@ -41,6 +41,7 @@ interface StepWithRun {
   status: string
   type: string
   loopConfig: LoopConfig | null
+  currentStoryId: string | null
   run: {
     id: string
     context: string
@@ -64,7 +65,7 @@ interface PrismaClient {
   }
 }
 
-export function createWorkflowExecutorService(options?: { prisma?: PrismaClient }) {
+export function createWorkflowExecutorService (options?: { prisma?: PrismaClient }) {
   const prisma = (options?.prisma ?? defaultPrisma) as PrismaClient
 
   return {
@@ -76,7 +77,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
      * @param context - Object with variable values
      * @returns Resolved template string
      */
-    resolveTemplate(template: string, context: Record<string, string>): string {
+    resolveTemplate (template: string, context: Record<string, string>): string {
       return template.replace(/\{\{(\w+(?:\.\w+)*)\}\}/g, (_match, key: string) => {
         // Try exact match first
         if (key in context) {
@@ -102,7 +103,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
      * @param existingContext - Current run context
      * @returns New context object with merged values
      */
-    mergeContextFromOutput(
+    mergeContextFromOutput (
       output: string,
       existingContext: Record<string, string>
     ): Record<string, string> {
@@ -132,7 +133,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
      * @returns Array of parsed story objects
      * @throws Error if JSON is invalid or stories exceed limit
      */
-    parseStoriesJson(output: string): Story[] {
+    parseStoriesJson (output: string): Story[] {
       const lines = output.split('\n')
       const startIdx = lines.findIndex(l => l.startsWith('STORIES_JSON:'))
 
@@ -206,7 +207,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
      * @param story - Story object to format
      * @returns Formatted string for template
      */
-    formatStoryForTemplate(story: Story): string {
+    formatStoryForTemplate (story: Story): string {
       const ac = (story.acceptanceCriteria ?? [])
         .map((c, i) => `  ${i + 1}. ${c}`)
         .join('\n')
@@ -221,7 +222,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
      * @param stories - Array of story objects
      * @returns Formatted string or "(none yet)"
      */
-    formatCompletedStories(stories: Story[]): string {
+    formatCompletedStories (stories: Story[]): string {
       const done = stories.filter(s => s.status === 'done' || s.status === 'completed')
 
       if (done.length === 0) {
@@ -242,7 +243,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
      * @param agentId - Agent identifier (e.g., 'feature-dev/planner')
      * @returns Claim result with resolved input or { found: false }
      */
-    async claimStepByAgent(agentId: string): Promise<{
+    async claimStepByAgent (agentId: string): Promise<{
       found: boolean
       stepId?: string
       runId?: string
@@ -361,7 +362,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
      * @param runId - Run ID to advance
      * @returns { advanced: boolean, runCompleted: boolean }
      */
-    async advancePipeline(runId: string): Promise<{
+    async advancePipeline (runId: string): Promise<{
       advanced: boolean
       runCompleted: boolean
     }> {
@@ -400,7 +401,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
      * @param output - Agent output string
      * @returns Completion result
      */
-    async completeStepWithPipeline(stepId: string, output: string): Promise<{
+    async completeStepWithPipeline (stepId: string, output: string): Promise<{
       stepCompleted: boolean
       runCompleted: boolean
     }> {
@@ -451,7 +452,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
      * @param output - Agent output for the story
      * @returns Completion result with verify status
      */
-    async completeLoopStoryWithVerify(stepId: string, output: string): Promise<{
+    async completeLoopStoryWithVerify (stepId: string, output: string): Promise<{
       storyCompleted: boolean
       needsVerify: boolean
       verifyStepId?: string
@@ -535,7 +536,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
      * @param approvalNote - Optional approval message
      * @returns Approval result
      */
-    async approveStep(stepId: string, approvalNote: string): Promise<{
+    async approveStep (stepId: string, approvalNote: string): Promise<{
       approved: boolean
       step: { id: string; status: string }
     }> {
@@ -559,7 +560,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
           status: 'completed',
           output: `APPROVED: ${approvalNote}`,
         },
-      })
+      }) as { id: string; status: string }
 
       // Advance pipeline
       await this.advancePipeline(step.runId)
@@ -577,7 +578,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
      * @param rejectionReason - Reason for rejection
      * @returns Rejection result
      */
-    async rejectStep(stepId: string, rejectionReason: string): Promise<{
+    async rejectStep (stepId: string, rejectionReason: string): Promise<{
       rejected: boolean
       step: { id: string; status: string }
     }> {
@@ -601,7 +602,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
           status: 'failed',
           output: `REJECTED: ${rejectionReason}`,
         },
-      })
+      }) as { id: string; status: string }
 
       return {
         rejected: true,
@@ -616,7 +617,7 @@ export function createWorkflowExecutorService(options?: { prisma?: PrismaClient 
      * @param maxAgeMinutes - Maximum age in minutes before considering abandoned (default: 15)
      * @returns Number of steps cleaned up
      */
-    async cleanupAbandonedSteps(maxAgeMinutes: number = 15): Promise<{
+    async cleanupAbandonedSteps (maxAgeMinutes: number = 15): Promise<{
       cleanedCount: number
     }> {
       const cutoffTime = new Date(Date.now() - maxAgeMinutes * 60 * 1000)

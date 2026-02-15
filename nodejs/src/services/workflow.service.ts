@@ -4,9 +4,6 @@ import type { Workflow, WorkflowStep, Prisma } from '@prisma/client'
 const VALID_STEP_TYPES = ['single', 'loop', 'approval'] as const
 type StepType = typeof VALID_STEP_TYPES[number]
 
-const VALID_STATUSES = ['waiting', 'running', 'completed', 'failed', 'awaiting_approval'] as const
-type StepStatus = typeof VALID_STATUSES[number]
-
 export interface StepConfig {
   stepId: string
   name?: string | null
@@ -340,4 +337,4 @@ export function createWorkflowService () {
   }
 }
 
-export type { StepType, StepStatus }
+export type { StepType }

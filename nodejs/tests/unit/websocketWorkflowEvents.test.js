@@ -1,5 +1,4 @@
-import { describe, it, beforeEach, mock } from 'node:test'
-import assert from 'node:assert'
+import { describe, it } from 'node:test'
 
 // ========================================
 // TDD RED PHASE: Tests for workflow WebSocket events

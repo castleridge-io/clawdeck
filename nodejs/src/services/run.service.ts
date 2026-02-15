@@ -1,7 +1,7 @@
 import { prisma } from '../db/prisma.js'
-import type { Run, Step, Story, Prisma } from '@prisma/client'
-import { createWorkflowService, type FormattedWorkflow, type StepConfig } from './workflow.service.js'
-import { createStepService, type CreateStepData } from './step.service.js'
+import type { Run, Step, Story } from '@prisma/client'
+import { createWorkflowService } from './workflow.service.js'
+import { createStepService } from './step.service.js'
 
 const VALID_STATUSES = ['running', 'completed', 'failed'] as const
 type RunStatus = typeof VALID_STATUSES[number]
@@ -107,7 +107,7 @@ export function createRunService () {
      * List all runs
      */
     async listRuns (filters: ListRunFilters = {}): Promise<Run[]> {
-      const where: Prisma.RunWhereInput = {}
+      const where: import('@prisma/client').Prisma.RunWhereInput = {}
 
       if (filters.taskId) {
         where.taskId = filters.taskId.toString()

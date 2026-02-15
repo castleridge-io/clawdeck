@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
-import type { Board, Task, TaskStatus } from '../types'
+import type { Task, TaskStatus } from '../types'
 import './TaskModal.css'
 
 type Priority = 'none' | 'low' | 'medium' | 'high'
 
 interface TaskModalProps {
-  board: Board
   task: Task | null
   onSave: (taskIdOrData: string | Partial<Task>, data?: Partial<Task>) => void
   onClose: () => void
@@ -19,7 +18,7 @@ interface FormData {
   tags: string
 }
 
-export default function TaskModal ({ board, task, onSave, onClose }: TaskModalProps) {
+export default function TaskModal ({ task, onSave, onClose }: TaskModalProps) {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',

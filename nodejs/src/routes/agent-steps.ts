@@ -20,7 +20,7 @@ const completeWithPipelineBodySchema = {
   additionalProperties: false,
 } as const
 
-export async function agentStepsRoutes(
+export async function agentStepsRoutes (
   fastify: FastifyInstance,
   opts: FastifyPluginOptions
 ): Promise<void> {

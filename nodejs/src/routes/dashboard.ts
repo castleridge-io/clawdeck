@@ -1,17 +1,7 @@
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
-import type { Board, Agent, Task } from '@prisma/client'
-
-// Partial task shape from select query
-interface TaskPartial {
-  id: bigint
-  status: string
-  priority: string
-  boardId: bigint
-  name: string | null
-  assignedToAgent: boolean
-}
+import type { Board, Agent } from '@prisma/client'
 
 // Helper functions for JSON serialization
 function boardToJson (board: Board): Record<string, unknown> {

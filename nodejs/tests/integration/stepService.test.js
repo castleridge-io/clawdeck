@@ -5,14 +5,6 @@ import { createWorkflowService } from '../../src/services/workflow.service.js'
 import { createRunService } from '../../src/services/run.service.js'
 import { createStepService } from '../../src/services/step.service.js'
 
-// Helper to create step data with required fields
-function createStepData (overrides) {
-  return {
-    expects: 'output',
-    ...overrides,
-  }
-}
-
 // Test utilities
 let testUser
 let testBoard
@@ -594,7 +586,7 @@ describe('Step Service', () => {
         expects: 'output1',
       })
 
-      const step2 = await stepService.createStep({
+      await stepService.createStep({
         runId: run.id,
         stepId: 'step-2',
         agentId: 'agent-2',

@@ -9,14 +9,14 @@ interface RunFilters {
   limit?: number
 }
 
-export function useRuns(filters: RunFilters = {}) {
+export function useRuns (filters: RunFilters = {}) {
   return useQuery({
     queryKey: queryKeys.runs(filters as Record<string, unknown>),
     queryFn: () => getRuns(filters),
   })
 }
 
-export function useRun(id: string) {
+export function useRun (id: string) {
   return useQuery({
     queryKey: queryKeys.run(id),
     queryFn: () => getRun(id),
@@ -24,7 +24,7 @@ export function useRun(id: string) {
   })
 }
 
-export function useTriggerRun() {
+export function useTriggerRun () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -35,7 +35,7 @@ export function useTriggerRun() {
   })
 }
 
-export function useCancelRun() {
+export function useCancelRun () {
   const queryClient = useQueryClient()
 
   return useMutation({

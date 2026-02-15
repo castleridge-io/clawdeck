@@ -56,7 +56,6 @@ async function apiRequest (endpoint, options = {}) {
 describe('E2E Migration Test - OpenClaw Workflow', () => {
   let testBoardId = null
   const testTaskIds = []
-  const testUserId = '1'
 
   before(async () => {
     console.log('\n=== Starting E2E Migration Test ===\n')

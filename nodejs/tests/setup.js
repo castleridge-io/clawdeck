@@ -1,5 +1,4 @@
 import dotenv from 'dotenv'
-import { pathToFileURL } from 'node:url'
 import { parentPort } from 'node:worker_threads'
 
 // Load test environment variables

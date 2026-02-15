@@ -6,7 +6,8 @@
   "workspaces": [
     "nodejs",
     "frontend",
-    "e2e"
+    "e2e",
+    "shared"
   ],
   "scripts": {
     "dev": "yarn workspace clawdeck dev",
@@ -21,7 +22,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "yarn workspaces foreach -Wt run typecheck",
+    "typecheck": "yarn workspaces foreach -Wt --exclude '@clawdeck/shared' run typecheck",
     "prepare": "husky"
   },
   "devDependencies": {

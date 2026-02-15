@@ -33,10 +33,30 @@ describe('Organizations Routes', () => {
     it('returns all organizations for admin users', async () => {
       // #given
       const mockOrgs = [
-        { id: BigInt(1), name: 'Org 1', slug: 'org-1' },
-        { id: BigInt(2), name: 'Org 2', slug: 'org-2' },
+        {
+          id: BigInt(1),
+          name: 'Org 1',
+          slug: 'org-1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          avatarUrl: null,
+          plan: 'free',
+          maxMembers: 5,
+          settings: {},
+        },
+        {
+          id: BigInt(2),
+          name: 'Org 2',
+          slug: 'org-2',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          avatarUrl: null,
+          plan: 'free',
+          maxMembers: 5,
+          settings: {},
+        },
       ]
-      vi.mocked(prisma.organization.findMany).mockResolvedValue(mockOrgs)
+      vi.mocked(prisma.organization.findMany).mockResolvedValue(mockOrgs as unknown as Awaited<ReturnType<typeof prisma.organization.findMany>>)
 
       // Mock admin user
       app.addHook('onRequest', (request, reply, done) => {

@@ -13,14 +13,14 @@ import {
 import { queryKeys } from '../lib/queryKeys'
 import type { User } from '../lib/schemas'
 
-export function useSettings() {
+export function useSettings () {
   return useQuery({
     queryKey: queryKeys.settings,
     queryFn: getSettings,
   })
 }
 
-export function useUpdateSettings() {
+export function useUpdateSettings () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -31,21 +31,21 @@ export function useUpdateSettings() {
   })
 }
 
-export function useUpdatePassword() {
+export function useUpdatePassword () {
   return useMutation({
     mutationFn: ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) =>
       updatePassword(currentPassword, newPassword),
   })
 }
 
-export function useApiToken() {
+export function useApiToken () {
   return useQuery({
     queryKey: queryKeys.apiToken,
     queryFn: getApiToken,
   })
 }
 
-export function useRegenerateApiToken() {
+export function useRegenerateApiToken () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -56,14 +56,14 @@ export function useRegenerateApiToken() {
   })
 }
 
-export function useOpenClawSettings() {
+export function useOpenClawSettings () {
   return useQuery({
     queryKey: queryKeys.openClawSettings,
     queryFn: getOpenClawSettings,
   })
 }
 
-export function useUpdateOpenClawSettings() {
+export function useUpdateOpenClawSettings () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -74,13 +74,13 @@ export function useUpdateOpenClawSettings() {
   })
 }
 
-export function useTestOpenClawConnection() {
+export function useTestOpenClawConnection () {
   return useMutation({
     mutationFn: testOpenClawConnection,
   })
 }
 
-export function useClearOpenClawApiKey() {
+export function useClearOpenClawApiKey () {
   const queryClient = useQueryClient()
 
   return useMutation({

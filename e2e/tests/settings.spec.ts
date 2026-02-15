@@ -47,7 +47,7 @@ test.describe('Settings', () => {
   test('OpenClaw configuration section placeholder', async ({ page }) => {
     // This test checks if OpenClaw settings exist
     // Currently logs that feature needs implementation
-    const openclawSection = page.getByText(/openclaw|claw.*connection|agent.*connection/i)
+    page.getByText(/openclaw|claw.*connection|agent.*connection/i)
 
     // For now, just verify settings page loaded
     await expect(

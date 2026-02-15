@@ -34,7 +34,7 @@ Object.defineProperty(window, 'localStorage', {
 })
 
 // Mock fetch
-global.fetch = vi.fn()
+globalThis.fetch = vi.fn()
 
 // Reset mocks between tests
 beforeEach(() => {

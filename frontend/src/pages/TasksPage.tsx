@@ -13,7 +13,7 @@ const STATUS_OPTIONS: { value: TaskStatus | ''; label: string }[] = [
   { value: 'done', label: 'Done' },
 ]
 
-export default function TasksPage() {
+export default function TasksPage () {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | ''>('')
   const [boardFilter, setBoardFilter] = useState<string>('')
   const queryClient = useQueryClient()
@@ -53,7 +53,7 @@ export default function TasksPage() {
     return filtered
   }, [allTasks, statusFilter, boardFilter])
 
-  async function handleStatusChange(taskId: string, status: TaskStatus) {
+  async function handleStatusChange (taskId: string, status: TaskStatus) {
     try {
       await updateTaskMutation.mutateAsync({ id: taskId, data: { status } })
     } catch (error) {
@@ -61,18 +61,18 @@ export default function TasksPage() {
     }
   }
 
-  async function handleAssigneeChange(taskId: string, assigneeId: string) {
+  async function handleAssigneeChange (taskId: string, assigneeId: string) {
     try {
       await updateTaskMutation.mutateAsync({
         id: taskId,
-        data: { assignee_id: assigneeId || null },
+        data: { assignee_id: assigneeId || undefined },
       })
     } catch (error) {
       alert(`Failed to update assignee: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
-  async function handleDelete(taskId: string) {
+  async function handleDelete (taskId: string) {
     const confirmed = window.confirm('Are you sure you want to delete this task?')
     if (!confirmed) return
 
@@ -83,22 +83,16 @@ export default function TasksPage() {
     }
   }
 
-  function handleRefresh() {
+  function handleRefresh () {
     queryClient.invalidateQueries({ queryKey: ['tasks'] })
     queryClient.invalidateQueries({ queryKey: ['boards'] })
   }
 
-  function getBoardName(boardId: string) {
+  function getBoardName (boardId: string) {
     return boards.find((b) => b.id === boardId)?.name || 'Unknown'
   }
 
-  function getAgentInfo(agentId?: string) {
-    if (!agentId) return null
-    const agent = agents.find((a) => a.id === agentId)
-    return agent ? `${agent.emoji} ${agent.name}` : null
-  }
-
-  function formatDate(dateString?: string) {
+  function formatDate (dateString?: string) {
     if (!dateString) return 'N/A'
     return new Date(dateString).toLocaleDateString()
   }
@@ -153,66 +147,68 @@ export default function TasksPage() {
       </div>
 
       <div className='bg-slate-800 rounded-lg overflow-hidden'>
-        {tasks.length === 0 ? (
-          <div className='text-center py-12 text-slate-400'>No tasks found</div>
-        ) : (
-          <table className='w-full'>
-            <thead className='bg-slate-700'>
-              <tr>
-                <th className='text-left px-4 py-3 text-slate-300 font-medium'>Task</th>
-                <th className='text-left px-4 py-3 text-slate-300 font-medium'>Board</th>
-                <th className='text-left px-4 py-3 text-slate-300 font-medium'>Assignee</th>
-                <th className='text-left px-4 py-3 text-slate-300 font-medium'>Status</th>
-                <th className='text-left px-4 py-3 text-slate-300 font-medium'>Created</th>
-                <th className='text-right px-4 py-3 text-slate-300 font-medium'>Actions</th>
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-slate-700'>
-              {tasks.map((task) => (
-                <tr key={task.id} className='hover:bg-slate-700/50'>
-                  <td className='px-4 py-3 text-white'>{task.name || 'Untitled'}</td>
-                  <td className='px-4 py-3 text-slate-300'>{getBoardName(task.board_id)}</td>
-                  <td className='px-4 py-3'>
-                    <select
-                      value={task.assignee_id || ''}
-                      onChange={(e) => handleAssigneeChange(task.id, e.target.value)}
-                      className='bg-slate-600 border border-slate-500 rounded px-2 py-1 text-sm text-white min-w-[120px]'
-                    >
-                      <option value=''>Unassigned</option>
-                      {agents.map((agent) => (
-                        <option key={agent.id} value={agent.id}>
-                          {agent.emoji} {agent.name}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className='px-4 py-3'>
-                    <select
-                      value={task.status}
-                      onChange={(e) => handleStatusChange(task.id, e.target.value as TaskStatus)}
-                      className='bg-slate-600 border border-slate-500 rounded px-2 py-1 text-sm text-white'
-                    >
-                      {STATUS_OPTIONS.filter((o) => o.value).map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className='px-4 py-3 text-slate-400'>{formatDate(task.created_at)}</td>
-                  <td className='px-4 py-3 text-right'>
-                    <button
-                      onClick={() => handleDelete(task.id)}
-                      className='text-red-400 hover:text-red-300 text-sm'
-                    >
-                      Delete
-                    </button>
-                  </td>
+        {tasks.length === 0
+          ? (
+            <div className='text-center py-12 text-slate-400'>No tasks found</div>
+            )
+          : (
+            <table className='w-full'>
+              <thead className='bg-slate-700'>
+                <tr>
+                  <th className='text-left px-4 py-3 text-slate-300 font-medium'>Task</th>
+                  <th className='text-left px-4 py-3 text-slate-300 font-medium'>Board</th>
+                  <th className='text-left px-4 py-3 text-slate-300 font-medium'>Assignee</th>
+                  <th className='text-left px-4 py-3 text-slate-300 font-medium'>Status</th>
+                  <th className='text-left px-4 py-3 text-slate-300 font-medium'>Created</th>
+                  <th className='text-right px-4 py-3 text-slate-300 font-medium'>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody className='divide-y divide-slate-700'>
+                {tasks.map((task) => (
+                  <tr key={task.id} className='hover:bg-slate-700/50'>
+                    <td className='px-4 py-3 text-white'>{task.name || 'Untitled'}</td>
+                    <td className='px-4 py-3 text-slate-300'>{getBoardName(task.board_id)}</td>
+                    <td className='px-4 py-3'>
+                      <select
+                        value={task.assignee_id || ''}
+                        onChange={(e) => handleAssigneeChange(task.id, e.target.value)}
+                        className='bg-slate-600 border border-slate-500 rounded px-2 py-1 text-sm text-white min-w-[120px]'
+                      >
+                        <option value=''>Unassigned</option>
+                        {agents.map((agent) => (
+                          <option key={agent.id} value={agent.id}>
+                            {agent.emoji} {agent.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className='px-4 py-3'>
+                      <select
+                        value={task.status}
+                        onChange={(e) => handleStatusChange(task.id, e.target.value as TaskStatus)}
+                        className='bg-slate-600 border border-slate-500 rounded px-2 py-1 text-sm text-white'
+                      >
+                        {STATUS_OPTIONS.filter((o) => o.value).map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className='px-4 py-3 text-slate-400'>{formatDate(task.created_at)}</td>
+                    <td className='px-4 py-3 text-right'>
+                      <button
+                        onClick={() => handleDelete(task.id)}
+                        className='text-red-400 hover:text-red-300 text-sm'
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            )}
       </div>
     </div>
   )

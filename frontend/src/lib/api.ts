@@ -34,14 +34,14 @@ import type {
 const API_BASE = '/api/v1'
 
 export class AuthError extends Error {
-  constructor(message: string) {
+  constructor (message: string) {
     super(message)
     this.name = 'AuthError'
   }
 }
 
 // Type-safe fetch with Zod validation
-async function fetchWithAuth<T>(
+async function fetchWithAuth<T> (
   endpoint: string,
   schema: z.ZodSchema<T>,
   options: RequestInit = {}
@@ -94,7 +94,7 @@ async function fetchWithAuth<T>(
 }
 
 // Helper for endpoints that return { data: T } wrapper
-async function fetchData<T>(
+async function fetchData<T> (
   endpoint: string,
   dataSchema: z.ZodSchema<T>,
   options: RequestInit = {}
@@ -112,7 +112,7 @@ interface BoardsFilter {
   organization_id?: string
 }
 
-export async function getBoards(filter?: BoardsFilter): Promise<Board[]> {
+export async function getBoards (filter?: BoardsFilter): Promise<Board[]> {
   const params = new URLSearchParams()
   if (filter?.organization_id) {
     params.append('organization_id', filter.organization_id)
@@ -121,7 +121,7 @@ export async function getBoards(filter?: BoardsFilter): Promise<Board[]> {
   return fetchData(`/boards${queryString ? `?${queryString}` : ''}`, z.array(BoardSchema))
 }
 
-export async function getBoard(boardId: string): Promise<Board> {
+export async function getBoard (boardId: string): Promise<Board> {
   return fetchData(`/boards/${boardId}`, BoardSchema)
 }
 
@@ -129,7 +129,7 @@ export async function getBoard(boardId: string): Promise<Board> {
 // Organizations API
 // ============================================
 
-export async function getOrganizations(): Promise<Organization[]> {
+export async function getOrganizations (): Promise<Organization[]> {
   return fetchData('/organizations', z.array(OrganizationSchema))
 }
 
@@ -142,7 +142,7 @@ interface TasksFilter {
   boardIds?: string[]
 }
 
-export async function getTasks(filter?: TasksFilter): Promise<Task[]> {
+export async function getTasks (filter?: TasksFilter): Promise<Task[]> {
   if (filter?.boardIds && filter.boardIds.length > 0) {
     return fetchData(`/tasks?board_ids=${filter.boardIds.join(',')}`, z.array(TaskSchema))
   }
@@ -152,45 +152,45 @@ export async function getTasks(filter?: TasksFilter): Promise<Task[]> {
   return fetchData('/tasks', z.array(TaskSchema))
 }
 
-export async function createTask(taskData: Partial<Task>): Promise<Task> {
+export async function createTask (taskData: Partial<Task>): Promise<Task> {
   return fetchData('/tasks', TaskSchema, {
     method: 'POST',
     body: JSON.stringify(taskData),
   })
 }
 
-export async function updateTask(taskId: string, updates: Partial<Task>): Promise<Task> {
+export async function updateTask (taskId: string, updates: Partial<Task>): Promise<Task> {
   return fetchData(`/tasks/${taskId}`, TaskSchema, {
     method: 'PATCH',
     body: JSON.stringify(updates),
   })
 }
 
-export async function deleteTask(taskId: string): Promise<boolean> {
+export async function deleteTask (taskId: string): Promise<boolean> {
   await fetchWithAuth(`/tasks/${taskId}`, z.void(), { method: 'DELETE' })
   return true
 }
 
-export async function assignTask(taskId: string): Promise<Task> {
+export async function assignTask (taskId: string): Promise<Task> {
   return fetchData(`/tasks/${taskId}/assign`, TaskSchema, { method: 'PATCH' })
 }
 
-export async function claimTask(taskId: string): Promise<Task> {
+export async function claimTask (taskId: string): Promise<Task> {
   return fetchData(`/tasks/${taskId}/claim`, TaskSchema, { method: 'PATCH' })
 }
 
-export async function unclaimTask(taskId: string): Promise<Task> {
+export async function unclaimTask (taskId: string): Promise<Task> {
   return fetchData(`/tasks/${taskId}/unclaim`, TaskSchema, { method: 'PATCH' })
 }
 
-export async function completeTask(taskId: string): Promise<Task> {
+export async function completeTask (taskId: string): Promise<Task> {
   return fetchData(`/tasks/${taskId}`, TaskSchema, {
     method: 'PATCH',
     body: JSON.stringify({ status: 'done' }),
   })
 }
 
-export async function getNextTask(): Promise<Task | null> {
+export async function getNextTask (): Promise<Task | null> {
   return fetchWithAuth('/tasks/next', TaskSchema.nullable())
 }
 
@@ -198,7 +198,7 @@ export async function getNextTask(): Promise<Task | null> {
 // Agents API
 // ============================================
 
-export async function getAgents(): Promise<Agent[]> {
+export async function getAgents (): Promise<Agent[]> {
   return fetchData('/agents', z.array(AgentSchema))
 }
 
@@ -212,9 +212,9 @@ interface ArchiveFilters {
   limit?: number
 }
 
-export async function getArchivedTasks(
+export async function getArchivedTasks (
   filters: ArchiveFilters = {}
-): Promise<{ data: ArchivedTask[]; meta?: { total: number; page: number; pages: number } }> {
+): Promise<{ data?: ArchivedTask[]; meta?: { total: number; page: number; pages: number } }> {
   const params = new URLSearchParams()
   if (filters.board_id) params.append('board_id', filters.board_id)
   if (filters.page) params.append('page', String(filters.page))
@@ -227,15 +227,15 @@ export async function getArchivedTasks(
   )
 }
 
-export async function unarchiveTask(taskId: string): Promise<Task> {
+export async function unarchiveTask (taskId: string): Promise<Task> {
   return fetchData(`/archives/${taskId}/unarchive`, TaskSchema, { method: 'PATCH' })
 }
 
-export async function scheduleArchive(taskId: string): Promise<Task> {
+export async function scheduleArchive (taskId: string): Promise<Task> {
   return fetchData(`/archives/${taskId}/schedule`, TaskSchema, { method: 'PATCH' })
 }
 
-export async function deleteArchivedTask(taskId: string): Promise<boolean> {
+export async function deleteArchivedTask (taskId: string): Promise<boolean> {
   await fetchWithAuth(`/archives/${taskId}`, z.void(), { method: 'DELETE' })
   return true
 }
@@ -244,22 +244,22 @@ export async function deleteArchivedTask(taskId: string): Promise<boolean> {
 // Workflows API
 // ============================================
 
-export async function getWorkflows(): Promise<Workflow[]> {
+export async function getWorkflows (): Promise<Workflow[]> {
   return fetchData('/workflows', z.array(WorkflowSchema))
 }
 
-export async function getWorkflow(workflowId: string): Promise<Workflow> {
+export async function getWorkflow (workflowId: string): Promise<Workflow> {
   return fetchData(`/workflows/${workflowId}`, WorkflowSchema)
 }
 
-export async function createWorkflow(workflowData: Partial<Workflow>): Promise<Workflow> {
+export async function createWorkflow (workflowData: Partial<Workflow>): Promise<Workflow> {
   return fetchData('/workflows', WorkflowSchema, {
     method: 'POST',
     body: JSON.stringify(workflowData),
   })
 }
 
-export async function updateWorkflow(
+export async function updateWorkflow (
   workflowId: string,
   updates: Partial<Workflow>
 ): Promise<Workflow> {
@@ -269,12 +269,12 @@ export async function updateWorkflow(
   })
 }
 
-export async function deleteWorkflow(workflowId: string): Promise<boolean> {
+export async function deleteWorkflow (workflowId: string): Promise<boolean> {
   await fetchWithAuth(`/workflows/${workflowId}`, z.void(), { method: 'DELETE' })
   return true
 }
 
-export async function importWorkflowYaml(yamlString: string): Promise<Workflow> {
+export async function importWorkflowYaml (yamlString: string): Promise<Workflow> {
   return fetchData('/workflows/import-yaml', WorkflowSchema, {
     method: 'POST',
     body: JSON.stringify({ yaml: yamlString }),
@@ -292,7 +292,7 @@ interface RunFilters {
   limit?: number
 }
 
-export async function getRuns(filters: RunFilters = {}): Promise<Run[]> {
+export async function getRuns (filters: RunFilters = {}): Promise<Run[]> {
   const params = new URLSearchParams()
   if (filters.status) params.append('status', filters.status)
   if (filters.workflow_id) params.append('workflow_id', filters.workflow_id)
@@ -303,18 +303,18 @@ export async function getRuns(filters: RunFilters = {}): Promise<Run[]> {
   return fetchData(`/runs${queryString ? `?${queryString}` : ''}`, z.array(RunSchema))
 }
 
-export async function getRun(runId: string): Promise<Run> {
+export async function getRun (runId: string): Promise<Run> {
   return fetchData(`/runs/${runId}`, RunSchema)
 }
 
-export async function triggerRun(workflowId: string): Promise<Run> {
+export async function triggerRun (workflowId: string): Promise<Run> {
   return fetchData('/runs', RunSchema, {
     method: 'POST',
     body: JSON.stringify({ workflow_id: workflowId }),
   })
 }
 
-export async function cancelRun(runId: string): Promise<Run> {
+export async function cancelRun (runId: string): Promise<Run> {
   return fetchData(`/runs/${runId}/cancel`, RunSchema, { method: 'POST' })
 }
 
@@ -322,18 +322,18 @@ export async function cancelRun(runId: string): Promise<Run> {
 // Settings API
 // ============================================
 
-export async function getSettings(): Promise<User> {
+export async function getSettings (): Promise<User> {
   return fetchWithAuth('/auth/me', UserSchema)
 }
 
-export async function updateSettings(data: Partial<User>): Promise<User> {
+export async function updateSettings (data: Partial<User>): Promise<User> {
   return fetchWithAuth('/auth/me', UserSchema, {
     method: 'PATCH',
     body: JSON.stringify(data),
   })
 }
 
-export async function updatePassword(
+export async function updatePassword (
   currentPassword: string,
   newPassword: string
 ): Promise<{ message: string }> {
@@ -347,11 +347,11 @@ export async function updatePassword(
   )
 }
 
-export async function getApiToken(): Promise<ApiToken> {
+export async function getApiToken (): Promise<ApiToken> {
   return fetchWithAuth('/auth/me/api-token', ApiTokenSchema)
 }
 
-export async function regenerateApiToken(): Promise<ApiToken> {
+export async function regenerateApiToken (): Promise<ApiToken> {
   return fetchWithAuth('/auth/me/api-token/regenerate', ApiTokenSchema, { method: 'POST' })
 }
 
@@ -359,11 +359,11 @@ export async function regenerateApiToken(): Promise<ApiToken> {
 // OpenClaw Settings API
 // ============================================
 
-export async function getOpenClawSettings(): Promise<OpenClawSettings> {
+export async function getOpenClawSettings (): Promise<OpenClawSettings> {
   return fetchData('/settings/openclaw', OpenClawSettingsSchema)
 }
 
-export async function updateOpenClawSettings(data: {
+export async function updateOpenClawSettings (data: {
   url?: string
   apiKey?: string
 }): Promise<OpenClawSettings> {
@@ -373,7 +373,7 @@ export async function updateOpenClawSettings(data: {
   })
 }
 
-export async function testOpenClawConnection(): Promise<{
+export async function testOpenClawConnection (): Promise<{
   success: boolean
   message?: string
   error?: string
@@ -389,7 +389,7 @@ export async function testOpenClawConnection(): Promise<{
   )
 }
 
-export async function clearOpenClawApiKey(): Promise<void> {
+export async function clearOpenClawApiKey (): Promise<void> {
   await fetchWithAuth('/settings/openclaw/api-key', z.void(), { method: 'DELETE' })
 }
 
@@ -397,11 +397,11 @@ export async function clearOpenClawApiKey(): Promise<void> {
 // Admin API
 // ============================================
 
-export async function getUsers(): Promise<User[]> {
+export async function getUsers (): Promise<User[]> {
   return fetchData('/admin/users', z.array(UserSchema))
 }
 
-export async function updateUser(userId: string, data: Partial<User>): Promise<User> {
+export async function updateUser (userId: string, data: Partial<User>): Promise<User> {
   return fetchData(`/admin/users/${userId}`, UserSchema, {
     method: 'PATCH',
     body: JSON.stringify(data),
@@ -415,7 +415,7 @@ interface AdminFilters {
   limit?: number
 }
 
-export async function getAdminBoards(
+export async function getAdminBoards (
   filters: AdminFilters = {}
 ): Promise<{ data: AdminBoard[]; meta: { total: number; page: number; pages: number } }> {
   const params = new URLSearchParams()
@@ -429,7 +429,7 @@ export async function getAdminBoards(
   )
 }
 
-export async function getAdminTasks(
+export async function getAdminTasks (
   filters: AdminFilters = {}
 ): Promise<{ data: AdminTask[]; meta: { total: number; page: number; pages: number } }> {
   const params = new URLSearchParams()
@@ -491,7 +491,7 @@ const DashboardSchema = z.object({
   assignedCount: z.number(),
 })
 
-export async function getDashboard(): Promise<DashboardData> {
+export async function getDashboard (): Promise<DashboardData> {
   // Dashboard endpoint returns data directly without { success, data } wrapper
   const response = await fetchWithAuth('/dashboard', DashboardSchema)
   return response ?? { boards: [], agents: [], taskCounts: { total: 0, inbox: 0, up_next: 0, in_progress: 0, in_review: 0, done: 0 }, priorityCounts: { high: 0, medium: 0, low: 0, none: 0 }, tasksPerBoard: {}, assignedCount: 0 }

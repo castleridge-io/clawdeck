@@ -28,7 +28,7 @@ interface GoogleTokenResponse {
 interface GitHubTokenResponse {
   access_token: string
   error?: string
-  error_description?: string
+  errorDescription?: string
 }
 
 interface GoogleProfile {
@@ -127,7 +127,7 @@ async function exchangeGitHubCode (code: string): Promise<GitHubTokenResponse> {
   const data = await response.json() as GitHubTokenResponse
 
   if (data.error) {
-    throw new Error(`GitHub token exchange error: ${data.error_description ?? data.error}`)
+    throw new Error(`GitHub token exchange error: ${data.errorDescription ?? data.error}`)
   }
 
   return data
@@ -357,18 +357,18 @@ export async function oauthRoutes (fastify: FastifyInstance): Promise<void> {
             code: { type: 'string' },
             state: { type: 'string' },
             error: { type: 'string' },
-            error_description: { type: 'string' }
+            errorDescription: { type: 'string' }
           },
           required: ['code', 'state']
         }
       }
     },
     async (request: FastifyRequest<{ Querystring: GitHubCallbackQuery }>, reply: FastifyReply) => {
-      const { code, state, error, error_description } = request.query
+      const { code, state, error, error_description: errorDescription } = request.query
 
       if (error) {
         return reply.redirect(
-          `${process.env.FRONTEND_URL ?? 'http://localhost:3002'}/login?error=${encodeURIComponent(error_description ?? error)}`
+          `${process.env.FRONTEND_URL ?? 'http://localhost:3002'}/login?error=${encodeURIComponent(errorDescription ?? error)}`
         )
       }
 

@@ -6,7 +6,7 @@ import assert from 'node:assert'
 // ========================================
 
 // Mock executor service for testing
-function createMockExecutorService() {
+function createMockExecutorService () {
   return {
     claimStepByAgent: mock.fn(),
     completeStepWithPipeline: mock.fn(),

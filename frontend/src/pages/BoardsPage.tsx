@@ -31,7 +31,7 @@ const COLUMNS: Column[] = [
   { id: 'done', name: 'Done', color: 'green' },
 ]
 
-export default function BoardsPage() {
+export default function BoardsPage () {
   const queryClient = useQueryClient()
   const { user } = useAuth()
   const isAdmin = user?.admin ?? false
@@ -149,14 +149,14 @@ export default function BoardsPage() {
   }, [selectedBoard, allTasks, filters])
 
   // Format board name with organization for admin view
-  function formatBoardName(board: Board): string {
+  function formatBoardName (board: Board): string {
     if (isAdmin && board.organization_name) {
       return `${board.name} (${board.organization_name})`
     }
     return board.name
   }
 
-  async function handleCreateTask(taskData: Partial<Task>) {
+  async function handleCreateTask (taskData: Partial<Task>) {
     if (!selectedBoard) return
 
     try {
@@ -170,7 +170,7 @@ export default function BoardsPage() {
     }
   }
 
-  async function handleUpdateTask(taskId: string, updates: Partial<Task>) {
+  async function handleUpdateTask (taskId: string, updates: Partial<Task>) {
     try {
       await updateTaskMutation.mutateAsync({ id: taskId, data: updates })
     } catch (error) {
@@ -179,7 +179,7 @@ export default function BoardsPage() {
   }
 
   // Wrapper to match TaskModal's onSave signature
-  function handleTaskModalSave(taskIdOrData: string | Partial<Task>, data?: Partial<Task>) {
+  function handleTaskModalSave (taskIdOrData: string | Partial<Task>, data?: Partial<Task>) {
     if (typeof taskIdOrData === 'string') {
       handleUpdateTask(taskIdOrData, data || {})
     } else {
@@ -187,7 +187,7 @@ export default function BoardsPage() {
     }
   }
 
-  async function handleDeleteTask(taskId: string) {
+  async function handleDeleteTask (taskId: string) {
     if (!confirm('Are you sure you want to delete this task?')) return
 
     try {
@@ -197,7 +197,7 @@ export default function BoardsPage() {
     }
   }
 
-  async function handleAssignTask(taskId: string) {
+  async function handleAssignTask (taskId: string) {
     try {
       await assignTask(taskId)
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
@@ -206,7 +206,7 @@ export default function BoardsPage() {
     }
   }
 
-  async function handleClaimTask(taskId: string) {
+  async function handleClaimTask (taskId: string) {
     try {
       await claimTaskMutation.mutateAsync(taskId)
     } catch (error) {
@@ -214,7 +214,7 @@ export default function BoardsPage() {
     }
   }
 
-  async function handleCompleteTask(taskId: string) {
+  async function handleCompleteTask (taskId: string) {
     try {
       await completeTaskMutation.mutateAsync(taskId)
     } catch (error) {
@@ -257,24 +257,26 @@ export default function BoardsPage() {
           )}
 
           {/* Board Selector */}
-          {boards.length > 0 ? (
-            <select
-              value={selectedBoard?.id || ''}
-              onChange={(e) => {
-                const board = boards.find((b) => b.id === e.target.value)
-                setSelectedBoard(board || null)
-              }}
-              className='px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
-            >
-              {boards.map((board) => (
-                <option key={board.id} value={board.id}>
-                  {formatBoardName(board)}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <span className='text-slate-400 text-sm'>No boards available</span>
-          )}
+          {boards.length > 0
+            ? (
+              <select
+                value={selectedBoard?.id || ''}
+                onChange={(e) => {
+                  const board = boards.find((b) => b.id === e.target.value)
+                  setSelectedBoard(board || null)
+                }}
+                className='px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+              >
+                {boards.map((board) => (
+                  <option key={board.id} value={board.id}>
+                    {formatBoardName(board)}
+                  </option>
+                ))}
+              </select>
+              )
+            : (
+              <span className='text-slate-400 text-sm'>No boards available</span>
+              )}
 
           <button
             onClick={() => setShowTaskModal(true)}
@@ -323,7 +325,6 @@ export default function BoardsPage() {
       {/* Task Modal */}
       {showTaskModal && selectedBoard && (
         <TaskModal
-          board={selectedBoard}
           task={editingTask}
           onSave={handleTaskModalSave}
           onClose={() => {

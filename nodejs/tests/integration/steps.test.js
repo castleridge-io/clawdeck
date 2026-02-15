@@ -409,7 +409,7 @@ describe('Steps API', () => {
 
     it('should fail to claim step when previous steps are not completed', async () => {
       // Create a previous step that is still waiting
-      const previousStep = await prisma.step.create({
+      await prisma.step.create({
         data: createStepData({
           id: `step-previous-${Date.now()}`,
           runId: testRun.id,
@@ -450,7 +450,7 @@ describe('Steps API', () => {
       await prisma.step.deleteMany({ where: { runId: testRun.id } })
 
       // Create and complete a previous step
-      const previousStep = await prisma.step.create({
+      await prisma.step.create({
         data: createStepData({
           id: `step-previous-completed-${Date.now()}`,
           runId: testRun.id,

@@ -1,15 +1,13 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, CreateBucketCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import crypto from 'crypto'
-import type { Prisma } from '@prisma/client'
 
 export class StorageService {
   private s3Client: S3Client
   public readonly bucket: string
   public readonly publicUrl: string
 
-  constructor() {
-    const useSsl = process.env.S3_SSL !== 'false'
+  constructor () {
     const endpoint = process.env.S3_ENDPOINT || 'http://localhost:9000'
     const region = process.env.S3_REGION || 'us-east-1'
 
@@ -27,18 +25,18 @@ export class StorageService {
     this.publicUrl = process.env.S3_PUBLIC_URL || endpoint
   }
 
-  generateKey(filename: string): string {
+  generateKey (filename: string): string {
     const ext = filename.split('.').pop() as string
     const hash = crypto.randomBytes(16).toString('hex')
     return `avatars/${hash}.${ext}`
   }
 
-  async uploadAvatar(
-  userId: string | number,
-  fileBuffer: Buffer,
-  filename: string,
-  contentType: string
-): Promise<{ url: string; key: string }> {
+  async uploadAvatar (
+    userId: string | number,
+    fileBuffer: Buffer,
+    filename: string,
+    contentType: string
+  ): Promise<{ url: string; key: string }> {
     const key = this.generateKey(filename)
 
     const command = new PutObjectCommand({
@@ -64,7 +62,7 @@ export class StorageService {
     }
   }
 
-  async deleteAvatar(userId: string | number): Promise<void> {
+  async deleteAvatar (userId: string | number): Promise<void> {
     const prisma = (await import('../db/prisma.js')).prisma
     const user = await prisma.user.findUnique({
       where: { id: BigInt(userId) },
@@ -90,7 +88,7 @@ export class StorageService {
     })
   }
 
-  extractKeyFromUrl(url: string): string | null {
+  extractKeyFromUrl (url: string): string | null {
     try {
       const urlObj = new URL(url)
       const pathParts = urlObj.pathname.split('/')
@@ -104,61 +102,61 @@ export class StorageService {
     }
   }
 
-  async createActiveStorageRecord(
-  userId: bigint,
-  key: string,
-  filename: string,
-  contentType: string,
-  byteSize: number,
-): Promise<void> {
-  const prisma = (await import('../db/prisma.js')).prisma
+  async createActiveStorageRecord (
+    userId: bigint,
+    key: string,
+    filename: string,
+    contentType: string,
+    byteSize: number
+  ): Promise<void> {
+    const prisma = (await import('../db/prisma.js')).prisma
 
-  const blob = await prisma.activeStorageBlob.create({
-    data: {
-      key,
-      filename,
-      contentType,
-      byteSize: BigInt(byteSize),
-      checksum: crypto.createHash('md5').update(key).digest('hex'),
-      serviceName: 'minio',
-      metadata: {},
-    },
-  })
+    const blob = await prisma.activeStorageBlob.create({
+      data: {
+        key,
+        filename,
+        contentType,
+        byteSize: BigInt(byteSize),
+        checksum: crypto.createHash('md5').update(key).digest('hex'),
+        serviceName: 'minio',
+        metadata: {},
+      },
+    })
 
-  await prisma.activeStorageAttachment.create({
-    data: {
-      name: 'avatar',
-      recordType: 'User',
-      recordId: BigInt(userId),
-      blobId: blob.id,
-    },
-  })
-}
+    await prisma.activeStorageAttachment.create({
+      data: {
+        name: 'avatar',
+        recordType: 'User',
+        recordId: BigInt(userId),
+        blobId: blob.id,
+      },
+    })
+  }
 
-async getSignedUploadUrl(
-  key: string,
-  contentType: string,
-  expiresIn = 300,
-): Promise<string> {
-  const command = new PutObjectCommand({
-    Bucket: this.bucket,
-    Key: key,
-    ContentType: contentType,
-  })
+  async getSignedUploadUrl (
+    key: string,
+    contentType: string,
+    expiresIn = 300
+  ): Promise<string> {
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      ContentType: contentType,
+    })
 
-  return getSignedUrl(this.s3Client, command, { expiresIn })
-}
+    return getSignedUrl(this.s3Client, command, { expiresIn })
+  }
 
-async getSignedDownloadUrl(key: string, expiresIn = 300): Promise<string> {
-  const command = new GetObjectCommand({
-    Bucket: this.bucket,
-    Key: key,
-  })
+  async getSignedDownloadUrl (key: string, expiresIn = 300): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    })
 
-  return getSignedUrl(this.s3Client, command, { expiresIn })
-}
+    return getSignedUrl(this.s3Client, command, { expiresIn })
+  }
 
-  async ensureBucket(): Promise<void> {
+  async ensureBucket (): Promise<void> {
     try {
       const { HeadBucketCommand } = await import('@aws-sdk/client-s3')
       await this.s3Client.send(new HeadBucketCommand({ Bucket: this.bucket }))
@@ -171,6 +169,6 @@ async getSignedDownloadUrl(key: string, expiresIn = 300): Promise<string> {
   }
 }
 
-export function createStorageService(): StorageService {
+export function createStorageService (): StorageService {
   return new StorageService()
 }

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-export async function runMigrations(databaseUrl: string): Promise<void> {
+export async function runMigrations (databaseUrl: string): Promise<void> {
   const client = new pg.Client({ connectionString: databaseUrl })
 
   try {

@@ -1,5 +1,5 @@
-import type { User, PrismaClient } from '@prisma/client'
-import type { FastifyInstance } from 'fastify'
+import type { User } from '@prisma/client'
+import type { FastifyReply } from 'fastify'
 
 // Extend @fastify/jwt user type so request.user is properly typed
 declare module '@fastify/jwt' {

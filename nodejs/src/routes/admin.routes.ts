@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { createAuthService } from '../services/auth.service.js'
 import { createAdminService } from '../services/admin.service.js'
 
-export async function adminRoutes(
+export async function adminRoutes (
   fastify: FastifyInstance,
   opts: FastifyPluginOptions
 ): Promise<void> {

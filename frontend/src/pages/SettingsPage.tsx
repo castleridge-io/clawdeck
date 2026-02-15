@@ -11,7 +11,7 @@ import {
   testOpenClawConnection,
   clearOpenClawApiKey,
 } from '../lib/api'
-import type { User, ApiToken } from '../types'
+import type { ApiToken } from '../types'
 import type { OpenClawSettings } from '../lib/api'
 import LoadingSpinner from '../components/LoadingSpinner'
 

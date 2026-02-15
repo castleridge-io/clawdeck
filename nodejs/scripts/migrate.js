@@ -20,7 +20,7 @@ async function runMigrations () {
   }
 
   try {
-    const result = execSync('npx prisma migrate deploy', {
+    execSync('npx prisma migrate deploy', {
       cwd: path.join(__dirname, '..'),
       stdio: 'inherit',
     })

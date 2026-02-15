@@ -25,7 +25,7 @@ interface WorkflowJson {
 }
 
 // Helper function to convert workflow to JSON response
-function workflowToJson(workflow: FormattedWorkflow | null): WorkflowJson | null {
+function workflowToJson (workflow: FormattedWorkflow | null): WorkflowJson | null {
   if (!workflow) return null
   return {
     id: workflow.id,
@@ -48,7 +48,7 @@ function workflowToJson(workflow: FormattedWorkflow | null): WorkflowJson | null
 }
 
 // Helper to convert WorkflowData steps to StepConfig
-function toStepConfig(steps: WorkflowData['steps']): StepConfig[] {
+function toStepConfig (steps: WorkflowData['steps']): StepConfig[] {
   if (!steps) return []
   return steps.map(step => ({
     stepId: step.step_id ?? '',
@@ -61,7 +61,7 @@ function toStepConfig(steps: WorkflowData['steps']): StepConfig[] {
   }))
 }
 
-export async function workflowsRoutes(
+export async function workflowsRoutes (
   fastify: FastifyInstance,
   opts: FastifyPluginOptions
 ): Promise<void> {

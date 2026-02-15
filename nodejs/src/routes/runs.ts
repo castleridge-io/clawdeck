@@ -55,7 +55,7 @@ interface RunWithRelations extends Run {
 }
 
 // Helper function to convert run to JSON response
-function runToJson(run: RunWithRelations): RunJson {
+function runToJson (run: RunWithRelations): RunJson {
   // Safely parse context - handle both JSON and plain strings
   let parsedContext: unknown = {}
   if (run.context) {
@@ -127,7 +127,7 @@ interface RunFilters {
   status?: RunStatus
 }
 
-export async function runsRoutes(
+export async function runsRoutes (
   fastify: FastifyInstance,
   opts: FastifyPluginOptions
 ): Promise<void> {

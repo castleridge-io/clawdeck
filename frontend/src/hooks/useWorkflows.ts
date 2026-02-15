@@ -10,14 +10,14 @@ import {
 import { queryKeys } from '../lib/queryKeys'
 import type { Workflow } from '../lib/schemas'
 
-export function useWorkflows() {
+export function useWorkflows () {
   return useQuery({
     queryKey: queryKeys.workflows,
     queryFn: getWorkflows,
   })
 }
 
-export function useWorkflow(id: string) {
+export function useWorkflow (id: string) {
   return useQuery({
     queryKey: queryKeys.workflow(id),
     queryFn: () => getWorkflow(id),
@@ -25,7 +25,7 @@ export function useWorkflow(id: string) {
   })
 }
 
-export function useCreateWorkflow() {
+export function useCreateWorkflow () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -36,7 +36,7 @@ export function useCreateWorkflow() {
   })
 }
 
-export function useUpdateWorkflow() {
+export function useUpdateWorkflow () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -48,7 +48,7 @@ export function useUpdateWorkflow() {
   })
 }
 
-export function useDeleteWorkflow() {
+export function useDeleteWorkflow () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -59,7 +59,7 @@ export function useDeleteWorkflow() {
   })
 }
 
-export function useImportWorkflowYaml() {
+export function useImportWorkflowYaml () {
   const queryClient = useQueryClient()
 
   return useMutation({

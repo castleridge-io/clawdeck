@@ -72,7 +72,7 @@ export function createStoryService () {
     async updateStoryStatus (
       id: string,
       status: string,
-      output?: unknown,
+      output?: unknown
     ): Promise<Story> {
       const prisma = (await import('../db/prisma.js')).prisma
 

@@ -17,7 +17,7 @@ interface TasksFilter {
   boardIds?: string[]
 }
 
-export function useTasks(filter?: TasksFilter) {
+export function useTasks (filter?: TasksFilter) {
   return useQuery({
     queryKey: queryKeys.tasks({ boardId: filter?.boardId, boardIds: filter?.boardIds }),
     queryFn: () => getTasks(filter),
@@ -25,19 +25,19 @@ export function useTasks(filter?: TasksFilter) {
   })
 }
 
-export function useNextTask() {
+export function useNextTask () {
   return useQuery({
     queryKey: queryKeys.nextTask(),
     queryFn: getNextTask,
   })
 }
 
-export function useCreateTask() {
+export function useCreateTask () {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (taskData: Partial<Task>) => createTask(taskData),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       // Invalidate both single board and boardIds array queries
       queryClient.invalidateQueries({
         predicate: (query) => {
@@ -50,7 +50,7 @@ export function useCreateTask() {
   })
 }
 
-export function useUpdateTask() {
+export function useUpdateTask () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -67,7 +67,7 @@ export function useUpdateTask() {
   })
 }
 
-export function useDeleteTask() {
+export function useDeleteTask () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -84,7 +84,7 @@ export function useDeleteTask() {
   })
 }
 
-export function useClaimTask() {
+export function useClaimTask () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -100,7 +100,7 @@ export function useClaimTask() {
   })
 }
 
-export function useUnclaimTask() {
+export function useUnclaimTask () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -116,7 +116,7 @@ export function useUnclaimTask() {
   })
 }
 
-export function useCompleteTask() {
+export function useCompleteTask () {
   const queryClient = useQueryClient()
 
   return useMutation({

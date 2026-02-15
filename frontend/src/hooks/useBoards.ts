@@ -6,14 +6,14 @@ interface BoardsFilter {
   organization_id?: string
 }
 
-export function useBoards(filter?: BoardsFilter) {
+export function useBoards (filter?: BoardsFilter) {
   return useQuery({
     queryKey: queryKeys.boards(filter),
     queryFn: () => getBoards(filter),
   })
 }
 
-export function useBoard(id: string) {
+export function useBoard (id: string) {
   return useQuery({
     queryKey: queryKeys.board(id),
     queryFn: () => getBoard(id),
@@ -21,7 +21,7 @@ export function useBoard(id: string) {
   })
 }
 
-export function useOrganizations() {
+export function useOrganizations () {
   return useQuery({
     queryKey: queryKeys.organizations,
     queryFn: getOrganizations,

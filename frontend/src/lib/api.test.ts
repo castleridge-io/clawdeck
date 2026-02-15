@@ -54,7 +54,7 @@ describe('api module', () => {
         json: async () => ({ data: mockTasks }),
       } as Response)
 
-      const result = await getTasks('board-123')
+      const result = await getTasks({ boardId: 'board-123' })
 
       expect(result).toEqual(mockTasks)
       expect(fetch).toHaveBeenCalledWith('/api/v1/tasks?board_id=board-123', expect.any(Object))

@@ -159,7 +159,7 @@ function CheckboxOption ({ label, checked, onChange, color }: CheckboxOptionProp
   )
 }
 
-export default function TaskFilters ({
+export default function TaskFiltersComponent ({
   filters,
   onFiltersChange,
   availableAgents,
@@ -180,10 +180,10 @@ export default function TaskFilters ({
     value: string
   ) {
     const current = filters[key]
-    const updated = current.includes(value)
-      ? current.filter((v) => v !== value)
-      : [...current, value]
-    updateFilter(key, updated)
+    const updated = (current as string[]).includes(value)
+      ? (current as string[]).filter((v) => v !== value)
+      : [...(current as string[]), value]
+    updateFilter(key, updated as TaskFilters[K])
   }
 
   function clearFilters () {

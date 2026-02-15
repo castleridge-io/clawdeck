@@ -4,7 +4,7 @@ import { createStorageService } from '../services/storage.service.js'
 const MAX_AVATAR_SIZE = 512 * 1024
 const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
-export async function avatarRoutes(
+export async function avatarRoutes (
   fastify: FastifyInstance,
   opts: FastifyPluginOptions
 ): Promise<void> {

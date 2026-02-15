@@ -1,8 +1,6 @@
 import pg from 'pg'
 import type { QueryResult, QueryResultRow } from 'pg'
 
-const { Pool } = pg
-
 interface PoolConfig {
   host: string
   port: number

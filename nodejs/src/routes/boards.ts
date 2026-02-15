@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify'
 import { authenticateRequest } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
-import type { Board, Task as PrismaTask } from '@prisma/client'
+import type { Task as PrismaTask } from '@prisma/client'
 
 interface BoardJson {
   id: string
@@ -179,7 +179,7 @@ export async function boardsRoutes (
 
   // POST /api/v1/boards - Create board
   fastify.post('/', async (request, reply) => {
-    const { name, icon, color,position } = request.body as {
+    const { name, icon, color, position } = request.body as {
       name?: string
       icon?: string
       color?: string
@@ -229,7 +229,7 @@ export async function boardsRoutes (
 
   // PATCH /api/v1/boards/:id - Update board
   fastify.patch<{ Params: { id: string } }>('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
-    const { name, icon, color,position, agent_id: agentIdParam } = request.body as {
+    const { name, icon, color, position, agent_id: agentIdParam } = request.body as {
       name?: string
       icon?: string
       color?: string

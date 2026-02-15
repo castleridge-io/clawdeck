@@ -1,6 +1,4 @@
-import type { Prisma } from '@prisma/client'
-
-export function createAdminService() {
+export function createAdminService () {
   return {
     /**
      * List all boards with owner info
@@ -8,9 +6,9 @@ export function createAdminService() {
      * @param {number} limit - Items per page
      * @returns {Promise<{data: Array, meta: {total: number, page: number, pages: number}}>}
      */
-    async listAllBoards(
+    async listAllBoards (
       page = 1,
-      limit = 50,
+      limit = 50
     ): Promise<{ data: Array<unknown>; meta: { total: number; page: number; pages: number } }> {
       const prisma = (await import('../db/prisma.js')).prisma
 
@@ -63,13 +61,13 @@ export function createAdminService() {
      * @param {number} limit - Items per page
      * @returns {Promise<{data: Array, meta: {total: number; page: number; pages: number}}>}
      */
-    async listAllTasks(
+    async listAllTasks (
       filters: {
         user_id?: string
         status?: string
       } = {},
       page = 1,
-      limit = 50,
+      limit = 50
     ): Promise<{ data: Array<unknown>; meta: { total: number; page: number; pages: number } }> {
       const prisma = (await import('../db/prisma.js')).prisma
 

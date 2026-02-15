@@ -169,9 +169,6 @@ describe('E2E Archive Feature Test', () => {
   })
 
   it('should create test tasks with various statuses', async () => {
-    const now = new Date()
-    const oldDate = new Date(now.getTime() - 26 * 60 * 60 * 1000) // 26 hours ago
-
     const tasks = [
       {
         name: '[E2E ARCHIVE] Active Task 1',

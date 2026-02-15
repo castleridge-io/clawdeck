@@ -6,7 +6,6 @@ import { prisma } from '../../src/db/prisma.js'
 let testUser
 let testBoard
 let testToken
-let testTasks = []
 
 async function setupTestEnvironment () {
   // Create test user
@@ -43,7 +42,7 @@ async function setupTestEnvironment () {
   const now = new Date()
   const oldDate = new Date(now.getTime() - 25 * 60 * 60 * 1000)
 
-  testTasks = await Promise.all([
+  await Promise.all([
     // Archived task
     prisma.task.create({
       data: {
@@ -86,7 +85,6 @@ async function cleanupTestEnvironment () {
   await prisma.board.deleteMany({})
   await prisma.apiToken.deleteMany({})
   await prisma.user.deleteMany({})
-  testTasks = []
 }
 
 async function makeRequest (method, path, body = null, headers = {}) {
@@ -447,7 +445,7 @@ describe('Archives and Tasks Integration', () => {
   })
 
   it('should include archived fields in task JSON', async () => {
-    const task = await prisma.task.create({
+    await prisma.task.create({
       data: {
         name: 'Task with Archive Fields',
         boardId: testBoard.id,

@@ -2,13 +2,7 @@ import type { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fast
 import { authenticateRequest } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
 
-interface OrganizationJson {
-  id: string
-  name: string
-  slug: string
-}
-
-export async function organizationsRoutes(
+export async function organizationsRoutes (
   fastify: FastifyInstance,
   _opts: FastifyPluginOptions
 ): Promise<void> {

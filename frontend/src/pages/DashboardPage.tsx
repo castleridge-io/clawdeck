@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useDashboard } from '../hooks/useDashboard'
 import LoadingSpinner from '../components/LoadingSpinner'
 
-export default function DashboardPage() {
+export default function DashboardPage () {
   const { data, isLoading, error } = useDashboard()
 
   if (isLoading) {

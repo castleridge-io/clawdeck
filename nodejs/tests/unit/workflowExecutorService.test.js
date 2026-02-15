@@ -25,7 +25,6 @@ const mockPrisma = {
 // ========================================
 
 describe('Workflow Executor Service - Pure Functions', () => {
-
   describe('resolveTemplate', () => {
     it('should replace {{variable}} placeholders with context values', async () => {
       const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
@@ -170,7 +169,7 @@ No stories here`
       const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
-      const output = `STORIES_JSON: [invalid json here`
+      const output = 'STORIES_JSON: [invalid json here'
 
       assert.throws(
         () => executorService.parseStoriesJson(output),

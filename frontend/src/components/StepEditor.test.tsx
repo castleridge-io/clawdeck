@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import StepEditor from './StepEditor'
 import type { WorkflowStep } from '../types'
@@ -38,7 +38,8 @@ describe('StepEditor', () => {
       await user.click(screen.getByText('+ Add Step'))
 
       expect(mockOnChange).toHaveBeenCalledTimes(1)
-      const newSteps = mockOnChange.mock.calls[0][0]
+      const calls = mockOnChange.mock.calls
+      const newSteps = calls[calls.length - 1]?.[0] ?? []
       expect(newSteps).toHaveLength(1)
       expect(newSteps[0]).toHaveProperty('stepId')
       expect(newSteps[0]).toHaveProperty('type', 'single')
@@ -160,7 +161,8 @@ describe('StepEditor', () => {
       await user.type(input, 'new-step-id')
 
       expect(mockOnChange).toHaveBeenCalled()
-      const updatedSteps = mockOnChange.mock.calls.at(-1)[0]
+      const calls = mockOnChange.mock.calls
+      const updatedSteps = calls[calls.length - 1]?.[0] ?? []
       expect(updatedSteps[0].stepId).toBe('new-step-id')
     })
 
@@ -174,7 +176,8 @@ describe('StepEditor', () => {
       await user.type(input, 'New Name')
 
       expect(mockOnChange).toHaveBeenCalled()
-      const updatedSteps = mockOnChange.mock.calls.at(-1)[0]
+      const calls = mockOnChange.mock.calls
+      const updatedSteps = calls[calls.length - 1]?.[0] ?? []
       expect(updatedSteps[0].name).toBe('New Name')
     })
 
@@ -187,7 +190,8 @@ describe('StepEditor', () => {
       await user.selectOptions(select, 'approval')
 
       expect(mockOnChange).toHaveBeenCalled()
-      const updatedSteps = mockOnChange.mock.calls.at(-1)[0]
+      const calls = mockOnChange.mock.calls
+      const updatedSteps = calls[calls.length - 1]?.[0] ?? []
       expect(updatedSteps[0].type).toBe('approval')
     })
 

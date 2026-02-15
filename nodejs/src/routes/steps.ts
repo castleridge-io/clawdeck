@@ -3,7 +3,7 @@ import { authenticateRequest } from '../middleware/auth.js'
 import { createStepService } from '../services/step.service.js'
 import { createRunService } from '../services/run.service.js'
 import { wsManager } from '../websocket/manager.js'
-import type { Step, Run, Story, Prisma } from '@prisma/client'
+import type { Step } from '@prisma/client'
 
 // JSON Schema for validation
 const stepStatusSchema = {
@@ -51,7 +51,7 @@ const patchBodySchema = {
 } as const
 
 // Helper to safely parse JSON (prevents crashes from invalid JSON in DB)
-function safeJsonParse(str: string | null): unknown | null {
+function safeJsonParse (str: string | null): unknown | null {
   if (!str) return null
   try {
     return JSON.parse(str)
@@ -61,7 +61,7 @@ function safeJsonParse(str: string | null): unknown | null {
 }
 
 // Helper function to convert step to JSON response
-function stepToJson(step: Step): StepJson {
+function stepToJson (step: Step): StepJson {
   return {
     id: step.id,
     run_id: step.runId,
@@ -101,7 +101,7 @@ interface StepJson {
   updated_at: string
 }
 
-export async function stepsRoutes(
+export async function stepsRoutes (
   fastify: FastifyInstance,
   opts: FastifyPluginOptions
 ): Promise<void> {

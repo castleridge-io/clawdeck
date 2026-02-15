@@ -66,10 +66,40 @@ describe('TasksPage', () => {
 
     vi.mocked(hooks.useUpdateTask).mockReturnValue({
       mutateAsync: mockMutate,
+      mutate: mockMutate,
+      status: 'idle',
+      isIdle: true,
+      isPending: false,
+      isSuccess: false,
+      isError: false,
+      error: null,
+      data: undefined,
+      variables: undefined,
+      reset: vi.fn(),
+      context: undefined,
+      failureCount: 0,
+      failureReason: null,
+      isPaused: false,
+      submittedAt: 0,
     } as ReturnType<typeof hooks.useUpdateTask>)
 
     vi.mocked(hooks.useDeleteTask).mockReturnValue({
       mutateAsync: vi.fn().mockResolvedValue(undefined),
+      mutate: vi.fn().mockResolvedValue(undefined),
+      status: 'idle',
+      isIdle: true,
+      isPending: false,
+      isSuccess: false,
+      isError: false,
+      error: null,
+      data: undefined,
+      variables: undefined,
+      reset: vi.fn(),
+      context: undefined,
+      failureCount: 0,
+      failureReason: null,
+      isPaused: false,
+      submittedAt: 0,
     } as ReturnType<typeof hooks.useDeleteTask>)
   })
 
@@ -177,7 +207,7 @@ describe('TasksPage', () => {
     vi.mocked(hooks.useBoards).mockReturnValue({
       data: [],
       isLoading: true,
-    } as ReturnType<typeof hooks.useBoards>)
+    } as unknown as ReturnType<typeof hooks.useBoards>)
 
     // #when
     render(<TasksPage />, { wrapper: createWrapper() })

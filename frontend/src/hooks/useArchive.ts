@@ -8,14 +8,14 @@ interface ArchiveFilters {
   limit?: number
 }
 
-export function useArchivedTasks(filters: ArchiveFilters = {}) {
+export function useArchivedTasks (filters: ArchiveFilters = {}) {
   return useQuery({
     queryKey: queryKeys.archivedTasks(filters as Record<string, unknown>),
     queryFn: () => getArchivedTasks(filters),
   })
 }
 
-export function useUnarchiveTask() {
+export function useUnarchiveTask () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -27,7 +27,7 @@ export function useUnarchiveTask() {
   })
 }
 
-export function useScheduleArchive() {
+export function useScheduleArchive () {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -38,7 +38,7 @@ export function useScheduleArchive() {
   })
 }
 
-export function useDeleteArchivedTask() {
+export function useDeleteArchivedTask () {
   const queryClient = useQueryClient()
 
   return useMutation({

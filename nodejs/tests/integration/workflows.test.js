@@ -254,7 +254,6 @@ describe('Task Creation with Workflow', () => {
     })
 
     assert.strictEqual(workflowResult.status, 201)
-    const workflowId = workflowResult.data.data.id
 
     // Create task with workflow_type
     const taskResult = await makeRequest('POST', '/api/v1/tasks', {

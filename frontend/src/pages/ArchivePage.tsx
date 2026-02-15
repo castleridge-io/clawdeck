@@ -150,43 +150,43 @@ export default function ArchivePage () {
                     <div className='flex items-start justify-between'>
                       <div className='flex-1'>
                         <div className='flex items-center gap-2 mb-2'>
-                  <span className='text-sm text-slate-400'>
-                          {board?.icon} {board?.name}
-                        </span>
-                  <span
-                          className={`px-2 py-0.5 rounded text-xs font-medium ${
+                          <span className='text-sm text-slate-400'>
+                            {board?.icon} {board?.name}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded text-xs font-medium ${
                             task.status === 'done'
                               ? 'bg-green-500/20 text-green-400'
                               : 'bg-slate-500/20 text-slate-400'
                           }`}
-                        >
-                          {STATUS_LABELS[task.status] || task.status}
-                        </span>
-                </div>
+                          >
+                            {STATUS_LABELS[task.status] || task.status}
+                          </span>
+                        </div>
                         <h3 className='text-white font-medium mb-1'>
-                  {task.name || 'Untitled Task'}
-                </h3>
+                          {task.name || 'Untitled Task'}
+                        </h3>
                         {task.description && (
-                  <p className='text-sm text-slate-400'>{task.description}</p>
-                )}
+                          <p className='text-sm text-slate-400'>{task.description}</p>
+                        )}
                         <div className='flex gap-4 mt-2 text-xs text-slate-500'>
-                  <span>Completed: {formatDate(task.completed_at)}</span>
-                  <span>Archived: {formatDate(task.archived_at)}</span>
-                </div>
+                          <span>Completed: {formatDate(task.completed_at)}</span>
+                          <span>Archived: {formatDate(task.archived_at)}</span>
+                        </div>
                       </div>
                       <div className='flex gap-2'>
                         <button
-                  onClick={() => handleUnarchive(task.id)}
-                  className='px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg'
-                >
-                        Restore
-                </button>
+                          onClick={() => handleUnarchive(task.id)}
+                          className='px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg'
+                        >
+                          Restore
+                        </button>
                         <button
-                  onClick={() => handleDelete(task.id)}
-                  className='px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm rounded-lg'
-                >
-                        Delete
-                </button>
+                          onClick={() => handleDelete(task.id)}
+                          className='px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm rounded-lg'
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   </div>

@@ -16,7 +16,20 @@ interface LoginResult {
 }
 
 export function AuthProvider ({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(getStoredUser())
+  const storedUser = getStoredUser()
+  const [user, setUser] = useState<User | null>(
+    storedUser
+      ? {
+          id: storedUser.id,
+          emailAddress: storedUser.emailAddress,
+          admin: storedUser.admin,
+          agentAutoMode: storedUser.agentAutoMode ?? false,
+          agentName: storedUser.agentName ?? null,
+          agentEmoji: storedUser.agentEmoji ?? null,
+          avatarUrl: storedUser.avatarUrl ?? null,
+        }
+      : null
+  )
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

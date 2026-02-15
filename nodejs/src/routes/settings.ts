@@ -3,35 +3,14 @@ import { authenticateRequest, authenticateAdmin } from '../middleware/auth.js'
 import { prisma } from '../db/prisma.js'
 import { randomUUID } from 'node:crypto'
 import { createSettingsService } from '../services/settings.service.js'
-import type { ApiToken, User } from '@prisma/client'
-
-interface UserJson {
-  id: string
-  email: string
-  agent_auto_mode: boolean
-  agent_name: string | null
-  agent_emoji: string | null
-  agent_last_active_at: string | null
-}
-
-interface ApiTokenJson {
-  id: string
-  name: string
-  token: string
-  last_used_at: string | null
-  created_at: string
-}
-
-interface SettingsData extends UserJson {
-  api_tokens: ApiTokenJson[]
-}
+import type { User } from '@prisma/client'
 
 interface OpenClawSettings {
   url?: string
   api_key?: string
 }
 
-export async function settingsRoutes(
+export async function settingsRoutes (
   fastify: FastifyInstance,
   opts: FastifyPluginOptions
 ): Promise<void> {

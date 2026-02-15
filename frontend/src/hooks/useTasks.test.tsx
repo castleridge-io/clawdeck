@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactElement } from 'react'
+import { ReactNode } from 'react'
 import {
   useTasks,
   useUpdateTask,
@@ -9,6 +9,7 @@ import {
   useCreateTask,
 } from './useTasks'
 import * as api from '../lib/api'
+import type { Task } from '../lib/schemas'
 
 // Mock API functions
 vi.mock('../lib/api', () => ({
@@ -29,7 +30,7 @@ const createWrapper = () => {
       mutations: { retry: false },
     },
   })
-  return ({ children }: { children: ReactElement }) => (
+  return ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 }
@@ -42,8 +43,8 @@ describe('useTasks hooks', () => {
   describe('useTasks', () => {
     it('fetches tasks with boardIds filter', async () => {
       // #given
-      const mockTasks = [
-        { id: '1', name: 'Task 1', status: 'inbox', board_id: '1' },
+      const mockTasks: Task[] = [
+        { id: '1', name: 'Task 1', status: 'inbox' as const, board_id: '1' },
       ]
       vi.mocked(api.getTasks).mockResolvedValue(mockTasks)
 
@@ -64,7 +65,7 @@ describe('useTasks hooks', () => {
 
       // #when
       renderHook(() => useTasks({ boardIds: [] }), {
-        wrapper: createWrapper(),
+        wrapper: createWrapper() as never,
       })
 
       // #then
@@ -75,20 +76,17 @@ describe('useTasks hooks', () => {
   describe('useUpdateTask', () => {
     it('calls updateTask API and invalidates queries', async () => {
       // #given
-      const updatedTask = { id: '1', name: 'Updated', status: 'done' }
-      vi.mocked(api.updateTask).mockResolvedValue(updatedTask)
-
       const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false } },
       })
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
 
-      const wrapper = ({ children }: { children: ReactElement }) => (
+      const wrapper = ({ children }: { children: ReactNode }) => (
         <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
       )
 
       // #when
-      const { result } = renderHook(() => useUpdateTask(), { wrapper })
+      const { result } = renderHook(() => useUpdateTask(), { wrapper: wrapper as never })
 
       result.current.mutateAsync({ id: '1', data: { status: 'done' } })
 
@@ -106,7 +104,7 @@ describe('useTasks hooks', () => {
 
       // #when
       const { result } = renderHook(() => useDeleteTask(), {
-        wrapper: createWrapper(),
+        wrapper: createWrapper() as never,
       })
 
       result.current.mutateAsync('1')
@@ -120,12 +118,12 @@ describe('useTasks hooks', () => {
   describe('useCreateTask', () => {
     it('calls createTask API', async () => {
       // #given
-      const newTask = { id: '1', name: 'New Task', status: 'inbox' }
-      vi.mocked(api.createTask).mockResolvedValue(newTask)
+      const newTask = { id: '1', name: 'New Task', status: 'inbox' as const, board_id: 'board-1' }
+      vi.mocked(api.createTask).mockResolvedValue(newTask as unknown as typeof newTask)
 
       // #when
       const { result } = renderHook(() => useCreateTask(), {
-        wrapper: createWrapper(),
+        wrapper: createWrapper() as never,
       })
 
       result.current.mutateAsync({ name: 'New Task', board_id: '1', status: 'inbox' })
