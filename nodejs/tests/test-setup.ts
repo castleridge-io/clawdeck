@@ -1,5 +1,41 @@
 // Shared test helpers for integration tests
+import { execSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
 import { prisma } from '../src/db/prisma.js'
+
+// Get the project root directory
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const projectRoot = resolve(__dirname, '..')
+
+// Run migrations once before all tests
+let migrationsRan = false
+
+export async function setupTestDatabase (): Promise<void> {
+  if (migrationsRan) return
+
+  console.log('[test-setup] Running Prisma migrations...')
+  try {
+    // Generate Prisma client
+    execSync('npx prisma generate', {
+      cwd: projectRoot,
+      stdio: 'inherit',
+    })
+
+    // Run migrations with deploy
+    execSync('npx prisma migrate deploy', {
+      cwd: projectRoot,
+      stdio: 'inherit',
+    })
+
+    migrationsRan = true
+    console.log('[test-setup] Migrations completed successfully')
+  } catch (error) {
+    console.error('[test-setup] Migration failed:', error)
+    throw error
+  }
+}
 
 interface CreateTestOrganizationOptions {
   name?: string

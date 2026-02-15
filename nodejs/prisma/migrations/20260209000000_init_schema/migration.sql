@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS memberships (
   id BIGSERIAL PRIMARY KEY,
   organization_id BIGINT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  role INTEGER DEFAULT 2 NOT NULL,
+  role "MembershipRole" DEFAULT 'member' NOT NULL,
   invited_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
   invited_at TIMESTAMP,
   joined_at TIMESTAMP NOT NULL DEFAULT NOW(),
