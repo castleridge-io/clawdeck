@@ -103,7 +103,7 @@ jobs:
         env:
           NODE_ENV: test
           JWT_SECRET: test-jwt-secret
-        run: node --test tests/unit/*.test.js
+        run: node --import tsx/esm --test-global-setup tests/setup.js --test tests/unit/*.test.js
 
   # ============================================
   # Backend Integration Tests
@@ -158,7 +158,7 @@ jobs:
           DOTENV_CONFIG_PATH: .env.integration
           DATABASE_URL: postgresql://clawdeck:clawdeck_integration@localhost:5432/clawdeck_integration_test
           JWT_SECRET: test-jwt-secret
-        run: node --test tests/integration/*.test.js
+        run: node --import tsx/esm --test-global-setup tests/setup.js --test tests/integration/*.test.js
 
   # ============================================
   # Frontend Unit Tests

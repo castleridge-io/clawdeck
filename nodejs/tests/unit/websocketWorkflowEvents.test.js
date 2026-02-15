@@ -1,4 +1,5 @@
 import { describe, it } from 'node:test'
+import { wsManager } from '../../src/websocket/manager.ts'
 
 // ========================================
 // TDD RED PHASE: Tests for workflow WebSocket events
@@ -7,8 +8,6 @@ import { describe, it } from 'node:test'
 
 describe('WebSocket Workflow Events - RED PHASE', () => {
   it('should broadcast step.status.changed event', async () => {
-    const { wsManager } = await import('../../src/websocket/manager.js')
-
     // This will FAIL - method doesn't exist
     const hasMethod = typeof wsManager.broadcastWorkflowEvent === 'function'
 
@@ -20,8 +19,6 @@ describe('WebSocket Workflow Events - RED PHASE', () => {
   })
 
   it('should broadcast run.completed event', async () => {
-    const { wsManager } = await import('../../src/websocket/manager.js')
-
     // This will FAIL - method doesn't exist
     wsManager.broadcastWorkflowEvent('user-1', 'run.completed', {
       runId: 'run-abc',
@@ -29,8 +26,6 @@ describe('WebSocket Workflow Events - RED PHASE', () => {
   })
 
   it('should broadcast run.failed event', async () => {
-    const { wsManager } = await import('../../src/websocket/manager.js')
-
     // This will FAIL - method doesn't exist
     wsManager.broadcastWorkflowEvent('user-1', 'run.failed', {
       runId: 'run-xyz',

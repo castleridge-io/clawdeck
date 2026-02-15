@@ -36,9 +36,9 @@ test.describe('WebSocket Workflow Events (Phase 5)', () => {
     await page.goto('/')
 
     // #when: Connect to WebSocket
-    const wsConnected = await page.evaluate(async ({ apiToken }) => {
+    const wsConnected = await page.evaluate(async ({ apiToken, wsUrl }) => {
       return new Promise((resolve) => {
-        const ws = new WebSocket(`${WS_URL}/ws?token=${apiToken}`)
+        const ws = new WebSocket(`${wsUrl}/ws?token=${apiToken}`)
 
         ws.onopen = () => {
           ws.close()
@@ -55,7 +55,7 @@ test.describe('WebSocket Workflow Events (Phase 5)', () => {
           resolve(false)
         }, 5000)
       })
-    }, { apiToken })
+    }, { apiToken, wsUrl: WS_URL })
 
     // #then: Should connect successfully
     expect(wsConnected).toBe(true)
@@ -79,9 +79,9 @@ test.describe('WebSocket Workflow Events (Phase 5)', () => {
     createdWorkflowIds.push(workflow.id)
 
     // Set up WebSocket listener before creating run
-    const eventReceived = await page.evaluate(async ({ token, apiToken, workflowId }) => {
+    const eventReceived = await page.evaluate(async ({ token, apiToken, workflowId, wsUrl }) => {
       return new Promise((resolve) => {
-        const ws = new WebSocket(`${WS_URL}/ws?token=${apiToken}`)
+        const ws = new WebSocket(`${wsUrl}/ws?token=${apiToken}`)
 
         let receivedEvent = false
 
@@ -100,7 +100,7 @@ test.describe('WebSocket Workflow Events (Phase 5)', () => {
 
         ws.onopen = () => {
           // Trigger run creation
-          fetch('http://localhost:4333/api/v1/runs', {
+          fetch(`${wsUrl.replace('ws:', 'http:')}/api/v1/runs`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ test.describe('WebSocket Workflow Events (Phase 5)', () => {
           resolve(receivedEvent)
         }, 10000)
       })
-    }, { token, apiToken, workflowId: workflow.id })
+    }, { token, apiToken, workflowId: workflow.id, wsUrl: WS_URL })
 
     // #then: Should receive run.created event
     expect(eventReceived).toBe(true)

@@ -1,11 +1,11 @@
 import { describe, it, before } from 'node:test'
 import assert from 'node:assert'
+import { createRateLimiter } from '../../src/middleware/rateLimiter.middleware.ts'
 
 describe('Rate Limiter', () => {
   let rateLimiter
 
   before(async () => {
-    const { createRateLimiter } = await import('../../src/middleware/rateLimiter.middleware.js')
     rateLimiter = createRateLimiter()
   })
 

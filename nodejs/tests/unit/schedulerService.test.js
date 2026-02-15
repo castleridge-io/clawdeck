@@ -1,5 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test'
 import assert from 'node:assert'
+import { createSchedulerService } from '../../src/services/scheduler.service.ts'
 
 // ========================================
 // Mock Prisma
@@ -32,7 +33,6 @@ describe('Scheduler Service', () => {
 
   describe('cleanupAbandonedSteps', () => {
     it('should reset abandoned steps to pending', async () => {
-      const { createSchedulerService } = await import('../../src/services/scheduler.service.js')
       const scheduler = createSchedulerService(
         { abandonedStepAgeMinutes: 15 },
         { prisma: mockPrisma }
@@ -51,7 +51,6 @@ describe('Scheduler Service', () => {
     })
 
     it('should return 0 when no abandoned steps', async () => {
-      const { createSchedulerService } = await import('../../src/services/scheduler.service.js')
       const scheduler = createSchedulerService({}, { prisma: mockPrisma })
 
       mockPrisma.step.findMany.mock.mockImplementation(async () => [])
@@ -64,7 +63,6 @@ describe('Scheduler Service', () => {
 
   describe('retryFailedSteps', () => {
     it('should retry failed steps with remaining retries', async () => {
-      const { createSchedulerService } = await import('../../src/services/scheduler.service.js')
       const scheduler = createSchedulerService(
         { retryCooldownMinutes: 5 },
         { prisma: mockPrisma }
@@ -82,7 +80,6 @@ describe('Scheduler Service', () => {
     })
 
     it('should not retry steps at max retries', async () => {
-      const { createSchedulerService } = await import('../../src/services/scheduler.service.js')
       const scheduler = createSchedulerService({}, { prisma: mockPrisma })
 
       mockPrisma.step.findMany.mock.mockImplementation(async () => [])
@@ -95,7 +92,6 @@ describe('Scheduler Service', () => {
 
   describe('timeoutStuckRuns', () => {
     it('should mark stuck runs as failed', async () => {
-      const { createSchedulerService } = await import('../../src/services/scheduler.service.js')
       const scheduler = createSchedulerService(
         { runTimeoutMinutes: 60 },
         { prisma: mockPrisma }
@@ -114,7 +110,6 @@ describe('Scheduler Service', () => {
     })
 
     it('should return 0 when no stuck runs', async () => {
-      const { createSchedulerService } = await import('../../src/services/scheduler.service.js')
       const scheduler = createSchedulerService({}, { prisma: mockPrisma })
 
       mockPrisma.run.findMany.mock.mockImplementation(async () => [])
@@ -127,7 +122,6 @@ describe('Scheduler Service', () => {
 
   describe('runAllScheduled', () => {
     it('should run all cleanup tasks and return summary', async () => {
-      const { createSchedulerService } = await import('../../src/services/scheduler.service.js')
       const scheduler = createSchedulerService({}, { prisma: mockPrisma })
 
       mockPrisma.step.findMany.mock.mockImplementation(async () => [])
@@ -144,7 +138,6 @@ describe('Scheduler Service', () => {
 
   describe('getConfig', () => {
     it('should return current configuration', async () => {
-      const { createSchedulerService } = await import('../../src/services/scheduler.service.js')
       const scheduler = createSchedulerService({
         abandonedStepAgeMinutes: 30,
         retryCooldownMinutes: 10,

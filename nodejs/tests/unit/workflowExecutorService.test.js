@@ -1,5 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test'
 import assert from 'node:assert'
+import { createWorkflowExecutorService } from '../../src/services/workflow-executor.service.ts'
 
 // ========================================
 // Mock Prisma for DB-dependent tests
@@ -27,7 +28,6 @@ const mockPrisma = {
 describe('Workflow Executor Service - Pure Functions', () => {
   describe('resolveTemplate', () => {
     it('should replace {{variable}} placeholders with context values', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const template = 'Hello {{name}}, your task is: {{task}}'
@@ -39,7 +39,6 @@ describe('Workflow Executor Service - Pure Functions', () => {
     })
 
     it('should handle missing variables gracefully', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const template = 'Task: {{task}}, Missing: {{unknown}}'
@@ -51,7 +50,6 @@ describe('Workflow Executor Service - Pure Functions', () => {
     })
 
     it('should handle nested variable references', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const template = 'Story: {{current_story}}, Repo: {{repo}}'
@@ -67,7 +65,6 @@ describe('Workflow Executor Service - Pure Functions', () => {
     })
 
     it('should be case-insensitive for variable names', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const template = 'Task: {{TASK}}, Branch: {{Branch}}'
@@ -81,7 +78,6 @@ describe('Workflow Executor Service - Pure Functions', () => {
 
   describe('mergeContextFromOutput', () => {
     it('should extract KEY: value pairs from output into context', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const output = `Working on the task...
@@ -102,7 +98,6 @@ Some other text here`
     })
 
     it('should not extract STORIES_JSON into context', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const output = `STATUS: done
@@ -119,7 +114,6 @@ REPO: /path`
 
   describe('parseStoriesJson', () => {
     it('should parse valid STORIES_JSON from output', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const output = `Planning complete.
@@ -153,7 +147,6 @@ STORIES_JSON: [
     })
 
     it('should return empty array if no STORIES_JSON found', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const output = `STATUS: done
@@ -166,7 +159,6 @@ No stories here`
     })
 
     it('should throw error for invalid JSON', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const output = 'STORIES_JSON: [invalid json here'
@@ -181,7 +173,6 @@ No stories here`
     })
 
     it('should throw error if stories exceed max limit (20)', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const tooManyStories = Array(21).fill(null).map((_, i) => ({
@@ -203,7 +194,6 @@ No stories here`
     })
 
     it('should accept both camelCase and snake_case fields', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       // Using snake_case (from Antfarm format)
@@ -225,7 +215,6 @@ No stories here`
 
   describe('formatStoryForTemplate', () => {
     it('should format story object for template injection', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const story = {
@@ -246,7 +235,6 @@ No stories here`
 
   describe('formatCompletedStories', () => {
     it('should format list of completed stories', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const stories = [
@@ -263,7 +251,6 @@ No stories here`
     })
 
     it('should return "(none yet)" when no completed stories', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService()
 
       const stories = [
@@ -294,7 +281,6 @@ describe('Workflow Executor Service - DB Functions', () => {
 
   describe('claimStepByAgent', () => {
     it('should find and claim pending step for agent', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // #given: A pending step exists for the agent
@@ -330,7 +316,6 @@ describe('Workflow Executor Service - DB Functions', () => {
     })
 
     it('should return found: false when no pending steps', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       mockPrisma.step.findFirst.mock.mockImplementation(async () => null)
@@ -341,7 +326,6 @@ describe('Workflow Executor Service - DB Functions', () => {
     })
 
     it('should return found: false when run is not running', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // Query filters by run.status: 'running', so this won't be returned
@@ -353,7 +337,6 @@ describe('Workflow Executor Service - DB Functions', () => {
     })
 
     it('should claim next pending story for loop steps', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // #given: A loop step with pending story
@@ -404,7 +387,6 @@ describe('Workflow Executor Service - DB Functions', () => {
     })
 
     it('should return found: false when loop step has no pending stories', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       mockPrisma.step.findFirst.mock.mockImplementation(async () => ({
@@ -427,7 +409,6 @@ describe('Workflow Executor Service - DB Functions', () => {
 
   describe('advancePipeline', () => {
     it('should set next waiting step to pending', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // #given: A waiting step exists
@@ -452,7 +433,6 @@ describe('Workflow Executor Service - DB Functions', () => {
     })
 
     it('should mark run completed when no more waiting steps', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // #given: No waiting steps
@@ -474,7 +454,6 @@ describe('Workflow Executor Service - DB Functions', () => {
 
   describe('completeStepWithPipeline', () => {
     it('should complete step, merge context, and advance pipeline', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // #given: Track call count to return different values
@@ -542,7 +521,6 @@ describe('Workflow Executor Service - Remaining Features', () => {
 
   describe('completeLoopStoryWithVerify', () => {
     it('should complete story and trigger verify step when verify_each is true', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // #given: Loop step with verify_each enabled
@@ -586,7 +564,6 @@ describe('Workflow Executor Service - Remaining Features', () => {
     })
 
     it('should complete story without verify when verify_each is false', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // #given: Loop step without verify_each
@@ -617,7 +594,6 @@ describe('Workflow Executor Service - Remaining Features', () => {
 
   describe('approveStep', () => {
     it('should approve an awaiting_approval step and advance pipeline', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // #given: An approval step awaiting approval
@@ -643,7 +619,6 @@ describe('Workflow Executor Service - Remaining Features', () => {
     })
 
     it('should throw error if step is not awaiting_approval', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // #given: A step that is not awaiting approval
@@ -666,7 +641,6 @@ describe('Workflow Executor Service - Remaining Features', () => {
 
   describe('rejectStep', () => {
     it('should reject an awaiting_approval step with reason', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // #given: An approval step awaiting approval
@@ -694,7 +668,6 @@ describe('Workflow Executor Service - Remaining Features', () => {
 
   describe('cleanupAbandonedSteps', () => {
     it('should reset steps stuck in running for more than 15 minutes', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // #given: Mock prisma with findMany and updateMany
@@ -718,7 +691,6 @@ describe('Workflow Executor Service - Remaining Features', () => {
     })
 
     it('should not reset recently updated steps', async () => {
-      const { createWorkflowExecutorService } = await import('../../src/services/workflow-executor.service.js')
       const executorService = createWorkflowExecutorService({ prisma: mockPrisma })
 
       // #given: No abandoned steps (all recently updated)

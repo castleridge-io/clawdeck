@@ -1,8 +1,8 @@
 import { describe, it, mock, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert'
-import { prisma } from '../../src/db/prisma.js'
-import { archiveScheduler } from '../../src/services/archiveScheduler.js'
-import { wsManager } from '../../src/websocket/manager.js'
+import { prisma } from '../../src/db/prisma.ts'
+import { archiveScheduler } from '../../src/services/archiveScheduler.ts'
+import { wsManager } from '../../src/websocket/manager.ts'
 let restoreStubs = []
 
 function stubMethod (obj, methodName, implementation) {
