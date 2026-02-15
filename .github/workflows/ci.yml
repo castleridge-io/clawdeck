@@ -75,23 +75,54 @@ jobs:
         continue-on-error: true
 
   # ============================================
-  # Backend Unit & Integration Tests
+  # Backend Unit Tests
   # ============================================
-  test-backend:
-    name: Backend Tests
+  test-backend-unit:
+    name: Backend Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: yarn workspace clawdeck prisma generate
+
+      - name: Run unit tests
+        working-directory: nodejs
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test-jwt-secret
+        run: node --test tests/unit/*.test.js
+
+  # ============================================
+  # Backend Integration Tests
+  # ============================================
+  test-backend-integration:
+    name: Backend Integration Tests
     runs-on: ubuntu-latest
 
     services:
-      postgres:
+      postgres-integration:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: clawdeck_test
+          POSTGRES_USER: clawdeck
+          POSTGRES_PASSWORD: clawdeck_integration
+          POSTGRES_DB: clawdeck_integration_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd pg_isready -U clawdeck
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -117,22 +148,15 @@ jobs:
       - name: Run database migrations
         working-directory: nodejs
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/clawdeck_test
+          DATABASE_URL: postgresql://clawdeck:clawdeck_integration@localhost:5432/clawdeck_integration_test
         run: npx prisma migrate deploy
-
-      - name: Run unit tests
-        working-directory: nodejs
-        env:
-          NODE_ENV: test
-          DATABASE_URL: postgresql://test:test@localhost:5432/clawdeck_test
-          JWT_SECRET: test-jwt-secret
-        run: node --test tests/unit/*.test.js
 
       - name: Run integration tests
         working-directory: nodejs
         env:
           NODE_ENV: test
-          DATABASE_URL: postgresql://test:test@localhost:5432/clawdeck_test
+          DOTENV_CONFIG_PATH: .env.integration
+          DATABASE_URL: postgresql://clawdeck:clawdeck_integration@localhost:5432/clawdeck_integration_test
           JWT_SECRET: test-jwt-secret
         run: node --test tests/integration/*.test.js
 
@@ -166,7 +190,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, test-backend, test-frontend]
+    needs: [lint, test-backend-unit, test-backend-integration, test-frontend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
