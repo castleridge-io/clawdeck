@@ -28,7 +28,7 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Run npm audit
         run: yarn npm audit --all --recursive || true
@@ -57,7 +57,7 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Generate Prisma client
         run: yarn workspace clawdeck prisma generate
@@ -93,7 +93,7 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Generate Prisma client
         run: yarn workspace clawdeck prisma generate
@@ -140,7 +140,7 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Generate Prisma client
         run: yarn workspace clawdeck prisma generate
@@ -179,7 +179,7 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Run frontend tests
         run: yarn workspace clawdeck-frontend test:run
@@ -204,7 +204,7 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Generate Prisma client
         run: yarn workspace clawdeck prisma generate

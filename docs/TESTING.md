@@ -291,7 +291,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd nodejs
-          yarn install --frozen-lockfile
+          yarn install --immutable
 
       - name: Generate Prisma Client
         run: |
