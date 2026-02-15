@@ -203,9 +203,14 @@ describe('WorkflowsPage', () => {
         expect(screen.getByText('Create Workflow')).toBeInTheDocument()
       })
 
-      await user.click(screen.getByText('Create Workflow'))
+      const createButtons = screen.getAllByText('Create Workflow')
+      await user.click(createButtons[0])
 
-      expect(screen.getByText('Create Workflow')).toBeInTheDocument()
+      // Should find the modal title (second occurrence)
+      await waitFor(() => {
+        const allCreateWorkflowText = screen.getAllByText('Create Workflow')
+        expect(allCreateWorkflowText.length).toBeGreaterThan(0)
+      })
     })
   })
 

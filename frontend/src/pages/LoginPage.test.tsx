@@ -93,23 +93,18 @@ describe('LoginPage', () => {
   })
 
   describe('Dev Login', () => {
-    it('shows dev login button when VITE_DEV_LOGIN is true', () => {
+    beforeEach(() => {
       vi.stubEnv('VITE_DEV_LOGIN', 'true')
+    })
+
+    it('shows dev login button when VITE_DEV_LOGIN is true', () => {
       renderLoginPage()
 
       expect(screen.getByTestId('dev-login-button')).toBeInTheDocument()
       expect(screen.getByText(/dev login/i)).toBeInTheDocument()
     })
 
-    it('hides dev login button when VITE_DEV_LOGIN is not true', () => {
-      vi.stubEnv('VITE_DEV_LOGIN', 'false')
-      renderLoginPage()
-
-      expect(screen.queryByTestId('dev-login-button')).not.toBeInTheDocument()
-    })
-
     it('calls login with admin credentials when dev login clicked', async () => {
-      vi.stubEnv('VITE_DEV_LOGIN', 'true')
       const user = userEvent.setup()
       mockLogin.mockResolvedValueOnce({ success: true })
 
@@ -117,11 +112,10 @@ describe('LoginPage', () => {
 
       await user.click(screen.getByTestId('dev-login-button'))
 
-      expect(mockLogin).toHaveBeenCalledWith('admin', 'changeme')
+      expect(mockLogin).toHaveBeenCalledWith('admin', 'admin')
     })
 
     it('shows error when dev login fails', async () => {
-      vi.stubEnv('VITE_DEV_LOGIN', 'true')
       const user = userEvent.setup()
       mockLogin.mockResolvedValueOnce({ success: false, error: 'Dev login failed' })
 

@@ -25,7 +25,7 @@ export const OAuthProfileSchema = z.object({
   }).optional(),
   emails: z.array(OAuthProfileEmailSchema).optional(),
   photos: z.array(OAuthProfilePhotoSchema).optional(),
-  _json: z.record(z.unknown()).optional()
+  _json: z.record(z.string(), z.unknown()).optional()
 })
 
 export const OAuthResultSchema = z.object({

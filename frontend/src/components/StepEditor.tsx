@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { WorkflowStep } from '../types'
 
 interface StepEditorProps {
@@ -10,6 +10,13 @@ const STEP_TYPES = ['single', 'loop', 'approval'] as const
 
 export default function StepEditor ({ steps, onChange }: StepEditorProps) {
   const [expandedStep, setExpandedStep] = useState<number | null>(null)
+
+  // Reset expanded step if it becomes invalid (when steps are added/removed)
+  useEffect(() => {
+    if (expandedStep !== null && expandedStep >= steps.length) {
+      setExpandedStep(null)
+    }
+  }, [expandedStep, steps.length])
 
   function addStep () {
     const newStep: WorkflowStep = {
@@ -154,6 +161,7 @@ export default function StepEditor ({ steps, onChange }: StepEditorProps) {
                           onChange={(e) => updateStep(index, 'stepId', e.target.value)}
                           className='w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                           placeholder='unique-step-id'
+                          aria-label='Step ID'
                         />
                       </div>
                       <div>
@@ -164,6 +172,7 @@ export default function StepEditor ({ steps, onChange }: StepEditorProps) {
                           onChange={(e) => updateStep(index, 'name', e.target.value)}
                           className='w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                           placeholder='Display name'
+                          aria-label='Name'
                         />
                       </div>
                     </div>
@@ -185,6 +194,7 @@ export default function StepEditor ({ steps, onChange }: StepEditorProps) {
                           value={step.type}
                           onChange={(e) => updateStep(index, 'type', e.target.value)}
                           className='w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                          aria-label='Type'
                         >
                           {STEP_TYPES.map((type) => (
                             <option key={type} value={type}>
@@ -235,6 +245,7 @@ export default function StepEditor ({ steps, onChange }: StepEditorProps) {
                           className='w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500'
                           rows={3}
                           placeholder='{"over": "items", "var": "item"}'
+                          aria-label='Loop Config (JSON)'
                         />
                       </div>
                     )}

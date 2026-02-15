@@ -34,7 +34,7 @@ export const RemoveMemberParamsSchema = z.object({
 export const UpdateOrganizationDataSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   avatarUrl: z.string().url().nullable().optional(),
-  settings: z.record(z.unknown()).optional()
+  settings: z.record(z.string(), z.unknown()).optional()
 })
 
 export const OrganizationIdParamsSchema = z.object({

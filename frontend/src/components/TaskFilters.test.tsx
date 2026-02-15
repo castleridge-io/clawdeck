@@ -101,8 +101,8 @@ describe('TaskFilters', () => {
 
       await user.click(screen.getByText('Assignee'))
 
-      expect(screen.getByText('Agent One')).toBeInTheDocument()
-      expect(screen.getByText('Agent Two')).toBeInTheDocument()
+      expect(screen.getByText('🤖 Agent One')).toBeInTheDocument()
+      expect(screen.getByText('🦾 Agent Two')).toBeInTheDocument()
     })
   })
 
@@ -126,7 +126,7 @@ describe('TaskFilters', () => {
   describe('Clear Filters', () => {
     it('shows clear button when filters are applied', () => {
       renderTaskFilters({ ...defaultFilters, search: 'test' })
-      expect(screen.getByText('Clear')).toBeInTheDocument()
+      expect(screen.getByText('Clear filters')).toBeInTheDocument()
     })
 
     it('hides clear button when no filters applied', () => {
@@ -138,7 +138,7 @@ describe('TaskFilters', () => {
       const user = userEvent.setup()
       renderTaskFilters({ ...defaultFilters, search: 'test' })
 
-      await user.click(screen.getByText('Clear'))
+      await user.click(screen.getByText('Clear filters'))
 
       expect(mockOnFiltersChange).toHaveBeenCalledWith(defaultFilters)
     })
@@ -152,7 +152,7 @@ describe('TaskFilters', () => {
         priority: ['high'],
       })
       // Should show some indication of active filters
-      expect(screen.getByText('Clear')).toBeInTheDocument()
+      expect(screen.getByText('Clear filters')).toBeInTheDocument()
     })
   })
 })

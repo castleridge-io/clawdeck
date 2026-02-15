@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import StepEditor from './StepEditor'
 import type { WorkflowStep } from '../types'
 
@@ -12,8 +13,21 @@ describe('StepEditor', () => {
     vi.clearAllMocks()
   })
 
-  function renderStepEditor (steps: WorkflowStep[] = defaultSteps) {
-    return render(<StepEditor steps={steps} onChange={mockOnChange} />)
+  function renderStepEditor (initialSteps: WorkflowStep[] = defaultSteps) {
+    // Use a wrapper to manage state so re-renders happen
+    function StepEditorWrapper () {
+      const [steps, setSteps] = useState(initialSteps)
+      return (
+        <StepEditor
+          steps={steps}
+          onChange={(newSteps) => {
+            setSteps(newSteps)
+            mockOnChange(newSteps)
+          }}
+        />
+      )
+    }
+    return render(<StepEditorWrapper />)
   }
 
   describe('Empty State', () => {
@@ -53,7 +67,9 @@ describe('StepEditor', () => {
       await user.click(screen.getByText('+ Add Step'))
 
       // After adding, the step details should be visible (expanded)
-      expect(screen.getByLabelText('Step ID')).toBeInTheDocument()
+      // The new step should have the stepId field visible
+      const stepIdInput = await screen.findByLabelText('Step ID', {}, { timeout: 2000 })
+      expect(stepIdInput).toBeInTheDocument()
     })
   })
 
@@ -125,7 +141,9 @@ describe('StepEditor', () => {
       await user.click(screen.getByText('Test Step'))
 
       // Now expanded - form fields visible
-      expect(screen.getByLabelText('Step ID')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByLabelText('Step ID')).toBeInTheDocument()
+      })
     })
 
     it('collapses step when clicked again', async () => {
@@ -133,10 +151,14 @@ describe('StepEditor', () => {
       renderStepEditor([sampleStep])
 
       await user.click(screen.getByText('Test Step'))
-      expect(screen.getByLabelText('Step ID')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByLabelText('Step ID')).toBeInTheDocument()
+      })
 
       await user.click(screen.getByText('Test Step'))
-      expect(screen.queryByLabelText('Step ID')).not.toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.queryByLabelText('Step ID')).not.toBeInTheDocument()
+      })
     })
   })
 
@@ -156,9 +178,10 @@ describe('StepEditor', () => {
       renderStepEditor([sampleStep])
 
       await user.click(screen.getByText('Test Step'))
-      const input = screen.getByLabelText('Step ID')
-      await user.clear(input)
-      await user.type(input, 'new-step-id')
+      const input = await screen.findByLabelText('Step ID')
+
+      // Use fireEvent to directly change the value (more reliable than clear+type)
+      fireEvent.change(input, { target: { value: 'new-step-id' } })
 
       expect(mockOnChange).toHaveBeenCalled()
       const calls = mockOnChange.mock.calls
@@ -171,9 +194,10 @@ describe('StepEditor', () => {
       renderStepEditor([sampleStep])
 
       await user.click(screen.getByText('Test Step'))
-      const input = screen.getByLabelText('Name')
-      await user.clear(input)
-      await user.type(input, 'New Name')
+      const input = await screen.findByLabelText('Name')
+
+      // Use fireEvent to directly change the value
+      fireEvent.change(input, { target: { value: 'New Name' } })
 
       expect(mockOnChange).toHaveBeenCalled()
       const calls = mockOnChange.mock.calls
@@ -186,6 +210,9 @@ describe('StepEditor', () => {
       renderStepEditor([sampleStep])
 
       await user.click(screen.getByText('Test Step'))
+      await waitFor(() => {
+        expect(screen.getByLabelText('Type')).toBeInTheDocument()
+      })
       const select = screen.getByLabelText('Type')
       await user.selectOptions(select, 'approval')
 
@@ -201,7 +228,8 @@ describe('StepEditor', () => {
       renderStepEditor([loopStep])
 
       await user.click(screen.getByText('Test Step'))
-      expect(screen.getByLabelText('Loop Config (JSON)')).toBeInTheDocument()
+      const loopConfigInput = await screen.findByLabelText('Loop Config (JSON)', {}, { timeout: 2000 })
+      expect(loopConfigInput).toBeInTheDocument()
     })
 
     it('hides loop config field when type is not loop', async () => {

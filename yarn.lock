@@ -4163,6 +4163,7 @@ __metadata:
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.985.0"
     "@aws-sdk/s3-request-presigner": "npm:^3.985.0"
+    "@clawdeck/shared": "npm:*"
     "@fastify/cookie": "npm:^11.0.2"
     "@fastify/cors": "npm:^10.0.1"
     "@fastify/jwt": "npm:^9.0.1"
@@ -4188,7 +4189,7 @@ __metadata:
     tsx: "npm:^4.19.2"
     typescript: "npm:^5.7.2"
     yaml: "npm:^2.8.2"
-    zod: "npm:^3.24.1"
+    zod: "npm:^4.3.6"
   languageName: unknown
   linkType: soft
 
@@ -10239,13 +10240,6 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: 10c0/dceb44c28578b31641e13695d200d34ec4ab3966a5729814d5445b194933c096b7ced71494ce53a0e8820685d1d010df8b2422e5bf2cdea7e469d97ffbea306f
-  languageName: node
-  linkType: hard
-
-"zod@npm:^3.24.1":
-  version: 3.25.76
-  resolution: "zod@npm:3.25.76"
-  checksum: 10c0/5718ec35e3c40b600316c5b4c5e4976f7fee68151bc8f8d90ec18a469be9571f072e1bbaace10f1e85cf8892ea12d90821b200e980ab46916a6166a4260a983c
   languageName: node
   linkType: hard
 

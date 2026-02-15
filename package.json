@@ -22,7 +22,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "yarn workspaces foreach -Wt --exclude '@clawdeck/shared' run typecheck",
+    "typecheck": "yarn workspaces foreach -Wt run typecheck",
     "prepare": "husky"
   },
   "devDependencies": {
