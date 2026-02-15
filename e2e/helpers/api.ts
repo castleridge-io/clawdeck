@@ -30,18 +30,18 @@ export async function getOrCreateOrganization (request: APIRequestContext, token
     return cachedOrganization
   }
 
-  // Try to get user's current organization
-  const userResponse = await request.get(`${API_URL}/api/v1/user`, {
+  // Try to get the first organization (Default Organization exists in seed data)
+  const listResponse = await request.get(`${API_URL}/api/v1/organizations`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
-  if (userResponse.ok()) {
-    const userData = await userResponse.json()
-    if (userData.data?.currentOrganizationId) {
+  if (listResponse.ok()) {
+    const listData = await listResponse.json()
+    if (listData.data?.[0]) {
       cachedOrganization = {
-        id: userData.data.currentOrganizationId,
-        name: 'Default',
-        slug: 'default',
+        id: listData.data[0].id,
+        name: listData.data[0].name,
+        slug: listData.data[0].slug,
       }
       return cachedOrganization
     }
@@ -171,8 +171,8 @@ export async function getWorkflows (
 export async function createBoard (
   request: APIRequestContext,
   token: string,
-  userId: string,
-  organizationId: string,
+  _userId: string,
+  _organizationId: string,
   data: { name: string; icon?: string; color?: string }
 ): Promise<{ id: string; name: string }> {
   const response = await request.post(`${API_URL}/api/v1/boards`, {
@@ -181,9 +181,6 @@ export async function createBoard (
       name: data.name,
       icon: data.icon,
       color: data.color,
-      position: data.position || 0,
-      userId,
-      organizationId,
     },
   })
 
@@ -234,7 +231,7 @@ export async function createTask (
   }
 
   const result = await response.json()
-  return result.data
+  return result
 }
 
 /**

@@ -53,3 +53,12 @@ DATABASE_URL="postgresql://clawdeck:password@localhost:15432/clawdeck_developmen
 - API: `http://localhost:3333`
 - PostgreSQL: `localhost:15432`
 - Redis: `localhost:16379`
+
+## Git Workflow
+
+**NEVER skip pre-commit hooks** - All commits must pass:
+- Type checking (`tsc --noEmit`)
+- Linting
+- Tests
+
+Use `git commit` without `--no-verify` or `--no-hooks`. If hooks fail, fix the underlying issues before committing.

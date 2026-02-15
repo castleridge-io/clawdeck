@@ -1,6 +1,6 @@
 # E2E Testing Docker Compose
 # Uses non-conflicting ports (40xx range) to avoid conflicts with dev environment
-# Run with: docker-compose -f docker-compose.e2e.yml up --build --abort-on-container-exit
+# Run with: docker compose -f docker-compose.e2e.yml up --build
 
 services:
   # PostgreSQL Database for E2E tests
@@ -84,11 +84,12 @@ services:
       context: .
       dockerfile: e2e/Dockerfile
     container_name: clawdeck-e2e-tests
+    env_file:
+      - .env.e2e
     environment:
+      # Internal Docker network URLs (for container-to-container communication)
       - API_URL=http://api-e2e:3000
       - FRONTEND_URL=http://frontend-e2e:3002
-      - TEST_USER_EMAIL=admin
-      - TEST_USER_PASSWORD=admin
     depends_on:
       api-e2e:
         condition: service_healthy

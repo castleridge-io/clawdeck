@@ -80,7 +80,7 @@ test.describe('Boards / Kanban', () => {
 
   test('create task via modal', async ({ page, request }) => {
     // First create a board
-    const board = await createBoard(request, token, organizationId, { name: `Task Board ${Date.now()}` })
+    const board = await createBoard(request, token, userId, organizationId, { name: `Task Board ${Date.now()}` })
     createdBoardIds.push(board.id)
 
     await page.reload()
@@ -106,7 +106,7 @@ test.describe('Boards / Kanban', () => {
   })
 
   test('task card is visible in kanban', async ({ page, request }) => {
-    const board = await createBoard(request, token, organizationId, { name: `Card Board ${Date.now()}` })
+    const board = await createBoard(request, token, userId, organizationId, { name: `Card Board ${Date.now()}` })
     createdBoardIds.push(board.id)
 
     const task = await createTask(request, token, board.id, {
@@ -122,7 +122,7 @@ test.describe('Boards / Kanban', () => {
   })
 
   test('delete task', async ({ page, request }) => {
-    const board = await createBoard(request, token, organizationId, { name: `Delete Task Board ${Date.now()}` })
+    const board = await createBoard(request, token, userId, organizationId, { name: `Delete Task Board ${Date.now()}` })
     createdBoardIds.push(board.id)
 
     const task = await createTask(request, token, board.id, {
@@ -147,7 +147,7 @@ test.describe('Boards / Kanban', () => {
   })
 
   test('status filter works', async ({ page, request }) => {
-    const board = await createBoard(request, token, organizationId, { name: `Status Filter Board ${Date.now()}` })
+    const board = await createBoard(request, token, userId, organizationId, { name: `Status Filter Board ${Date.now()}` })
     createdBoardIds.push(board.id)
 
     const inboxTask = await createTask(request, token, board.id, {
