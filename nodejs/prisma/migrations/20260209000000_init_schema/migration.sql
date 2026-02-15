@@ -232,3 +232,97 @@ CREATE TABLE IF NOT EXISTS solid_cable_messages (
 CREATE INDEX IF NOT EXISTS index_solid_cable_messages_on_channel ON solid_cable_messages(channel);
 CREATE INDEX IF NOT EXISTS index_solid_cable_messages_on_channel_hash ON solid_cable_messages(channel_hash);
 CREATE INDEX IF NOT EXISTS index_solid_cable_messages_on_created_at ON solid_cable_messages(created_at);
+
+-- Workflows table
+CREATE TABLE IF NOT EXISTS workflows (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  description TEXT,
+  config JSONB DEFAULT '{}',
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS index_workflows_on_id ON workflows(id);
+
+-- Workflow Steps table
+CREATE TABLE IF NOT EXISTS workflow_steps (
+  id BIGSERIAL PRIMARY KEY,
+  workflow_id BIGINT NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
+  step_id VARCHAR(255) NOT NULL,
+  name VARCHAR(255),
+  agent_id VARCHAR(255) NOT NULL,
+  input_template TEXT NOT NULL,
+  expects TEXT NOT NULL,
+  type VARCHAR(255) DEFAULT 'single',
+  loop_config JSONB,
+  position INTEGER DEFAULT 0 NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE(workflow_id, step_id)
+);
+
+CREATE INDEX IF NOT EXISTS index_workflow_steps_on_workflow_id ON workflow_steps(workflow_id);
+CREATE UNIQUE INDEX IF NOT EXISTS index_workflow_steps_on_workflow_id_and_step_id ON workflow_steps(workflow_id, step_id);
+
+-- Runs table
+CREATE TABLE IF NOT EXISTS runs (
+  id VARCHAR(255) PRIMARY KEY,
+  workflow_id BIGINT NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
+  task_id VARCHAR(255),
+  task TEXT,
+  status VARCHAR(255) DEFAULT 'running',
+  context TEXT,
+  notify_url VARCHAR(255),
+  awaiting_approval INTEGER,
+  awaiting_approval_since TIMESTAMP,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS index_runs_on_workflow_id ON runs(workflow_id);
+CREATE INDEX IF NOT EXISTS index_runs_on_task_id ON runs(task_id);
+CREATE INDEX IF NOT EXISTS index_runs_on_status ON runs(status);
+
+-- Steps table
+CREATE TABLE IF NOT EXISTS steps (
+  id VARCHAR(255) PRIMARY KEY,
+  run_id VARCHAR(255) NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
+  step_id VARCHAR(255) NOT NULL,
+  agent_id VARCHAR(255) NOT NULL,
+  step_index INTEGER NOT NULL,
+  input_template VARCHAR(255) NOT NULL,
+  expects TEXT NOT NULL,
+  status VARCHAR(255) DEFAULT 'waiting',
+  output TEXT,
+  retry_count INTEGER DEFAULT 0 NOT NULL,
+  max_retries INTEGER DEFAULT 3 NOT NULL,
+  type VARCHAR(255),
+  loop_config TEXT,
+  current_story_id VARCHAR(255),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS index_steps_on_run_id ON steps(run_id);
+CREATE INDEX IF NOT EXISTS index_steps_on_status ON steps(status);
+
+-- Stories table
+CREATE TABLE IF NOT EXISTS stories (
+  id VARCHAR(255) PRIMARY KEY,
+  run_id VARCHAR(255) NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
+  story_index INTEGER NOT NULL,
+  story_id VARCHAR(255) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  acceptance_criteria TEXT,
+  status VARCHAR(255) DEFAULT 'pending',
+  output TEXT,
+  retry_count INTEGER DEFAULT 0 NOT NULL,
+  max_retries INTEGER DEFAULT 3 NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS index_stories_on_run_id ON stories(run_id);
+CREATE INDEX IF NOT EXISTS index_stories_on_status ON stories(status);

@@ -73,7 +73,8 @@ test.describe('Boards / Kanban', () => {
     await page.waitForLoadState('networkidle')
 
     // Select the newly created board by value (id)
-    const boardSelector = page.locator('select').or(page.getByRole('combobox'))
+    // Use first() because there are multiple selects (org + board)
+    const boardSelector = page.locator('select').nth(1)
     await boardSelector.selectOption(board.id)
 
     // Search for first task
@@ -94,7 +95,8 @@ test.describe('Boards / Kanban', () => {
     await page.waitForLoadState('networkidle')
 
     // Select the newly created board by value (id)
-    const boardSelector = page.locator('select').or(page.getByRole('combobox'))
+    // Use first() because there are multiple selects (org + board)
+    const boardSelector = page.locator('select').nth(1)
     await boardSelector.selectOption(board.id)
 
     // Click new task
@@ -135,7 +137,8 @@ test.describe('Boards / Kanban', () => {
     await page.waitForLoadState('networkidle')
 
     // Select the newly created board by value (id)
-    const boardSelector = page.locator('select').or(page.getByRole('combobox'))
+    // Use nth(1) because there are multiple selects (org + board)
+    const boardSelector = page.locator('select').nth(1)
     await expect(boardSelector).toBeVisible({ timeout: 5000 })
     await boardSelector.selectOption(board.id)
 
@@ -156,7 +159,8 @@ test.describe('Boards / Kanban', () => {
     await page.waitForLoadState('networkidle')
 
     // Select the newly created board by value (id)
-    const boardSelector = page.locator('select').or(page.getByRole('combobox'))
+    // Use first() because there are multiple selects (org + board)
+    const boardSelector = page.locator('select').nth(1)
     await boardSelector.selectOption(board.id)
 
     await expect(page.getByText(task.name)).toBeVisible({ timeout: 5000 })
@@ -194,7 +198,8 @@ test.describe('Boards / Kanban', () => {
     await page.waitForLoadState('networkidle')
 
     // Select the newly created board by value (id)
-    const boardSelector = page.locator('select').or(page.getByRole('combobox'))
+    // Use first() because there are multiple selects (org + board)
+    const boardSelector = page.locator('select').nth(1)
     await boardSelector.selectOption(board.id)
 
     // Open status filter
