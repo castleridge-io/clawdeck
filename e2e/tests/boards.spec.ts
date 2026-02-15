@@ -60,7 +60,8 @@ test.describe('Boards / Kanban', () => {
 
   test('filter by search text', async ({ page, request }) => {
     // Create a board and task
-    const board = await createBoard(request, token, userId, organizationId, { name: `Filter Board ${Date.now()}` })
+    const boardName = `Filter Board ${Date.now()}`
+    const board = await createBoard(request, token, userId, organizationId, { name: boardName })
     createdBoardIds.push(board.id)
 
     const task1 = await createTask(request, token, board.id, { name: 'UniqueTaskAlpha' })
@@ -69,6 +70,11 @@ test.describe('Boards / Kanban', () => {
 
     // Refresh
     await page.reload()
+    await page.waitForLoadState('networkidle')
+
+    // Select the newly created board
+    const boardSelector = page.locator('select').or(page.getByRole('combobox'))
+    await boardSelector.selectOption({ label: new RegExp(boardName) })
 
     // Search for first task
     await page.getByPlaceholder(/search tasks/i).fill('Alpha')
@@ -80,10 +86,16 @@ test.describe('Boards / Kanban', () => {
 
   test('create task via modal', async ({ page, request }) => {
     // First create a board
-    const board = await createBoard(request, token, userId, organizationId, { name: `Task Board ${Date.now()}` })
+    const boardName = `Task Board ${Date.now()}`
+    const board = await createBoard(request, token, userId, organizationId, { name: boardName })
     createdBoardIds.push(board.id)
 
     await page.reload()
+    await page.waitForLoadState('networkidle')
+
+    // Select the newly created board
+    const boardSelector = page.locator('select').or(page.getByRole('combobox'))
+    await boardSelector.selectOption({ label: new RegExp(boardName) })
 
     // Click new task
     await page.getByRole('button', { name: /new task/i }).click()
@@ -106,23 +118,34 @@ test.describe('Boards / Kanban', () => {
   })
 
   test('task card is visible in kanban', async ({ page, request }) => {
-    const board = await createBoard(request, token, userId, organizationId, { name: `Card Board ${Date.now()}` })
+    const boardName = `Card Board ${Date.now()}`
+    const board = await createBoard(request, token, userId, organizationId, { name: boardName })
     createdBoardIds.push(board.id)
 
+    const taskName = `Visible Task ${Date.now()}`
     const task = await createTask(request, token, board.id, {
-      name: `Visible Task ${Date.now()}`,
+      name: taskName,
       status: 'inbox',
     })
     createdTaskIds.push(task.id)
 
     await page.reload()
 
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('networkidle')
+
+    // Select the newly created board explicitly
+    const boardSelector = page.locator('select').or(page.getByRole('combobox'))
+    await expect(boardSelector).toBeVisible({ timeout: 5000 })
+    await boardSelector.selectOption({ label: new RegExp(boardName) })
+
     // Task should be visible
-    await expect(page.getByText(task.name)).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(taskName)).toBeVisible({ timeout: 5000 })
   })
 
   test('delete task', async ({ page, request }) => {
-    const board = await createBoard(request, token, userId, organizationId, { name: `Delete Task Board ${Date.now()}` })
+    const boardName = `Delete Task Board ${Date.now()}`
+    const board = await createBoard(request, token, userId, organizationId, { name: boardName })
     createdBoardIds.push(board.id)
 
     const task = await createTask(request, token, board.id, {
@@ -130,6 +153,12 @@ test.describe('Boards / Kanban', () => {
     })
 
     await page.reload()
+    await page.waitForLoadState('networkidle')
+
+    // Select the newly created board
+    const boardSelector = page.locator('select').or(page.getByRole('combobox'))
+    await boardSelector.selectOption({ label: new RegExp(boardName) })
+
     await expect(page.getByText(task.name)).toBeVisible({ timeout: 5000 })
 
     // Click on task to show actions
@@ -147,7 +176,8 @@ test.describe('Boards / Kanban', () => {
   })
 
   test('status filter works', async ({ page, request }) => {
-    const board = await createBoard(request, token, userId, organizationId, { name: `Status Filter Board ${Date.now()}` })
+    const boardName = `Status Filter Board ${Date.now()}`
+    const board = await createBoard(request, token, userId, organizationId, { name: boardName })
     createdBoardIds.push(board.id)
 
     const inboxTask = await createTask(request, token, board.id, {
@@ -161,6 +191,11 @@ test.describe('Boards / Kanban', () => {
     createdTaskIds.push(inboxTask.id, doneTask.id)
 
     await page.reload()
+    await page.waitForLoadState('networkidle')
+
+    // Select the newly created board
+    const boardSelector = page.locator('select').or(page.getByRole('combobox'))
+    await boardSelector.selectOption({ label: new RegExp(boardName) })
 
     // Open status filter
     await page.getByRole('button', { name: /^status$/i }).click()
@@ -182,7 +217,7 @@ test.describe('Boards / Kanban', () => {
   })
 
   test('shows empty state or kanban when no boards', async ({ page }) => {
-    // The kanban structure should always be visible
-    await expect(page.locator('.kanban-columns, .kanban-board')).toBeVisible()
+    // The kanban columns structure should always be visible
+    await expect(page.locator('.kanban-columns')).toBeVisible()
   })
 })

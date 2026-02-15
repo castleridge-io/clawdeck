@@ -19,6 +19,7 @@ RUN corepack enable && corepack prepare yarn@4.9.1 --activate
 # Copy workspace root files with proper ownership
 COPY --chown=nodejs:nodejs package.json yarn.lock .yarnrc.yml ./
 COPY --chown=nodejs:nodejs nodejs/package.json ./nodejs/
+COPY --chown=nodejs:nodejs shared/package.json ./shared/
 
 # Switch to non-root user before install
 USER nodejs
@@ -28,6 +29,7 @@ RUN yarn install && yarn cache clean
 
 # Copy API source with proper ownership
 COPY --chown=nodejs:nodejs nodejs ./nodejs
+COPY --chown=nodejs:nodejs shared ./shared
 
 WORKDIR /app/nodejs
 
