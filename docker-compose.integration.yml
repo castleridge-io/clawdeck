@@ -3,22 +3,6 @@
 version: "3.8"
 
 services:
-  migrate:
-    image: node:20-alpine
-    container_name: clawdeck-migrate-integration
-    working_dir: /nodejs
-    volumes:
-      - ./prisma:/nodejs/prisma
-      - .env.integration:/nodejs/.env.integration
-      - ./nodejs/tests:/nodejs/tests
-    command: sh -c 'sleep 5 && npx prisma migrate deploy --schema=prisma/schema.prisma'
-    environment:
-      DATABASE_URL: postgresql://clawdeck:clawdeck_integration@postgres-integration:5432/clawdeck_integration_test
-      POSTGRES_DB: clawdeck_integration_test
-    depends_on:
-      postgres-integration:
-        condition: service_healthy
-
   postgres-integration:
     image: postgres:16-alpine
     container_name: clawdeck-postgres-integration
@@ -36,3 +20,16 @@ services:
       retries: 5
     tmpfs:
       - /var/lib/postgresql/data
+
+  migrate:
+    image: node:20-alpine
+    container_name: clawdeck-migrate-integration
+    working_dir: /app
+    volumes:
+      - ./nodejs/prisma:/app/prisma
+    command: sh -c 'npm install -g prisma@^6.0.0 && prisma migrate deploy'
+    environment:
+      DATABASE_URL: postgresql://clawdeck:clawdeck_integration@postgres-integration:5432/clawdeck_integration_test
+    depends_on:
+      postgres-integration:
+        condition: service_healthy

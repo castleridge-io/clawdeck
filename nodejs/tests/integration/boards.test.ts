@@ -1,47 +1,34 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert'
 import { prisma } from '../../src/db/prisma.js'
+import { createTestOrganization, createTestUser, createTestBoard, createTestApiToken, cleanupTestData } from '../test-setup.ts'
 
 // Test utilities
 let testUser
 let testToken
 
 async function setupTestEnvironment () {
+  // Create test organization
+  const testOrg = await createTestOrganization()
+
   // Create test user
-  testUser = await prisma.user.create({
-    data: {
-      emailAddress: `boards-test-${Date.now()}@example.com`,
-      passwordDigest: 'hash',
-      agentAutoMode: true,
-      agentName: 'TestAgent',
-    },
+  testUser = await createTestUser(testOrg.id, {
+    emailAddress: `boards-test-${Date.now()}@example.com`,
   })
 
   // Create test API token
   testToken = `cd_board_test_${Date.now()}_${Math.random().toString(36).substring(7)}`
-  await prisma.apiToken.create({
-    data: {
-      token: testToken,
-      name: 'Board Test Token',
-      userId: testUser.id,
-    },
+  await createTestApiToken(testUser.id, {
+    token,
+    name: 'Board Test Token',
   })
 
   // Create test board
-  await prisma.board.create({
-    data: {
-      name: 'Test Board',
-      userId: testUser.id,
-      position: 0,
-    },
-  })
+  await createTestBoard(testUser.id, testOrg.id)
 }
 
 async function cleanupTestEnvironment () {
-  await prisma.board.deleteMany({})
-  await prisma.agent.deleteMany({})
-  await prisma.apiToken.deleteMany({})
-  await prisma.user.deleteMany({})
+  await cleanupTestData()
 }
 
 async function makeRequest (method, path, body = null) {

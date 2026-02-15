@@ -1,6 +1,7 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert'
 import { prisma } from '../../src/db/prisma.js'
+import { createTestOrganization, createTestUser, createTestBoard, createTestApiToken, cleanupTestData } from '../test-setup.ts'
 
 // Test utilities
 let testUser
@@ -8,44 +9,27 @@ let testBoard
 let testToken
 
 async function setupTestEnvironment () {
+  // Create test organization
+  const testOrg = await createTestOrganization()
+
   // Create test user
-  testUser = await prisma.user.create({
-    data: {
-      emailAddress: `test-${Date.now()}@example.com`,
-      passwordDigest: 'hash',
-      agentAutoMode: true,
-      agentName: 'TestAgent',
-      agentEmoji: '🤖',
-    },
+  testUser = await createTestUser(testOrg.id, {
+    agentEmoji: '🤖',
   })
 
   // Create test API token
   testToken = `cd_test_${Date.now()}_${Math.random().toString(36).substring(7)}`
-  await prisma.apiToken.create({
-    data: {
-      token: testToken,
-      name: 'Test Token',
-      userId: testUser.id,
-    },
+  await createTestApiToken(testUser.id, {
+    token,
+    name: 'Test Token',
   })
 
   // Create test board
-  testBoard = await prisma.board.create({
-    data: {
-      name: 'Test Board',
-      userId: testUser.id,
-      position: 0,
-    },
-  })
+  testBoard = await createTestBoard(testUser.id, testOrg.id)
 }
 
 async function cleanupTestEnvironment () {
-  // Clean up in reverse order of dependencies
-  await prisma.taskActivity.deleteMany({})
-  await prisma.task.deleteMany({})
-  await prisma.board.deleteMany({})
-  await prisma.apiToken.deleteMany({})
-  await prisma.user.deleteMany({})
+  await cleanupTestData()
 }
 
 async function makeRequest (method, path, body = null, headers = {}) {

@@ -8,6 +8,14 @@ let testBoard
 let testToken
 
 async function setupTestEnvironment () {
+  // Create test organization
+  const testOrg = await prisma.organization.create({
+    data: {
+      name: 'Test Organization',
+      slug: `test-org-${Date.now()}`,
+    },
+  })
+
   // Create test user
   testUser = await prisma.user.create({
     data: {
@@ -16,6 +24,7 @@ async function setupTestEnvironment () {
       agentAutoMode: true,
       agentName: 'TestAgent',
       agentEmoji: '🤖',
+      currentOrganizationId: testOrg.id,
     },
   })
 
@@ -34,6 +43,7 @@ async function setupTestEnvironment () {
     data: {
       name: 'Test Board',
       userId: testUser.id,
+      organizationId: testOrg.id,
       position: 0,
     },
   })
@@ -50,6 +60,7 @@ async function cleanupTestEnvironment () {
   await prisma.board.deleteMany({})
   await prisma.apiToken.deleteMany({})
   await prisma.user.deleteMany({})
+  await prisma.organization.deleteMany({})
 }
 
 async function makeRequest (method, path, body = null, headers = {}) {

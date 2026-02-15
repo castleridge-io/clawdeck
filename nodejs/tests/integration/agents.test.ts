@@ -1,62 +1,49 @@
 import { describe, it, before, after, beforeEach } from 'node:test'
 import assert from 'node:assert'
 import { prisma } from '../../src/db/prisma.js'
+import { createTestOrganization, createTestUser, createTestAgent, createTestApiToken, cleanupTestData } from '../test-setup.ts'
 
 // Test utilities
 let testUser
 let adminUser
 let testToken
 let adminToken
+let testOrg
 
 async function setupTestEnvironment () {
+  // Create test organization
+  testOrg = await createTestOrganization()
+
   // Create regular test user
-  testUser = await prisma.user.create({
-    data: {
-      emailAddress: `agents-test-${Date.now()}@example.com`,
-      passwordDigest: 'hash',
-      agentAutoMode: true,
-      agentName: 'TestAgent',
-    },
+  testUser = await createTestUser(testOrg.id, {
+    emailAddress: `agents-test-${Date.now()}@example.com`,
+    agentName: 'TestAgent',
   })
 
   // Create admin user
-  adminUser = await prisma.user.create({
-    data: {
-      emailAddress: `agents-admin-${Date.now()}@example.com`,
-      passwordDigest: 'hash',
-      admin: true,
-      agentAutoMode: true,
-      agentName: 'AdminAgent',
-    },
+  adminUser = await createTestUser(testOrg.id, {
+    emailAddress: `agents-admin-${Date.now()}@example.com`,
+    admin: true,
+    agentName: 'AdminAgent',
   })
 
   // Create test API token for regular user
   testToken = `cd_agents_test_${Date.now()}_${Math.random().toString(36).substring(7)}`
-  await prisma.apiToken.create({
-    data: {
-      token: testToken,
-      name: 'Agents Test Token',
-      userId: testUser.id,
-    },
+  await createTestApiToken(testUser.id, {
+    token,
+    name: 'Agents Test Token',
   })
 
   // Create API token for admin user
   adminToken = `cd_agents_admin_${Date.now()}_${Math.random().toString(36).substring(7)}`
-  await prisma.apiToken.create({
-    data: {
-      token: adminToken,
-      name: 'Agents Admin Token',
-      userId: adminUser.id,
-    },
+  await createTestApiToken(adminUser.id, {
+    token: adminToken,
+    name: 'Agents Admin Token',
   })
 }
 
 async function cleanupTestEnvironment () {
-  // Clean up in correct order (agents first due to FK)
-  await prisma.agent.deleteMany({})
-  await prisma.board.deleteMany({})
-  await prisma.apiToken.deleteMany({})
-  await prisma.user.deleteMany({})
+  await cleanupTestData()
 }
 
 async function makeRequest (method, path, body = null, token = null) {
@@ -125,7 +112,7 @@ describe('Agents API', () => {
 
     it('should return list of active agents', async () => {
       // Create test agents directly in DB
-      await prisma.agent.create({
+      await createTestAgent(testOrg.id, 
         data: {
           name: 'Jarvis Leader',
           slug: 'jarvis-leader',
@@ -134,7 +121,7 @@ describe('Agents API', () => {
           isActive: true,
         },
       })
-      await prisma.agent.create({
+      await createTestAgent(testOrg.id, 
         data: {
           name: 'Dave Engineer',
           slug: 'dave-engineer',
@@ -162,7 +149,7 @@ describe('Agents API', () => {
 
     it('should not return inactive agents by default', async () => {
       // Create active and inactive agents
-      await prisma.agent.create({
+      await createTestAgent(testOrg.id, 
         data: {
           name: 'Active Agent',
           slug: 'active-agent',
@@ -171,7 +158,7 @@ describe('Agents API', () => {
           isActive: true,
         },
       })
-      await prisma.agent.create({
+      await createTestAgent(testOrg.id, 
         data: {
           name: 'Inactive Agent',
           slug: 'inactive-agent',
@@ -197,7 +184,7 @@ describe('Agents API', () => {
 
   describe('GET /api/v1/agents/:uuid', () => {
     it('should return single agent by UUID', async () => {
-      const agent = await prisma.agent.create({
+      const agent = await createTestAgent(testOrg.id, 
         data: {
           name: 'Test Agent',
           slug: 'test-agent',
@@ -222,7 +209,7 @@ describe('Agents API', () => {
     })
 
     it('should not return inactive agent', async () => {
-      const agent = await prisma.agent.create({
+      const agent = await createTestAgent(testOrg.id, 
         data: {
           name: 'Inactive Agent',
           slug: 'inactive-agent',
@@ -304,7 +291,7 @@ describe('Agents API', () => {
     })
 
     it('should reject duplicate name', async () => {
-      await prisma.agent.create({
+      await createTestAgent(testOrg.id, 
         data: {
           name: 'Duplicate Name',
           slug: 'duplicate-name',
@@ -327,7 +314,7 @@ describe('Agents API', () => {
     })
 
     it('should reject duplicate slug', async () => {
-      await prisma.agent.create({
+      await createTestAgent(testOrg.id, 
         data: {
           name: 'Original Name',
           slug: 'duplicate-slug',
@@ -449,7 +436,7 @@ describe('Agents API', () => {
 
     it('should reject duplicate UUID', async () => {
       const uuid = 'c3d4e5f6-a7b8-9012-cdef-345678901234'
-      await prisma.agent.create({
+      await createTestAgent(testOrg.id, 
         data: {
           uuid,
           name: 'First Agent',
@@ -477,7 +464,7 @@ describe('Agents API', () => {
 
   describe('PATCH /api/v1/agents/:uuid', () => {
     it('should update agent (admin only)', async () => {
-      const agent = await prisma.agent.create({
+      const agent = await createTestAgent(testOrg.id, 
         data: {
           name: 'Agent to Update',
           slug: 'agent-to-update',
@@ -507,7 +494,7 @@ describe('Agents API', () => {
     })
 
     it('should require admin role', async () => {
-      const agent = await prisma.agent.create({
+      const agent = await createTestAgent(testOrg.id, 
         data: {
           name: 'Protected Agent',
           slug: 'protected-agent',
@@ -542,7 +529,7 @@ describe('Agents API', () => {
     })
 
     it('should allow updating position', async () => {
-      const agent = await prisma.agent.create({
+      const agent = await createTestAgent(testOrg.id, 
         data: {
           name: 'Position Agent',
           slug: 'position-agent',
@@ -566,7 +553,7 @@ describe('Agents API', () => {
     })
 
     it('should reject duplicate name on update', async () => {
-      await prisma.agent.create({
+      await createTestAgent(testOrg.id, 
         data: {
           name: 'Existing Name',
           slug: 'existing-name',
@@ -575,7 +562,7 @@ describe('Agents API', () => {
         },
       })
 
-      const agent = await prisma.agent.create({
+      const agent = await createTestAgent(testOrg.id, 
         data: {
           name: 'Original Name',
           slug: 'original-name',
@@ -599,7 +586,7 @@ describe('Agents API', () => {
 
   describe('DELETE /api/v1/agents/:uuid', () => {
     it('should soft delete agent (admin only)', async () => {
-      const agent = await prisma.agent.create({
+      const agent = await createTestAgent(testOrg.id, 
         data: {
           name: 'Agent to Delete',
           slug: 'agent-to-delete',
@@ -621,7 +608,7 @@ describe('Agents API', () => {
     })
 
     it('should require admin role', async () => {
-      const agent = await prisma.agent.create({
+      const agent = await createTestAgent(testOrg.id, 
         data: {
           name: 'Protected Agent',
           slug: 'protected-delete-agent',
@@ -653,7 +640,7 @@ describe('Agents API', () => {
     })
 
     it('should return 404 for already deleted agent', async () => {
-      const agent = await prisma.agent.create({
+      const agent = await createTestAgent(testOrg.id, 
         data: {
           name: 'Already Deleted',
           slug: 'already-deleted',
@@ -671,7 +658,7 @@ describe('Agents API', () => {
 
   describe('Board association', () => {
     it('should include agent info when fetching board', async () => {
-      const agent = await prisma.agent.create({
+      const agent = await createTestAgent(testOrg.id, 
         data: {
           name: 'Board Agent',
           slug: 'board-agent',

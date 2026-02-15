@@ -1,61 +1,46 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert'
 import { prisma } from '../../src/db/prisma.js'
+import { createTestOrganization, createTestUser, createTestBoard, cleanupTestData } from '../test-setup.ts'
 
 // Test utilities
 let testUser1
 let testUser2
 
 async function setupTestEnvironment () {
+  // Create test organization
+  const testOrg = await createTestOrganization()
+
   // Create test users
-  testUser1 = await prisma.user.create({
-    data: {
-      emailAddress: `admin-test-user1-${Date.now()}@example.com`,
-      passwordDigest: 'hash',
-      agentAutoMode: true,
-      agentName: 'TestAgent1',
-      agentEmoji: '🤖',
-    },
+  testUser1 = await createTestUser(testOrg.id, {
+    emailAddress: `admin-test-user1-${Date.now()}@example.com`,
+    agentName: 'TestAgent1',
+    agentEmoji: '🤖',
   })
 
-  testUser2 = await prisma.user.create({
-    data: {
-      emailAddress: `admin-test-user2-${Date.now()}@example.com`,
-      passwordDigest: 'hash',
-      agentAutoMode: false,
-      agentName: null,
-      agentEmoji: null,
-    },
+  testUser2 = await createTestUser(testOrg.id, {
+    emailAddress: `admin-test-user2-${Date.now()}@example.com`,
+    agentAutoMode: false,
+    agentName: null,
+    agentEmoji: null,
   })
 
   // Create test boards
-  await prisma.board.create({
-    data: {
-      name: 'User 1 Board',
-      icon: '📋',
-      color: 'blue',
-      userId: testUser1.id,
-      position: 0,
-    },
+  await createTestBoard(testUser1.id, testOrg.id, {
+    name: 'User 1 Board',
+    icon: '📋',
+    color: 'blue',
   })
 
-  await prisma.board.create({
-    data: {
-      name: 'User 2 Board',
-      icon: '📝',
-      color: 'green',
-      userId: testUser2.id,
-      position: 0,
-    },
+  await createTestBoard(testUser2.id, testOrg.id, {
+    name: 'User 2 Board',
+    icon: '📝',
+    color: 'green',
   })
-
-  // Test tasks are optional - boards are sufficient for testing
 }
 
 async function cleanupTestEnvironment () {
-  await prisma.task.deleteMany({})
-  await prisma.board.deleteMany({})
-  await prisma.user.deleteMany({})
+  await cleanupTestData()
 }
 
 describe('Admin Service', () => {
