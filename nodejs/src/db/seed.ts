@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, MembershipRole } from '@prisma/client'
 import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
@@ -69,7 +69,7 @@ async function seed (): Promise<void> {
     create: {
       userId: devUser.id,
       organizationId: organization.id,
-      role: 'owner',
+      role: MembershipRole.owner,
       joinedAt: new Date(),
     },
   })
@@ -103,7 +103,7 @@ async function seed (): Promise<void> {
     create: {
       userId: user.id,
       organizationId: organization.id,
-      role: 'owner',
+      role: MembershipRole.owner,
       joinedAt: new Date(),
     },
   })
