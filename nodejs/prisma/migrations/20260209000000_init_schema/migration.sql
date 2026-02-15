@@ -16,6 +16,11 @@ CREATE TABLE IF NOT EXISTS _prisma_migrations (
 CREATE INDEX IF NOT EXISTS _prisma_migrations_idx ON _prisma_migrations(migration_name);
 
 -- Enums matching Rails enums
+-- Drop and recreate to ensure clean state in CI
+DROP TYPE IF EXISTS "TaskStatus" CASCADE;
+DROP TYPE IF EXISTS "Priority" CASCADE;
+DROP TYPE IF EXISTS "MembershipRole" CASCADE;
+
 CREATE TYPE "TaskStatus" AS ENUM ('inbox', 'up_next', 'in_progress', 'in_review', 'done');
 CREATE TYPE "Priority" AS ENUM ('none', 'low', 'medium', 'high');
 CREATE TYPE "MembershipRole" AS ENUM ('owner', 'admin', 'member', 'viewer');
