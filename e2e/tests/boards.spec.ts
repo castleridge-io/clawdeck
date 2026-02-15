@@ -95,7 +95,7 @@ test.describe('Boards / Kanban', () => {
     await page.waitForLoadState('networkidle')
 
     // Select the newly created board by value (id)
-    // Use first() because there are multiple selects (org + board)
+    // Use nth(1) because there are multiple selects (org + board)
     const boardSelector = page.locator('select').nth(1)
     await boardSelector.selectOption(board.id)
 
@@ -107,18 +107,16 @@ test.describe('Boards / Kanban', () => {
     await expect(newTaskButton).toBeEnabled()
     await newTaskButton.click()
 
-    // Wait for modal and fill task form
-    await expect(page.getByRole('heading', { name: /new task|create task/i })).toBeVisible()
+    // Wait for modal to appear
+    await expect(page.getByRole('heading', { name: /new task/i })).toBeVisible()
 
+    // Fill task form using correct IDs
     const taskName = `New Task ${Date.now()}`
-    await page.locator('input[name="name"]').fill(taskName)
-    await page.locator('textarea[name="description"]').fill('Task description')
+    await page.locator('#task-name').fill(taskName)
+    await page.locator('#task-description').fill('Task description')
 
-    // Save
-    await page
-      .getByRole('button', { name: /save|create/i })
-      .first()
-      .click()
+    // Save - use the modal's save button
+    await page.locator('.modal-body button[type="submit"]').click()
 
     // Should show in kanban
     await expect(page.getByText(taskName)).toBeVisible({ timeout: 10000 })

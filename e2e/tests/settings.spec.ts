@@ -9,10 +9,8 @@ test.describe('Settings', () => {
   })
 
   test('displays settings page', async ({ page }) => {
-    // Check for settings-related content
-    await expect(
-      page.getByRole('heading', { name: /settings/i }).or(page.getByText(/settings/i).first())
-    ).toBeVisible({ timeout: 5000 })
+    // Check for settings heading
+    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible({ timeout: 5000 })
   })
 
   test('shows user profile section', async ({ page }) => {
