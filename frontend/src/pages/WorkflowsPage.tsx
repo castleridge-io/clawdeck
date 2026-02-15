@@ -186,8 +186,10 @@ export default function WorkflowsPage () {
               </div>
 
               <div>
-                <label className='block text-sm text-slate-400 mb-1'>Description</label>
+                <label htmlFor='description' className='block text-sm text-slate-400 mb-1'>Description</label>
                 <textarea
+                  id='description'
+                  name='description'
                   value={editingWorkflow.description}
                   onChange={(e) =>
                     setEditingWorkflow({ ...editingWorkflow, description: e.target.value })}

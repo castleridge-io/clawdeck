@@ -48,6 +48,12 @@ export function createRunService () {
       // Generate run ID if not provided
       const runId = data.id ?? `run-${Date.now()}-${Math.random().toString(36).substring(7)}`
 
+      // Merge task into context if not already present
+      const runContext = {
+        task,
+        ...context,
+      }
+
       // Create the run
       const run = await prisma.run.create({
         data: {
@@ -56,7 +62,7 @@ export function createRunService () {
           taskId: taskId?.toString(),
           task,
           status: 'running',
-          context: JSON.stringify(context),
+          context: JSON.stringify(runContext),
           notifyUrl,
         },
       })

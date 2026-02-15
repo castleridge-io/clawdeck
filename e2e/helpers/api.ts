@@ -499,7 +499,8 @@ export async function claimStepByAgent (
   }
 
   const result = await response.json()
-  return result.data
+  // If data is null (no work found), return { found: false }
+  return result.data ?? { found: false }
 }
 
 /**

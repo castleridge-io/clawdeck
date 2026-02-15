@@ -41,11 +41,11 @@ export default function LoginPage () {
 
   async function handleDevLogin () {
     setEmail('admin')
-    setPassword('changeme')
+    setPassword('admin')
     setError(null)
     setLoading(true)
 
-    const result = await login('admin', 'changeme')
+    const result = await login('admin', 'admin')
 
     if (result.success) {
       navigate(from, { replace: true })

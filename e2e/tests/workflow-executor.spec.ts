@@ -408,13 +408,14 @@ test.describe('Workflow Executor', () => {
   test.describe('Agent API (Phase 3)', () => {
     test('should claim step by agent without knowing runId', async ({ request }) => {
       // #given: Create workflow with specific agent
+      const uniqueAgentId = `test-planner-agent-${Date.now()}`
       const workflow = await createWorkflow(request, token, {
         name: `Agent Claim Test ${Date.now()}`,
         description: 'Test agent claiming work',
         steps: [
           {
             stepId: 'plan',
-            agentId: 'test-planner-agent',
+            agentId: uniqueAgentId,
             inputTemplate: 'Plan: {{task}}',
             expects: 'STATUS: done',
             type: 'single',
@@ -429,8 +430,14 @@ test.describe('Workflow Executor', () => {
       })
       createdRunIds.push(run.id)
 
+      // Set run to running so steps become claimable
+      await request.patch(`${process.env.API_URL || 'http://localhost:4333'}/api/v1/runs/${run.id}/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { status: 'running' },
+      })
+
       // #when: Agent claims work by agent_id (no runId needed)
-      const claimedStep = await claimStepByAgent(request, token, 'test-planner-agent')
+      const claimedStep = await claimStepByAgent(request, token, uniqueAgentId)
 
       // #then: Should find and claim the step
       expect(claimedStep.found).toBe(true)
@@ -449,20 +456,21 @@ test.describe('Workflow Executor', () => {
 
     test('should complete step with pipeline and merge context', async ({ request }) => {
       // #given: Create workflow with two steps
+      const uniqueAgentId = `pipeline-planner-${Date.now()}`
       const workflow = await createWorkflow(request, token, {
         name: `Pipeline Test ${Date.now()}`,
         description: 'Test pipeline completion',
         steps: [
           {
             stepId: 'plan',
-            agentId: 'pipeline-planner',
+            agentId: uniqueAgentId,
             inputTemplate: 'Plan: {{task}}',
             expects: 'STATUS: done',
             type: 'single',
           },
           {
             stepId: 'develop',
-            agentId: 'pipeline-developer',
+            agentId: `pipeline-developer-${Date.now()}`,
             inputTemplate: 'Develop: {{task}} Branch: {{branch}}',
             expects: 'STATUS: done',
             type: 'single',
@@ -477,8 +485,14 @@ test.describe('Workflow Executor', () => {
       })
       createdRunIds.push(run.id)
 
+      // Set run to running so steps become claimable
+      await request.patch(`${process.env.API_URL || 'http://localhost:4333'}/api/v1/runs/${run.id}/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { status: 'running' },
+      })
+
       // #when: Agent claims work
-      const claimedStep = await claimStepByAgent(request, token, 'pipeline-planner')
+      const claimedStep = await claimStepByAgent(request, token, uniqueAgentId)
       expect(claimedStep.found).toBe(true)
 
       // #when: Complete with pipeline (merges context)

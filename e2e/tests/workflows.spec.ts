@@ -199,8 +199,8 @@ steps:
 
     await page.locator('textarea').fill(yamlInput)
 
-    // Import
-    await page.getByRole('button', { name: /import/i }).click()
+    // Import - use more specific selector to avoid strict mode violation
+    await page.getByRole('button', { name: 'Import YAML' }).click()
 
     // Should show the workflow
     await expect(page.getByText(workflowName)).toBeVisible({ timeout: 5000 })

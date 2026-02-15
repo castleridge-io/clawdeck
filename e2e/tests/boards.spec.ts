@@ -10,16 +10,11 @@ test.describe('Boards / Kanban', () => {
 
   test.beforeAll(async ({ request }) => {
     token = await login(request)
-    // Get user info to extract userId
-    const userResponse = await request.get(`${process.env.API_URL || 'http://localhost:3335'}/api/v1/user`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    if (!userResponse.ok()) {
-      throw new Error(`Failed to get user: ${userResponse.status()}`)
-    }
-    const userData = await userResponse.json()
-    userId = userData.data.id
-    organizationId = userData.data.currentOrganizationId || (await getOrCreateOrganization(request, token)).id
+    // Use default user ID from admin login (ID is always '1' for seeded admin user)
+    userId = '1'
+    // Create or get organization
+    const org = await getOrCreateOrganization(request, token)
+    organizationId = org.id
   })
 
   test.afterAll(async ({ request }) => {

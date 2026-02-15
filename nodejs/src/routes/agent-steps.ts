@@ -56,6 +56,7 @@ export async function agentStepsRoutes(
       return {
         success: true,
         data: {
+          found: true,
           step_id: result.stepId,
           run_id: result.runId,
           resolved_input: result.resolvedInput,
